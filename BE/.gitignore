@@ -1,0 +1,8 @@
+# Rahasia: jangan pernah di-commit
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
+
+# Hasil build
+bin/
+obj/

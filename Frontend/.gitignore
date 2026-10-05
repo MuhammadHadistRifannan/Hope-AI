@@ -1,0 +1,30 @@
+# Rahasia: jangan pernah di-commit
+.env*
+!.env.example
+appsettings.json
+appsettings.*.json
+!appsettings.example.json
+
+# Hasil build dan dependensi
+node_modules/
+dist/
+dist-ssr/
+bin/
+obj/
+*.local
+
+# Supabase CLI
+supabase/.temp/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.sw?

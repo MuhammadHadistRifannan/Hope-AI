@@ -1,0 +1,1331 @@
+import { API_URL, authHeaders } from "@/lib/api";
+import { useState, useRef, useEffect } from "react";
+import {
+  BookOpen,
+  Volume2,
+  Type,
+  FileText,
+  ChevronRight,
+  ArrowLeft,
+  BrainCircuit,
+  GraduationCap,
+  Trophy,
+  PlayCircle,
+  PauseCircle,
+  Upload,
+  Loader2,
+  Sparkles,
+  HandMetal,
+  Image as ImageIcon,
+  Video,
+  Languages,
+  Share2,
+  Download,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion, AnimatePresence } from "framer-motion";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
+
+// --- DATA MATERI UMUM (DIPERBANYAK) ---
+const learningPath = {
+  mudah: {
+    title: "Tingkat Dasar",
+    description: "Fondasi awal untuk pemula. Pelajari konsep-konsep sederhana.",
+    icon: <BookOpen className="w-12 h-12 text-green-500" />,
+    color: "bg-green-100 text-green-700",
+    chapters: [
+      {
+        id: "m1",
+        title: "Bab 1: Pengenalan Angka",
+        content:
+          "Angka adalah simbol yang digunakan untuk mewakili bilangan. Dalam matematika dasar, kita mengenal angka 0 hingga 9 sebagai digit dasar. Kombinasi digit ini membentuk bilangan yang lebih besar.",
+      },
+      {
+        id: "m2",
+        title: "Bab 2: Penjumlahan Sederhana",
+        content:
+          "Penjumlahan adalah proses menggabungkan dua kelompok benda atau angka menjadi satu. Tanda tambah (+) digunakan untuk menunjukkan penjumlahan. Misalnya, 2 apel + 1 apel = 3 apel.",
+      },
+      {
+        id: "m3",
+        title: "Bab 3: Mengenal Warna Dasar",
+        content:
+          "Warna dasar atau primer adalah warna utama yang tidak bisa dibuat dari campuran warna lain. Tiga warna dasar adalah Merah, Kuning, dan Biru. Mencampur warna ini akan menghasilkan warna baru seperti Hijau atau Ungu.",
+      },
+      {
+        id: "m4",
+        title: "Bab 4: Mengenal Huruf Vokal",
+        content:
+          "Dalam abjad, terdapat huruf vokal dan konsonan. Huruf vokal terdiri dari A, I, U, E, dan O. Huruf-huruf ini sangat penting karena memberikan bunyi pada setiap kata yang kita ucapkan.",
+      },
+      {
+        id: "m5",
+        title: "Bab 5: Bagian Tubuh Kita",
+        content:
+          "Tubuh manusia terdiri dari berbagai bagian yang memiliki fungsi khusus. Mata untuk melihat, telinga untuk mendengar, hidung untuk mencium bau, dan kulit untuk meraba. Menjaga kebersihan tubuh sangat penting untuk kesehatan.",
+      },
+      {
+        id: "m6",
+        title: "Bab 6: Hewan di Sekitar Kita",
+        content:
+          "Hewan dapat dibagi menjadi hewan peliharaan dan hewan liar. Kucing dan anjing adalah contoh hewan peliharaan. Singa dan gajah adalah hewan liar. Setiap hewan memiliki cara bergerak yang berbeda, ada yang berjalan, terbang, atau berenang.",
+      },
+      {
+        id: "m7",
+        title: "Bab 7: Siang dan Malam",
+        content:
+          "Bumi berputar pada porosnya menyebabkan terjadinya siang dan malam. Saat bagian Bumi menghadap Matahari, kita mengalami siang. Saat membelakangi Matahari, kita mengalami malam yang gelap dan bisa melihat Bulan.",
+      },
+      {
+        id: "m8",
+        title: "Bab 8: Pentingnya Air",
+        content:
+          "Air adalah sumber kehidupan. Manusia, hewan, dan tumbuhan membutuhkan air untuk bertahan hidup. Kita menggunakan air untuk minum, mandi, dan mencuci. Kita harus hemat air dan tidak boleh membuang sampah ke sungai.",
+      },
+      {
+        id: "m9",
+        title: "Bab 9: Mengenal Bentuk Geometri",
+        content:
+          "Benda-benda di sekitar kita memiliki bentuk. Ada lingkaran seperti bola, persegi seperti jendela, dan segitiga seperti potongan pizza. Mengenal bentuk membantu kita menggambar dan memahami ruang.",
+      },
+      {
+        id: "m10",
+        title: "Bab 10: Keluarga Inti",
+        content:
+          "Keluarga inti terdiri dari Ayah, Ibu, dan Anak. Setiap anggota keluarga memiliki peran. Kita harus saling menyayangi dan menghormati orang tua serta rukun dengan saudara.",
+      },
+      {
+        id: "m11",
+        title: "Bab 11: Arah Mata Angin",
+        content:
+          "Untuk mengetahui arah, kita menggunakan mata angin. Empat arah utama adalah Utara, Selatan, Timur (tempat matahari terbit), dan Barat (tempat matahari terbenam).",
+      },
+    ],
+  },
+  menengah: {
+    title: "Tingkat Menengah",
+    description:
+      "Tantangan lebih lanjut. Mulai memahami hubungan antar konsep.",
+    icon: <GraduationCap className="w-12 h-12 text-yellow-500" />,
+    color: "bg-yellow-100 text-yellow-700",
+    chapters: [
+      {
+        id: "t1",
+        title: "Bab 1: Konsep Perkalian",
+        content:
+          "Perkalian adalah penjumlahan berulang. Daripada menjumlahkan 3 + 3 + 3 + 3, kita bisa menulisnya sebagai 3 x 4. Hasilnya adalah 12. Ini membantu menghitung jumlah benda dalam kelompok yang sama dengan cepat.",
+      },
+      {
+        id: "t2",
+        title: "Bab 2: Siklus Air (Hidrologi)",
+        content:
+          "Air di Bumi tidak pernah habis karena siklus air. Air laut menguap menjadi awan (evaporasi), awan menjadi berat dan turun sebagai hujan (presipitasi), lalu air mengalir kembali ke laut. Proses ini terus berulang.",
+      },
+      {
+        id: "t3",
+        title: "Bab 3: Sistem Tata Surya",
+        content:
+          "Bumi adalah salah satu planet yang mengelilingi Matahari. Ada 8 planet dalam tata surya kita: Merkurius, Venus, Bumi, Mars, Jupiter, Saturnus, Uranus, dan Neptunus. Matahari adalah bintang pusat tata surya.",
+      },
+      {
+        id: "t4",
+        title: "Bab 4: Fotosintesis",
+        content:
+          "Tumbuhan memasak makanannya sendiri melalui fotosintesis. Dengan bantuan sinar matahari, air, dan karbon dioksida, daun menghasilkan oksigen dan gula. Oksigen inilah yang kita hirup setiap hari.",
+      },
+      {
+        id: "t5",
+        title: "Bab 5: Struktur Kalimat (SPOK)",
+        content:
+          "Kalimat yang lengkap biasanya memiliki struktur Subjek (pelaku), Predikat (tindakan), Objek (sasaran), dan Keterangan (waktu/tempat). Contoh: 'Ibu (S) memasak (P) nasi (O) di dapur (K)'.",
+      },
+      {
+        id: "t6",
+        title: "Bab 6: Sejarah Kemerdekaan",
+        content:
+          "Kemerdekaan adalah hak segala bangsa. Mempelajari sejarah para pahlawan yang berjuang melawan penjajah mengajarkan kita tentang keberanian, pengorbanan, dan cinta tanah air.",
+      },
+      {
+        id: "t7",
+        title: "Bab 7: Peta dan Globe",
+        content:
+          "Peta adalah gambaran permukaan bumi pada bidang datar, sedangkan Globe adalah tiruan bumi berbentuk bulat. Kita belajar tentang benua, samudra, garis khatulistiwa, dan skala jarak melalui peta.",
+      },
+      {
+        id: "t8",
+        title: "Bab 8: Energi Terbarukan",
+        content:
+          "Energi terbarukan adalah energi yang tidak akan habis, seperti sinar matahari, angin, dan air. Penggunaan energi ini lebih ramah lingkungan dibandingkan bahan bakar fosil seperti minyak bumi dan batu bara.",
+      },
+      {
+        id: "t9",
+        title: "Bab 9: Rantai Makanan",
+        content:
+          "Di alam, makhluk hidup saling memakan untuk bertahan hidup. Padi dimakan tikus, tikus dimakan ular, ular dimakan elang. Ini disebut rantai makanan. Jika satu hilang, keseimbangan alam akan terganggu.",
+      },
+      {
+        id: "t10",
+        title: "Bab 10: Demokrasi dan Pemilu",
+        content:
+          "Demokrasi berarti pemerintahan dari rakyat, oleh rakyat, dan untuk rakyat. Salah satu wujudnya adalah Pemilu, di mana warga negara memilih pemimpin mereka secara bebas dan adil.",
+      },
+      {
+        id: "t11",
+        title: "Bab 11: Pecahan Sederhana",
+        content:
+          "Pecahan mewakili bagian dari keseluruhan. Jika sebuah pizza dipotong menjadi 4 bagian sama besar, satu potong adalah 1/4 (satu per empat). Angka atas disebut pembilang, angka bawah disebut penyebut.",
+      },
+    ],
+  },
+  sulit: {
+    title: "Tingkat Lanjut",
+    description: "Analisis mendalam dan konsep kompleks untuk ahli.",
+    icon: <Trophy className="w-12 h-12 text-red-500" />,
+    color: "bg-red-100 text-red-700",
+    chapters: [
+      {
+        id: "s1",
+        title: "Bab 1: Aljabar Linear",
+        content:
+          "Aljabar linear mempelajari vektor, ruang vektor, transformasi linear, dan sistem persamaan linear. Konsep ini sangat penting dalam fisika modern, grafika komputer, dan pemrosesan data.",
+      },
+      {
+        id: "s2",
+        title: "Bab 2: Teori Relativitas",
+        content:
+          "Dikemukakan oleh Einstein, teori ini menjelaskan bahwa ruang dan waktu bukanlah hal yang mutlak, melainkan relatif tergantung pada kecepatan pengamat. E=mc² adalah rumus terkenal yang menghubungkan energi dan massa.",
+      },
+      {
+        id: "s3",
+        title: "Bab 3: Genetika dan DNA",
+        content:
+          "DNA adalah cetak biru kehidupan yang membawa informasi genetik. Genetika mempelajari bagaimana sifat-sifat fisik dan biologis diwariskan dari orang tua ke anak melalui gen dan kromosom.",
+      },
+      {
+        id: "s4",
+        title: "Bab 4: Makroekonomi: Inflasi",
+        content:
+          "Inflasi adalah penurunan nilai mata uang yang menyebabkan kenaikan harga barang secara umum. Hal ini dipengaruhi oleh jumlah uang beredar, permintaan pasar, dan biaya produksi. Bank sentral mengatur suku bunga untuk mengendalikannya.",
+      },
+      {
+        id: "s5",
+        title: "Bab 5: Kecerdasan Buatan (AI)",
+        content:
+          "Artificial Intelligence adalah simulasi kecerdasan manusia oleh mesin. Ini mencakup Machine Learning, di mana komputer belajar dari data tanpa diprogram secara eksplisit. AI digunakan dalam pengenalan wajah, mobil otonom, dan asisten digital.",
+      },
+      {
+        id: "s6",
+        title: "Bab 6: Perubahan Iklim Global",
+        content:
+          "Pemanasan global disebabkan oleh efek rumah kaca akibat emisi karbon berlebih. Dampaknya mencakup mencairnya es kutub, naiknya permukaan laut, dan cuaca ekstrem. Mitigasi dan adaptasi sangat diperlukan.",
+      },
+      {
+        id: "s7",
+        title: "Bab 7: Psikologi Kognitif",
+        content:
+          "Cabang psikologi ini mempelajari proses mental internal seperti persepsi, memori, pemecahan masalah, dan bahasa. Memahami bagaimana otak memproses informasi membantu dalam pendidikan dan terapi mental.",
+      },
+      {
+        id: "s8",
+        title: "Bab 8: Hukum Termodinamika",
+        content:
+          "Hukum fisika yang mengatur energi dan panas. Hukum pertama menyatakan energi tidak dapat diciptakan atau dimusnahkan. Hukum kedua menyatakan entropi (ketidakteraturan) dalam sistem tertutup akan selalu meningkat.",
+      },
+      {
+        id: "s9",
+        title: "Bab 9: Revolusi Industri 4.0",
+        content:
+          "Era industri yang menggabungkan teknologi otomatisasi dengan pertukaran data siber. Ini mencakup Internet of Things (IoT), Cloud Computing, dan Big Data, yang mengubah cara manusia bekerja dan hidup.",
+      },
+      {
+        id: "s10",
+        title: "Bab 10: Sastra dan Simbolisme",
+        content:
+          "Dalam sastra tingkat lanjut, penulis menggunakan simbolisme untuk menyampaikan makna tersembunyi. Metafora, alegori, dan ironi digunakan untuk mengkritik sosial atau menggambarkan kondisi psikologis karakter secara mendalam.",
+      },
+      {
+        id: "s11",
+        title: "Bab 11: Manajemen Strategis",
+        content:
+          "Proses perencanaan, pemantauan, analisis, dan penilaian yang dilakukan organisasi untuk mencapai tujuan jangka panjang. Termasuk analisis SWOT (Strengths, Weaknesses, Opportunities, Threats) untuk keunggulan kompetitif.",
+      },
+    ],
+  },
+};
+
+// --- DATA BAHASA ISYARAT (ANGKA 10 DIHAPUS) ---
+const signLanguageData = {
+  abjad: [
+    {
+      id: "a",
+      title: "Huruf A",
+      desc: "Kepalkan tangan dengan ibu jari berada di samping jari telunjuk, menghadap ke depan.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/A.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/A.webm",
+    },
+    {
+      id: "b",
+      title: "Huruf B",
+      desc: "Buka telapak tangan lurus ke atas, rapatkan keempat jari, dan tekuk ibu jari ke dalam.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/B.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/B.webm",
+    },
+    {
+      id: "c",
+      title: "Huruf C",
+      desc: "Bentuk tangan melengkung menyerupai huruf C dengan semua jari.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/C.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/C.webm",
+    },
+    {
+      id: "d",
+      title: "Huruf D",
+      desc: "Acungkan jari telunjuk lurus ke atas, jari lainnya membentuk lingkaran.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/D.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/D.webm",
+    },
+    {
+      id: "e",
+      title: "Huruf E",
+      desc: "Tekuk semua jari ke arah telapak tangan.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/E.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/E.webm",
+    },
+    {
+      id: "f",
+      title: "Huruf F",
+      desc: "Tempelkan ujung jari telunjuk ke ibu jari, tiga jari lainnya berdiri tegak.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/F.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/F.webm",
+    },
+    {
+      id: "g",
+      title: "Huruf G",
+      desc: "Kepalkan tangan, acungkan jari telunjuk ke samping.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/G.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/G.webm",
+    },
+    {
+      id: "h",
+      title: "Huruf H",
+      desc: "Acungkan jari telunjuk dan jari tengah lurus ke samping.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/H.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/H.webm",
+    },
+    {
+      id: "i",
+      title: "Huruf I",
+      desc: "Acungkan jari kelingking tegak lurus ke atas.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/I.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/I.webm",
+    },
+    {
+      id: "j",
+      title: "Huruf J",
+      desc: "Gerakkan jari kelingking membentuk pola huruf J.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/J.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/J.webm",
+    },
+    {
+      id: "k",
+      title: "Huruf K",
+      desc: "Acungkan jari telunjuk lurus ke atas dan jari tengah miring ke depan.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/K.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/K.webm",
+    },
+    {
+      id: "l",
+      title: "Huruf L",
+      desc: "Bentuk huruf L dengan jari telunjuk dan ibu jari.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/L.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/L.webm",
+    },
+    {
+      id: "m",
+      title: "Huruf M",
+      desc: "Selipkan ibu jari di bawah jari telunjuk, tengah, dan manis.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/M.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/M.webm",
+    },
+    {
+      id: "n",
+      title: "Huruf N",
+      desc: "Selipkan ibu jari di bawah jari telunjuk dan tengah.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/N.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/N.webm",
+    },
+    {
+      id: "o",
+      title: "Huruf O",
+      desc: "Bentuk lingkaran dengan ujung jari-jari menyatu dengan ibu jari.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/O.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/O.webm",
+    },
+    {
+      id: "p",
+      title: "Huruf P",
+      desc: "Arahkan jari telunjuk ke depan dan jari tengah ke bawah.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/P.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/P.webm",
+    },
+    {
+      id: "q",
+      title: "Huruf Q",
+      desc: "Arahkan jari telunjuk dan ibu jari ke bawah.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/Q.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/Q.webm",
+    },
+    {
+      id: "r",
+      title: "Huruf R",
+      desc: "Silangkan jari tengah di atas jari telunjuk.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/R.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/R.webm",
+    },
+    {
+      id: "s",
+      title: "Huruf S",
+      desc: "Kepalkan tangan dengan ibu jari menindih jari lainnya.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/S.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/S.webm",
+    },
+    {
+      id: "t",
+      title: "Huruf T",
+      desc: "Selipkan ibu jari di antara jari telunjuk dan jari tengah.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/T.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/T.webm",
+    },
+    {
+      id: "u",
+      title: "Huruf U",
+      desc: "Acungkan jari telunjuk dan jari tengah rapat tegak lurus.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/U.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/U.webm",
+    },
+    {
+      id: "v",
+      title: "Huruf V",
+      desc: "Bentuk huruf V dengan jari telunjuk dan jari tengah.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/V.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/V.webm",
+    },
+    {
+      id: "w",
+      title: "Huruf W",
+      desc: "Acungkan tiga jari (telunjuk, tengah, manis) membentuk W.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/W.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/W.webm",
+    },
+    {
+      id: "x",
+      title: "Huruf X",
+      desc: "Bengkokkan jari telunjuk menyerupai kait.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/X.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/X.webm",
+    },
+    {
+      id: "y",
+      title: "Huruf Y",
+      desc: "Acungkan ibu jari dan jari kelingking.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/Y.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/Y.webm",
+    },
+    {
+      id: "z",
+      title: "Huruf Z",
+      desc: "Gambar huruf Z di udara menggunakan jari telunjuk.",
+      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/Z.png",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/Z.webm",
+    },
+  ],
+  angka: [
+    {
+      id: "1",
+      title: "Angka 1",
+      desc: "Acungkan jari telunjuk tangan kanan lurus ke atas.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/1%40InForward.jpg/500px-1%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/01.webm",
+    },
+    {
+      id: "2",
+      title: "Angka 2",
+      desc: "Acungkan jari telunjuk dan jari tengah membentuk huruf V.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/V%40InForward.jpg/500px-V%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/02.webm",
+    },
+    {
+      id: "3",
+      title: "Angka 3",
+      desc: "Acungkan ibu jari, telunjuk, dan jari tengah.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/3%40InForward.jpg/500px-3%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/03.webm",
+    },
+    {
+      id: "4",
+      title: "Angka 4",
+      desc: "Acungkan empat jari dengan ibu jari ditekuk ke dalam.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/4%40InForward.jpg/500px-4%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/04.webm",
+    },
+    {
+      id: "5",
+      title: "Angka 5",
+      desc: "Buka kelima jari tangan.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/5%40InForward.jpg/500px-5%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/05.webm",
+    },
+    {
+      id: "6",
+      title: "Angka 6",
+      desc: "Tempelkan jari kelingking dengan ibu jari.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/6%40InForward.jpg/500px-6%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/06.webm",
+    },
+    {
+      id: "7",
+      title: "Angka 7",
+      desc: "Tempelkan jari manis dengan ibu jari.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/7%40InForward.jpg/500px-7%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/07.webm",
+    },
+    {
+      id: "8",
+      title: "Angka 8",
+      desc: "Tempelkan jari tengah dengan ibu jari.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/8%40InForward.jpg/500px-8%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/08.webm",
+    },
+    {
+      id: "9",
+      title: "Angka 9",
+      desc: "Tempelkan jari telunjuk dengan ibu jari.",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/9%40InForward.jpg/500px-9%40InForward.jpg",
+      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/09.webm",
+    },
+  ],
+};
+
+type LevelKey = keyof typeof learningPath;
+type SignCategory = keyof typeof signLanguageData;
+type Chapter = { id: string; title: string; content: string };
+type SignItem = {
+  id: string;
+  title: string;
+  desc: string;
+  img: string;
+  video: string;
+};
+
+export default function Flexa() {
+  const { toast } = useToast();
+
+  // State Navigasi
+  const [currentView, setCurrentView] = useState<
+    "levels" | "chapters" | "detail" | "sign-menu" | "sign-detail"
+  >("levels");
+
+  // State Data
+  const [selectedLevel, setSelectedLevel] = useState<LevelKey | null>(null);
+  const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [selectedSignCategory, setSelectedSignCategory] =
+    useState<SignCategory>("abjad");
+  const [selectedSignItem, setSelectedSignItem] = useState<SignItem | null>(
+    null
+  );
+
+  // State Fitur Lain
+  const [isProcessingUpload, setIsProcessingUpload] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [textSize, setTextSize] = useState<"normal" | "large" | "extra">(
+    "normal"
+  );
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [activeTab, setActiveTab] = useState("text");
+  const [signMediaTab, setSignMediaTab] = useState("image");
+
+  // Settings
+  const { volume, speakingRate, autoPlayAudio } = useSettings();
+
+  // --- FUNGSI HELPER ---
+  const speakText = (text: string) => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "id-ID";
+      utterance.volume = volume / 100;
+      if (speakingRate === "slow") utterance.rate = 0.8;
+      else if (speakingRate === "fast") utterance.rate = 1.2;
+      else utterance.rate = 1.0;
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const cleanMarkdown = (text) => {
+    if (!text) return "";
+    return (
+      text
+        // Hapus header markdown (###) dan bold/italic (* atau _)
+        .replace(/[#*`_~]/g, "")
+        // Hapus garis horizontal (---)
+        .replace(/---/g, "")
+        // Ganti/Hapus HTML entities (&lt; menjadi kosong agar tidak dibaca "less than")
+        .replace(/&lt;/g, "")
+        .replace(/&gt;/g, "")
+        // Hapus tag HTML jika ada (<br>, <div>, dll)
+        .replace(/<\/?[^>]+(>|$)/g, "")
+        // Hapus spasi berlebih menjadi satu spasi saja
+        .replace(/\s+/g, " ")
+        .trim()
+    );
+  };
+  const stopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+  };
+
+  const generateSummary = (text: string) => {
+    const sentences = text.split(". ");
+    return (
+      sentences.slice(0, 3).join(". ") + (sentences.length > 3 ? "..." : ".")
+    );
+  };
+
+  // --- NAVIGASI ---
+  const handleLevelSelect = (level: LevelKey) => {
+    setSelectedLevel(level);
+    setCurrentView("chapters");
+  };
+
+  const handleChapterSelect = (chapter: Chapter) => {
+    setSelectedChapter(chapter);
+    setCurrentView("detail");
+    stopSpeaking();
+    setActiveTab("text");
+  };
+
+  const handleSignItemSelect = (item: SignItem) => {
+    setSelectedSignItem(item);
+    setCurrentView("sign-detail");
+    setSignMediaTab("image");
+  };
+
+  const handleNextSignItem = () => {
+    if (!selectedSignItem) return;
+    const currentIndex = signLanguageData[selectedSignCategory].findIndex(
+      (item) => item.id === selectedSignItem.id
+    );
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < signLanguageData[selectedSignCategory].length) {
+      setSelectedSignItem(signLanguageData[selectedSignCategory][nextIndex]);
+    } else {
+      toast({
+        title: "Selesai!",
+        description: "Anda telah mencapai akhir kategori ini.",
+      });
+    }
+  };
+
+  const goBack = () => {
+    stopSpeaking();
+    if (currentView === "detail") {
+      if (selectedChapter?.id === "custom-upload") setCurrentView("levels");
+      else setCurrentView("chapters");
+    } else if (currentView === "chapters") setCurrentView("levels");
+    else if (currentView === "sign-menu") setCurrentView("levels");
+    else if (currentView === "sign-detail") setCurrentView("sign-menu");
+  };
+
+  const sanitizeText = (raw: string) => {
+    return raw
+      .replace(/</g, "&lt;") // escape <
+      .replace(/>/g, "&gt;") // escape >
+      .replace(/\*/g, "•")
+      .replace("#", " "); // ganti * jadi bullet
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingUpload(true);
+    toast({
+      title: "Mengunggah Dokumen...",
+      description: "Sedang mengirim ke server untuk ekstraksi teks.",
+    });
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(`${API_URL}/scan/extract`, {
+        method: "POST",
+        headers: await authHeaders(),
+        body: formData,
+      });
+
+      // Cek apakah JSON atau bukan
+      const contentType = response.headers.get("content-type") || "";
+
+      let data: any;
+
+      if (contentType.includes("application/json")) {
+        // Backend ngembaliin JSON → aman di-parse
+        data = await response.json();
+      } else {
+        // Backend ngembaliin plain text → jangan parse JSON
+        const textResult = await response.text();
+
+        // Bungkus supaya tetap konsisten
+        data = { text: textResult };
+      }
+
+      if (!response.ok) {
+        throw new Error(data.text || "Gagal mengekstrak dokumen.");
+      }
+
+      // Ambil teks hasil ekstraksi
+      const extractedText =
+        data.text ||
+        data.content ||
+        data.result ||
+        "Tidak ada teks yang berhasil diekstrak.";
+
+      const cleanedText = sanitizeText(extractedText);
+
+      const customChapter: Chapter = {
+        id: "custom-upload",
+        title: file.name,
+        content: cleanedText,
+      };
+
+      setSelectedChapter(customChapter);
+      setCurrentView("detail");
+
+      toast({
+        title: "Selesai!",
+        description: "Materi siap dipelajari.",
+      });
+    } catch (error: any) {
+      console.error("Upload Error:", error);
+
+      toast({
+        variant: "destructive",
+        title: "Gagal Mengunggah",
+        description: error?.message ?? "Terjadi kesalahan.",
+      });
+    } finally {
+      setIsProcessingUpload(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  useEffect(() => {
+    if (
+      currentView === "detail" &&
+      selectedChapter &&
+      autoPlayAudio &&
+      !isSpeaking
+    ) {
+      speakText(selectedChapter.content);
+    }
+  }, [currentView, selectedChapter, autoPlayAudio]);
+
+  // ==================================================================================
+  // RENDER: DASHBOARD
+  // ==================================================================================
+  if (currentView === "levels") {
+    return (
+      <div className="min-h-screen p-8 max-w-6xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            Pusat Belajar Flexa
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Akses materi inklusif, kamus isyarat, atau unggah dokumenmu sendiri.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {(Object.keys(learningPath) as LevelKey[]).map((key) => (
+            <motion.div
+              key={key}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Card
+                className={`p-6 cursor-pointer h-full flex flex-col items-center text-center hover:shadow-xl transition-all border-2 border-transparent hover:border-primary/20 ${
+                  learningPath[key].color.replace("text-", "bg-").split(" ")[0]
+                }/10`}
+                onClick={() => handleLevelSelect(key)}
+              >
+                <div
+                  className={`p-4 rounded-full mb-4 ${learningPath[key].color} bg-white shadow-sm`}
+                >
+                  {learningPath[key].icon}
+                </div>
+                <h2 className="text-xl font-bold mb-2 capitalize">
+                  {learningPath[key].title}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {learningPath[key].description}
+                </p>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <motion.div whileHover={{ scale: 1.02 }} className="group">
+            <Card
+              className="relative p-8 border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-background cursor-pointer h-full overflow-hidden hover:border-primary transition-all shadow-sm hover:shadow-md"
+              onClick={() => setCurrentView("sign-menu")}
+            >
+              <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Languages className="w-40 h-40 text-primary" />
+              </div>
+              <div className="relative z-10 flex flex-col h-full justify-between">
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                      <HandMetal className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                      Kamus Digital Isyarat
+                    </h3>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                    Pelajari SIBI & BISINDO dengan panduan visual modern.
+                    Tingkatkan komunikasi inklusifmu.
+                  </p>
+                </div>
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white shadow-primary/20 shadow-lg">
+                  Buka Kamus
+                </Button>
+              </div>
+            </Card>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.02 }} className="group">
+            <Card className="relative p-8 border-2 border-dashed border-slate-200 bg-slate-50/50 dark:bg-slate-900/10 h-full flex flex-col justify-center items-center text-center cursor-pointer hover:border-primary transition-all">
+              <div className="mb-4 p-4 bg-white dark:bg-slate-800 rounded-full text-primary shadow-sm">
+                {isProcessingUpload ? (
+                  <Loader2 className="w-8 h-8 animate-spin" />
+                ) : (
+                  <Upload className="w-8 h-8" />
+                )}
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">
+                Upload Materi Sendiri
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                Konversi PDF/Foto bukumu menjadi Audio & Ringkasan.
+              </p>
+
+              <Input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept=".pdf,.jpg,.png,.txt"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="outline"
+                className="border-primary/50 text-primary hover:bg-primary/5"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isProcessingUpload}
+              >
+                {isProcessingUpload ? "Memproses..." : "Pilih File"}
+              </Button>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // RENDER: MENU BAHASA ISYARAT
+  // ==================================================================================
+  if (currentView === "sign-menu") {
+    return (
+      <div className="min-h-screen p-8 max-w-5xl mx-auto">
+        <Button variant="ghost" onClick={goBack} className="mb-6 ">
+          <ArrowLeft className="mr-2 h-5 w-5" /> Kembali ke Dashboard
+        </Button>
+
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold mb-3 text-blue-950 dark:text-blue-50">
+            Kamus Isyarat Digital
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-lg">
+            Eksplorasi gerakan isyarat berdasarkan kategori.
+          </p>
+        </div>
+
+        <Tabs
+          value={selectedSignCategory}
+          onValueChange={(v) => setSelectedSignCategory(v as SignCategory)}
+          className="w-full mb-8"
+        >
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-12 bg-blue-50 dark:bg-blue-950/50 p-1 rounded-full">
+            <TabsTrigger
+              value="abjad"
+              className="rounded-full text-base data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+            >
+              Abjad (A-Z)
+            </TabsTrigger>
+            <TabsTrigger
+              value="angka"
+              className="rounded-full text-base data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+            >
+              Angka (0-9)
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value={selectedSignCategory} className="mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {signLanguageData[selectedSignCategory].map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card
+                    className="group cursor-pointer hover:shadow-xl transition-all border border-slate-200 hover:border-primary overflow-hidden bg-white dark:bg-slate-900 rounded-xl"
+                    onClick={() => handleSignItemSelect(item)}
+                  >
+                    <div className="aspect-square bg-slate-100 relative overflow-hidden p-4">
+                      <img
+                        src={item.img}
+                        alt={item.title}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-sm"
+                      />
+                      <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="bg-white text-primary px-4 py-2 rounded-full text-sm font-bold flex items-center shadow-lg">
+                          Lihat <ChevronRight className="w-4 h-4 ml-1" />
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4 text-center relative">
+                      <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">
+                        {item.title.replace("Huruf ", "").replace("Angka ", "")}
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {item.title}
+                      </p>
+                      <div className="absolute bottom-0 left-0 w-full h-1 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // RENDER: DETAIL BAHASA ISYARAT
+  // ==================================================================================
+  if (currentView === "sign-detail" && selectedSignItem) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-600 via-blue-500 to-transparent -z-10" />
+        <div className="absolute top-20 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -z-10" />
+        <div className="absolute top-40 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl -z-10" />
+
+        <div className="max-w-6xl mx-auto p-6 md:p-12">
+          <div className="flex items-center justify-between mb-8">
+            <Button variant="ghost" onClick={goBack} className="mb-6 ">
+              <ArrowLeft className="mr-2 h-5 w-5" /> Kembali ke Kamus
+            </Button>
+            <span className="bg-white/20 px-4 py-1 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">
+              Mode Belajar
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <Card className="border-0 shadow-2xl bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden relative group">
+                  <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/50 flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className={`rounded-full px-6 transition-all duration-300 ${
+                        signMediaTab === "image"
+                          ? "bg-white dark:bg-slate-700 shadow-sm text-primary font-bold"
+                          : "text-slate-500 hover:text-primary"
+                      }`}
+                      onClick={() => setSignMediaTab("image")}
+                    >
+                      <ImageIcon className="w-4 h-4 mr-2" /> Ilustrasi
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className={`rounded-full px-6 transition-all duration-300 ${
+                        signMediaTab === "video"
+                          ? "bg-white dark:bg-slate-700 shadow-sm text-primary font-bold"
+                          : "text-slate-500 hover:text-primary"
+                      }`}
+                      onClick={() => setSignMediaTab("video")}
+                    >
+                      <Video className="w-4 h-4 mr-2" /> Video
+                    </Button>
+                  </div>
+
+                  <div className="aspect-[4/3] md:aspect-video bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-8 md:p-12 relative">
+                    <AnimatePresence mode="wait">
+                      {signMediaTab === "image" ? (
+                        <motion.img
+                          key="img"
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 200,
+                            damping: 25,
+                          }}
+                          src={selectedSignItem.img}
+                          alt={selectedSignItem.title}
+                          className="h-full w-full object-contain drop-shadow-2xl filter hover:brightness-105 transition-all duration-500"
+                        />
+                      ) : (
+                        <motion.div
+                          key="vid"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="w-full h-full bg-black rounded-2xl overflow-hidden shadow-inner ring-4 ring-slate-100 dark:ring-slate-800"
+                        >
+                          <video
+                            controls
+                            autoPlay
+                            loop
+                            className="w-full h-full object-cover"
+                          >
+                            <source
+                              src={selectedSignItem.video}
+                              type="video/mp4"
+                            />
+                          </video>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </Card>
+              </motion.div>
+            </div>
+
+            <div className="lg:col-span-4 space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className="p-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-0 shadow-xl rounded-3xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10" />
+                  <div className="relative z-10 text-center lg:text-left">
+                    <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-primary to-blue-300 leading-none mb-2">
+                      {selectedSignItem.title.split(" ")[1]}
+                    </h1>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                      {selectedSignItem.title}
+                    </h2>
+                    <p className="text-primary font-medium flex items-center justify-center lg:justify-start gap-2 mt-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      Bahasa Isyarat Indonesia
+                    </p>
+                  </div>
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="p-6 border-l-8 border-primary bg-white dark:bg-slate-900 shadow-lg rounded-2xl">
+                  <div className="flex gap-4">
+                    <div className="mt-1">
+                      <div className="p-3 bg-blue-50 dark:bg-slate-800 rounded-2xl text-primary">
+                        <HandMetal className="w-6 h-6" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2 text-lg">
+                        Instruksi Gerakan
+                      </h3>
+                      <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                        {selectedSignItem.desc}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-xl border-2 hover:border-primary hover:text-primary transition-all"
+                  onClick={() => speakText(selectedSignItem.desc)}
+                >
+                  <PlayCircle className="w-5 h-5 mr-2" /> Ulangi
+                </Button>
+                <Button
+                  className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30"
+                  onClick={handleNextSignItem}
+                >
+                  Lanjut <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // RENDER: LIST MATERI (UMUM)
+  // ==================================================================================
+  if (currentView === "chapters" && selectedLevel) {
+    const levelData = learningPath[selectedLevel];
+    return (
+      <div className="min-h-screen p-8 max-w-4xl mx-auto">
+        <Button variant="ghost" onClick={goBack} className="mb-6 pl-0">
+          <ArrowLeft className="mr-2 h-5 w-5" /> Kembali
+        </Button>
+        <div className="mb-8">
+          <div
+            className={`inline-block px-4 py-1 rounded-full text-sm font-bold mb-4 capitalize ${levelData.color}`}
+          >
+            {levelData.title}
+          </div>
+          <h1 className="text-3xl font-bold">Daftar Materi</h1>
+        </div>
+        <div className="grid gap-4">
+          {levelData.chapters.map((chapter, index) => (
+            <Card
+              key={chapter.id}
+              className="p-6 cursor-pointer hover:bg-muted/50 transition-colors flex justify-between items-center group"
+              onClick={() => handleChapterSelect(chapter)}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                  {index + 1}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold group-hover:text-primary">
+                    {chapter.title}
+                  </h3>
+                </div>
+              </div>
+              <ChevronRight className="w-6 h-6 text-muted-foreground" />
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ==================================================================================
+  // RENDER: DETAIL MATERI (UMUM)
+  // ==================================================================================
+  if (currentView === "detail" && selectedChapter) {
+    const fontSizeClass = {
+      normal: "text-lg",
+      large: "text-2xl",
+      extra: "text-4xl leading-tight font-bold",
+    };
+    return (
+      <div className="min-h-screen p-6 md:p-12 max-w-5xl mx-auto">
+        <Button variant="outline" onClick={goBack} className="mb-8">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+        </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="p-6 bg-slate-50 dark:bg-slate-900 border-primary/20 sticky top-8">
+              <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
+                <BrainCircuit className="w-5 h-5 text-primary" /> Mode Belajar
+              </h3>
+              <div className="space-y-2 mb-8">
+                <label className="text-sm font-medium text-muted-foreground block mb-2">
+                  Ukuran Teks
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={textSize === "normal" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setTextSize("normal")}
+                  >
+                    A
+                  </Button>
+                  <Button
+                    variant={textSize === "large" ? "default" : "outline"}
+                    className="flex-1 text-lg"
+                    onClick={() => setTextSize("large")}
+                  >
+                    A+
+                  </Button>
+                  <Button
+                    variant={textSize === "extra" ? "default" : "outline"}
+                    className="flex-1 text-xl font-bold"
+                    onClick={() => setTextSize("extra")}
+                  >
+                    A++
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground block mb-2">
+                  Kontrol Audio
+                </label>
+                {!isSpeaking ? (
+                  <Button
+                    className="w-full h-12 text-lg bg-primary hover:bg-primary/90"
+                    onClick={() => {
+                      // 1. Ambil teks asli (gunakan default string kosong jika null)
+                      const rawContent = selectedChapter?.content || "";
+
+                      // 2. Bersihkan teks menggunakan fungsi cleanMarkdown
+                      const textToRead = cleanMarkdown(rawContent);
+
+                      // --- AREA DEBUG ---
+                      console.log("1. Raw Content:", rawContent);
+                      console.log(
+                        "2. Cleaned Content (To Speech):",
+                        textToRead
+                      );
+                      // ------------------
+
+                      // 3. Masukkan teks yang SUDAH BERSIH ke fungsi speakText
+                      speakText(textToRead);
+                    }}
+                  >
+                    <PlayCircle className="mr-2 h-6 w-6" /> Baca Materi
+                  </Button>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    className="w-full h-12 text-lg"
+                    onClick={stopSpeaking}
+                  >
+                    <PauseCircle className="mr-2 h-6 w-6 animate-pulse" />{" "}
+                    Hentikan
+                  </Button>
+                )}
+              </div>
+            </Card>
+          </div>
+          <div className="lg:col-span-8">
+            <Card className="min-h-[60vh] flex flex-col shadow-lg border-t-4 border-t-primary">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full flex flex-col flex-1"
+              >
+                <div className="px-6 pt-6 border-b">
+                  <h1 className="text-3xl font-bold mb-2">
+                    {selectedChapter.title}
+                  </h1>
+                  <TabsList className="grid w-full grid-cols-3 mb-6">
+                    <TabsTrigger value="text">
+                      <Type className="w-4 h-4 mr-2" /> Bacaan
+                    </TabsTrigger>
+                    <TabsTrigger value="audio">
+                      <Volume2 className="w-4 h-4 mr-2" /> Audio Fokus
+                    </TabsTrigger>
+                    <TabsTrigger value="summary">
+                      <FileText className="w-4 h-4 mr-2" /> Ringkasan
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+                <div className="p-6 flex-1 bg-white dark:bg-black/20">
+                  <AnimatePresence mode="wait">
+                    {activeTab === "text" && (
+                      <motion.div
+                        key="text"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <ScrollArea className="h-[500px] pr-4">
+                          <p
+                            className={`${fontSizeClass[textSize]} leading-loose text-slate-700 dark:text-slate-200 transition-all duration-300`}
+                          >
+                            {selectedChapter.content}
+                          </p>
+                        </ScrollArea>
+                      </motion.div>
+                    )}
+                    {activeTab === "audio" && (
+                      <motion.div
+                        key="audio"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="h-full flex flex-col items-center justify-center text-center"
+                      >
+                        <div
+                          className={`w-40 h-40 rounded-full flex items-center justify-center mb-8 transition-all duration-500 ${
+                            isSpeaking
+                              ? "bg-primary text-white shadow-2xl scale-110"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          <Volume2 className="w-20 h-20" />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-2">
+                          {isSpeaking ? "Sedang Membaca..." : "Siap Membaca"}
+                        </h3>
+                      </motion.div>
+                    )}
+                    {activeTab === "summary" && (
+                      <motion.div
+                        key="summary"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 p-6 rounded-xl">
+                          <h3 className="font-bold text-xl mb-4 text-yellow-800">
+                            Intisari Materi
+                          </h3>
+                          <p className="text-xl leading-relaxed">
+                            {generateSummary(selectedChapter.content)}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </Tabs>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
