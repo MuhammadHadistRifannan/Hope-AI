@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import TeacherRoom from "./pages/TeacherRoom";
 import NotFound from "./pages/NotFound";
 import Playground from "./pages/Playground";
 
@@ -113,6 +114,10 @@ function App() {
               <Route
                 path="/admin"
                 element={session ? <Layout><AdminDashboard /></Layout> : <Navigate to="/landing" />}
+              />
+              <Route
+                path="/guru"
+                element={session ? <Layout><TeacherRoom /></Layout> : <Navigate to="/landing" />}
               />
 
               <Route

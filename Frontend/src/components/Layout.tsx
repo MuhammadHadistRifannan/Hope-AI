@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client"; 
 import { 
   Home, Camera, MessageSquare, BookOpen, TrendingUp, 
-  Users, Bell, Settings, User, LogOut, Sparkles, Shield
+  Users, Bell, Settings, User, LogOut, Sparkles, Shield, GraduationCap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import Footer from "./Footer";
 import { Gamepad2 } from "lucide-react";
 import { useRoles } from "@/hooks/use-roles";
 import OnboardingDialog from "./OnboardingDialog";
+import VoiceAssistant from "./VoiceAssistant";
 
 const navigation = [
   { name: "Beranda", href: "/", icon: Home },
@@ -30,12 +31,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate(); 
   const { toast } = useToast();
-  const { isAdmin } = useRoles();
+  const { isAdmin, isStaff } = useRoles();
 
-  // Menu admin hanya tampil untuk admin; halamannya sendiri juga memeriksa peran
-  const secondaryItems = isAdmin
-    ? [...secondaryNav, { name: "Admin", href: "/admin", icon: Shield }]
-    : secondaryNav;
+  // Menu guru dan admin hanya tampil untuk peran itu; halamannya sendiri juga memeriksa peran
+  const secondaryItems = [
+    ...secondaryNav,
+    ...(isStaff ? [{ name: "Ruang Guru", href: "/guru", icon: GraduationCap }] : []),
+    ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Shield }] : []),
+  ];
 
   const handleLogout = async () => {
     try {
@@ -62,6 +65,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background font-sans">
       <OnboardingDialog />
+      <VoiceAssistant />
 
       {/* Tautan lompat untuk pengguna keyboard dan pembaca layar */}
       <a

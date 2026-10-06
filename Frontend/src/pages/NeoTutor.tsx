@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
 import { supabase } from "@/integrations/supabase/client";
+import { useVoiceCommands } from "@/lib/voiceCommands";
 
 // Definisi tipe SpeechRecognition untuk TypeScript
 declare global {
@@ -149,7 +150,12 @@ export default function NeoTutor() {
   // materi itu; kalau tidak, lanjutkan percakapan terakhir pengguna
   useEffect(() => {
     loadSessions().then((loaded) => {
-      if (pendingContext) {
+      const voiceQuestion = (location.state as { voiceQuestion?: string } | null)?.voiceQuestion;
+      if (voiceQuestion) {
+        // Pertanyaan dari asisten suara: mulai percakapan baru dan bacakan jawabannya
+        navigate(location.pathname, { replace: true, state: null });
+        sendMessage(voiceQuestion, true);
+      } else if (pendingContext) {
         setMessages([
           {
             ...welcomeMessage,
@@ -163,6 +169,19 @@ export default function NeoTutor() {
       }
     });
   }, []);
+
+  // Di halaman ini, ucapan yang bukan perintah lain dianggap pertanyaan untuk tutor
+  useVoiceCommands((command) => {
+    if (/^(percakapan baru|mulai baru)$/.test(command)) {
+      startNewSession();
+      return true;
+    }
+    if (/^(buka|ke|pergi ke|baca|bacakan)\b/.test(command) || command.split(" ").length < 2) {
+      return false;
+    }
+    sendMessage(command, true);
+    return true;
+  });
 
   const activeSession = sessions.find((session) => session.id === sessionId);
   const materialTitle = pendingContext
@@ -206,7 +225,8 @@ export default function NeoTutor() {
   };
 
   // --- LOGIKA ASLI: CONNECT TO BACKEND GEMINI ---
-  const sendMessage = async (text: string) => {
+  // speakAnswer: jawaban selalu dibacakan, dipakai saat pertanyaan datang dari suara
+  const sendMessage = async (text: string, speakAnswer = false) => {
     if (!text.trim()) return;
 
     const userMessage: Message = {
@@ -247,7 +267,7 @@ export default function NeoTutor() {
       };
 
       setMessages(prev => [...prev, aiMessage]);
-      if (autoPlayAudio) speakText(aiMessage.content);
+      if (autoPlayAudio || speakAnswer) speakText(aiMessage.content);
 
       // Percakapan baru mendapat sesi dari server pada pesan pertamanya
       if (data.sessionId && data.sessionId !== sessionId) {

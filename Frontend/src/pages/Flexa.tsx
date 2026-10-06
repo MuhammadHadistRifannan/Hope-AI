@@ -159,6 +159,7 @@ export default function Flexa() {
         supabase
           .from("materials")
           .select("slug, level, title, content")
+          .eq("is_published", true)
           .order("sort_order"),
         supabase
           .from("sign_items")

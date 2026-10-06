@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { applyIndonesianVoice } from "@/lib/voice";
-import { CheckCircle2, Loader2, RefreshCcw, Volume2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Mic, RefreshCcw, Volume2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { API_URL, authHeaders } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/context/SettingsContext";
+import { requestVoiceInput, useVoiceCommands } from "@/lib/voiceCommands";
 
 type Question = {
   q: string;
@@ -163,6 +164,39 @@ export default function DocumentQuiz({ title, text, onClose }: Props) {
     if (autoPlayAudio) readQuestion(pool[nextIndex]);
   };
 
+  // Perintah suara: "A" sampai "D" (atau "satu" sampai "empat") untuk menjawab,
+  // "lanjut" untuk soal berikutnya, "ulangi" untuk mendengar soal lagi
+  useVoiceCommands((command) => {
+    if (status !== "playing" || !current) return false;
+
+    if (/^(ulangi|ulang|bacakan soal|baca soal)/.test(command)) {
+      readQuestion(current);
+      return true;
+    }
+    if (/^(lanjut|berikutnya|selanjutnya|lihat hasil)/.test(command)) {
+      if (!selected) return false;
+      next();
+      return true;
+    }
+
+    const choices: Record<string, number> = {
+      a: 0, satu: 0, pertama: 0,
+      b: 1, be: 1, dua: 1, kedua: 1,
+      c: 2, ce: 2, tiga: 2, ketiga: 2,
+      d: 3, de: 3, empat: 3, keempat: 3,
+    };
+    const word = command.replace(/^(jawab|pilih|pilihan|jawaban)\s+/, "");
+    let index = choices[word];
+    // Menyebut isi pilihannya juga diterima
+    if (index === undefined) {
+      index = current.options.findIndex((option) => option.toLowerCase().replace(/[.,!?]/g, "") === word);
+    }
+    if (index === undefined || index < 0 || index >= current.options.length || selected) return false;
+
+    answer(current.options[index]);
+    return true;
+  });
+
   if (status === "loading") {
     return (
       <div className="py-16 text-center" role="status">
@@ -225,15 +259,24 @@ export default function DocumentQuiz({ title, text, onClose }: Props) {
 
       <div className="flex items-start justify-between gap-3 mb-6">
         <h2 className="text-xl md:text-2xl font-bold leading-snug">{current.q}</h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => readQuestion(current)}
-          aria-label="Bacakan soal dan pilihan jawaban"
-          className="flex-shrink-0"
-        >
-          <Volume2 className="w-5 h-5" aria-hidden="true" />
-        </Button>
+        <div className="flex flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => readQuestion(current)}
+            aria-label="Bacakan soal dan pilihan jawaban"
+          >
+            <Volume2 className="w-5 h-5" aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={requestVoiceInput}
+            aria-label="Jawab dengan suara. Katakan A, B, C, atau D, lalu lanjut."
+          >
+            <Mic className="w-5 h-5" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3" role="group" aria-label="Pilihan jawaban">

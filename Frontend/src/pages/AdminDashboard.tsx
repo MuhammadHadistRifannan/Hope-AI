@@ -158,6 +158,26 @@ export default function AdminDashboard() {
     });
   };
 
+  // Guru bisa menambah materi dan melihat kemajuan siswa
+  const toggleTeacher = async (user: UserRow, makeTeacher: boolean) => {
+    const { error } = makeTeacher
+      ? await supabase.from("user_roles").insert({ user_id: user.id, role: "teacher" })
+      : await supabase.from("user_roles").delete().eq("user_id", user.id).eq("role", "teacher");
+
+    if (error) {
+      toast({ title: "Gagal mengubah peran", description: error.message, variant: "destructive" });
+      return;
+    }
+    setUsers(
+      users.map((u) =>
+        u.id === user.id
+          ? { ...u, roles: makeTeacher ? [...u.roles, "teacher"] : u.roles.filter((role) => role !== "teacher") }
+          : u
+      )
+    );
+    toast({ title: makeTeacher ? "Dijadikan guru" : "Peran guru dicabut", description: user.name });
+  };
+
   const deletePost = async (post: PostRow) => {
     if (!window.confirm(`Hapus postingan dari ${post.author}? Tindakan ini tidak bisa dibatalkan.`)) return;
 
@@ -325,6 +345,7 @@ export default function AdminDashboard() {
                     <TableRow>
                       <TableHead>Nama</TableHead>
                       <TableHead>Peran</TableHead>
+                      <TableHead>Guru</TableHead>
                       <TableHead>XP</TableHead>
                       <TableHead>Streak</TableHead>
                       <TableHead>Terakhir Aktif</TableHead>
@@ -336,6 +357,13 @@ export default function AdminDashboard() {
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.name}</TableCell>
                         <TableCell>{user.roles.map((role) => roleLabel[role]).join(", ") || "-"}</TableCell>
+                        <TableCell>
+                          <Switch
+                            checked={user.roles.includes("teacher")}
+                            onCheckedChange={(checked) => toggleTeacher(user, checked)}
+                            aria-label={`Jadikan ${user.name} guru`}
+                          />
+                        </TableCell>
                         <TableCell>{user.xp}</TableCell>
                         <TableCell>{user.streak} hari</TableCell>
                         <TableCell>{user.lastActive ? formatDate(user.lastActive) : "Belum pernah"}</TableCell>

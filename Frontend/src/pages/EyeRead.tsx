@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
+import { useVoiceCommands } from "@/lib/voiceCommands";
 
 declare global {
   interface Window {
@@ -468,6 +469,32 @@ export default function EyeRead() {
   };
 
   // Logic Summary Sederhana Asli
+  // Perintah suara di halaman pindai
+  useVoiceCommands((command) => {
+    if (/^(mulai kamera|buka kamera|nyalakan kamera|mulai pindai|pindai)$/.test(command)) {
+      startCamera();
+      return true;
+    }
+    if (/^(ambil gambar|ambil foto|foto|potret|tangkap|jepret)$/.test(command)) {
+      captureAndScan();
+      return true;
+    }
+    if (/^(tutup kamera|matikan kamera)$/.test(command)) {
+      stopCamera();
+      return true;
+    }
+    if (/^(baca hasil|bacakan hasil|baca teks|bacakan teks|baca|bacakan)$/.test(command) && scannedText) {
+      speakText(scannedText);
+      return true;
+    }
+    if (/^(buat kuis|kuis)$/.test(command) && scannedText) {
+      stopSpeech();
+      setShowQuiz(true);
+      return true;
+    }
+    return false;
+  });
+
   const generateSummary = (text: string) => {
     const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const summary =

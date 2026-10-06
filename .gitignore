@@ -35,3 +35,6 @@ npm-debug.log*
 .claude
 # Contoh audio untuk memilih suara TTS
 contoh-suara/
+
+# Python
+__pycache__/
