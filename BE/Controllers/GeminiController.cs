@@ -17,6 +17,9 @@ namespace MyApp.Namespace
         const int HistoryLimit = 20;
         const int MaxMessageLength = 4000;
         const int MaxSummaryLength = 100000;
+        const int MinQuizTextLength = 80;
+        const int MaxQuizTextLength = 30000;
+        const int QuizQuestionCount = 9;
 
         readonly IGeminiService _client; 
         readonly IChatHistoryService _history;
@@ -44,12 +47,20 @@ namespace MyApp.Namespace
 
             string sessionId;
             List<ChatTurn> history;
+            ChatMaterial? material;
             try
             {
-                sessionId = await _history.EnsureSession(userToken, userId, message.sessionId, text);
+                var session = await _history.EnsureSession(userToken, userId, message.sessionId, text,
+                    message.context?.type, message.context?.id);
+                sessionId = session.Id;
+                material = await _history.GetMaterial(userToken, session);
                 history = await _history.GetRecentMessages(userToken, sessionId, HistoryLimit);
             }
             catch (ChatSessionNotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
+            catch (ChatContextNotFoundException e)
             {
                 return NotFound(e.Message);
             }
@@ -57,7 +68,7 @@ namespace MyApp.Namespace
             string response;
             try
             {
-                response = await _client.Chat(_model, history, text);
+                response = await _client.Chat(_model, history, text, material);
             }
             catch (Exception e)
             {
@@ -73,6 +84,29 @@ namespace MyApp.Namespace
                 response = cleanResponse ,
                 sessionId
             });
+        }
+
+        // Membuat soal pilihan ganda dari teks materi; dipakai kuis adaptif di frontend
+        [HttpPost("quiz")]
+        public async Task<IActionResult> Quiz([FromBody] Message message)
+        {
+            string text = (message.text ?? "").Trim();
+            if (text.Length < MinQuizTextLength) return BadRequest("Teks terlalu pendek untuk dibuat kuis");
+            if (text.Length > MaxQuizTextLength) text = text[..MaxQuizTextLength];
+
+            try
+            {
+                var questions = await _client.GenerateQuiz(_model, text, QuizQuestionCount);
+                return Ok(new { questions });
+            }
+            catch (QuizGenerationException e)
+            {
+                return StatusCode(502, e.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(502, "Kuis belum bisa dibuat: " + e.Message);
+            }
         }
 
         [HttpPost("summary")]
@@ -92,9 +126,18 @@ namespace MyApp.Namespace
     }
 
 
+    public class ChatContext
+    {
+        // "document" (dokumen milik pengguna) atau "material" (bab materi)
+        public string? type{get;set;}
+        public string? id{get;set;}
+    }
+
     public struct Message
     {
         public string text{get;set;}
         public string? sessionId{get;set;}
+        // Diisi saat memulai percakapan tentang satu dokumen atau bab materi
+        public ChatContext? context{get;set;}
     }
 }

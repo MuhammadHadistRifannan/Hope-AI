@@ -2,6 +2,10 @@ import { API_URL, authHeaders } from "@/lib/api";
 import { clickable } from "@/lib/a11y";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { MessageSquare, ListChecks } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import DocumentQuiz from "@/components/DocumentQuiz";
 import {
   BookOpen,
   Volume2,
@@ -59,7 +63,8 @@ const learningPath = {
 
 type LevelKey = keyof typeof learningPath;
 type SignCategory = "abjad" | "angka";
-type Chapter = { id: string; title: string; content: string };
+// documentId terisi bila bab ini adalah dokumen milik pengguna (unggahan atau hasil pindai)
+type Chapter = { id: string; title: string; content: string; documentId?: string };
 type SignItem = {
   id: string;
   title: string;
@@ -104,6 +109,12 @@ export default function Flexa() {
   });
   const [documents, setDocuments] = useState<SavedDocument[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+
+  // Ringkasan AI per materi, kuis, dan navigasi ke NeoTutor
+  const navigate = useNavigate();
+  const [summaries, setSummaries] = useState<Record<string, string>>({});
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   // State Fitur Lain
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
@@ -353,14 +364,23 @@ export default function Flexa() {
 
       // Simpan ke akun supaya bisa dibuka lagi tanpa mengunggah ulang
       if (userId) {
-        const { error: saveError } = await supabase.from("user_documents").insert({
-          user_id: userId,
-          source: "upload",
-          title: file.name,
-          content: cleanedText,
-        });
-        if (saveError) console.error("Gagal menyimpan dokumen:", saveError);
-        else loadDocuments();
+        const { data: saved, error: saveError } = await supabase
+          .from("user_documents")
+          .insert({
+            user_id: userId,
+            source: "upload",
+            title: file.name,
+            content: cleanedText,
+          })
+          .select("id")
+          .single();
+        if (saveError) {
+          console.error("Gagal menyimpan dokumen:", saveError);
+        } else {
+          // Dengan id ini dokumen bisa ditanyakan ke NeoTutor
+          setSelectedChapter({ ...customChapter, documentId: saved.id });
+          loadDocuments();
+        }
       }
 
       toast({
@@ -391,6 +411,64 @@ export default function Flexa() {
       speakText(selectedChapter.content);
     }
   }, [currentView, selectedChapter, autoPlayAudio]);
+
+  // Ringkasan dibuat AI saat tab Ringkasan pertama kali dibuka, lalu disimpan sementara
+  const summaryKey = selectedChapter
+    ? selectedChapter.documentId ?? `${selectedChapter.id}:${selectedChapter.title}`
+    : "";
+
+  useEffect(() => {
+    if (activeTab !== "summary" || !selectedChapter || summaries[summaryKey]) return;
+    let cancelled = false;
+
+    const fetchSummary = async () => {
+      setIsSummaryLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/gemini/summary`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+          body: JSON.stringify({ text: selectedChapter.content }),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+        if (!cancelled && data.message) {
+          setSummaries((prev) => ({ ...prev, [summaryKey]: data.message }));
+        }
+      } catch (error) {
+        console.error("Gagal membuat ringkasan:", error);
+        // Cadangan bila AI gagal: tampilkan kalimat pembuka materi
+        if (!cancelled) {
+          setSummaries((prev) => ({
+            ...prev,
+            [summaryKey]: generateSummary(selectedChapter.content),
+          }));
+        }
+      } finally {
+        if (!cancelled) setIsSummaryLoading(false);
+      }
+    };
+
+    fetchSummary();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, summaryKey]);
+
+  // Membuka NeoTutor dengan materi ini sebagai dasar jawabannya
+  const askTutor = () => {
+    if (!selectedChapter) return;
+    stopSpeaking();
+    const isDocument = selectedChapter.id === "custom-upload";
+    navigate("/neotutor", {
+      state: {
+        context: {
+          type: isDocument ? "document" : "material",
+          id: isDocument ? selectedChapter.documentId : selectedChapter.id,
+          title: selectedChapter.title,
+        },
+      },
+    });
+  };
 
   // ==================================================================================
   // RENDER: DASHBOARD
@@ -518,6 +596,7 @@ export default function Flexa() {
                     id: "custom-upload",
                     title: doc.title,
                     content: doc.content,
+                    documentId: doc.id,
                   });
                 return (
                   <Card
@@ -940,7 +1019,43 @@ export default function Flexa() {
                   </Button>
                 )}
               </div>
+              <div className="space-y-2 mt-8">
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  Pahami Lebih Dalam
+                </p>
+                {/* Dokumen yang belum tersimpan belum punya id untuk ditanyakan */}
+                {(selectedChapter.id !== "custom-upload" || selectedChapter.documentId) && (
+                  <Button variant="outline" className="w-full h-12 justify-start" onClick={askTutor}>
+                    <MessageSquare className="mr-2 h-5 w-5" aria-hidden="true" /> Tanya NeoTutor
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full h-12 justify-start"
+                  onClick={() => {
+                    stopSpeaking();
+                    setShowQuiz(true);
+                  }}
+                >
+                  <ListChecks className="mr-2 h-5 w-5" aria-hidden="true" /> Buat Kuis dari Materi Ini
+                </Button>
+              </div>
             </Card>
+            <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogTitle>Kuis: {selectedChapter.title}</DialogTitle>
+                <DialogDescription>
+                  Soal dibuat AI dari materi ini dan menyesuaikan dengan jawabanmu.
+                </DialogDescription>
+                {showQuiz && (
+                  <DocumentQuiz
+                    title={selectedChapter.title}
+                    text={selectedChapter.content}
+                    onClose={() => setShowQuiz(false)}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
           <div className="lg:col-span-8">
             <Card className="min-h-[60vh] flex flex-col shadow-lg border-t-4 border-t-primary">
@@ -1013,8 +1128,10 @@ export default function Flexa() {
                           <h3 className="font-bold text-xl mb-4 text-yellow-800">
                             Intisari Materi
                           </h3>
-                          <p className="text-xl leading-relaxed">
-                            {generateSummary(selectedChapter.content)}
+                          <p className="text-xl leading-relaxed whitespace-pre-line" aria-live="polite">
+                            {isSummaryLoading && !summaries[summaryKey]
+                              ? "NeoTutor sedang meringkas materi ini..."
+                              : summaries[summaryKey]}
                           </p>
                         </div>
                       </motion.div>

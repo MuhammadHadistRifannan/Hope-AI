@@ -501,6 +501,37 @@ CREATE TRIGGER update_chat_sessions_updated_at
 BEFORE UPDATE ON public.chat_sessions
 FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+-- Sesi chat bisa membahas satu dokumen milik pengguna atau satu bab materi
+ALTER TABLE public.chat_sessions
+  ADD COLUMN IF NOT EXISTS document_id UUID REFERENCES public.user_documents(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS material_id UUID REFERENCES public.materials(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS chat_sessions_document_id_idx ON public.chat_sessions (document_id);
+CREATE INDEX IF NOT EXISTS chat_sessions_material_id_idx ON public.chat_sessions (material_id);
+
+-- Hasil kuis yang dibuat AI dari dokumen atau materi
+CREATE TABLE public.document_quiz_attempts (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  score INTEGER NOT NULL CHECK (score >= 0),
+  total INTEGER NOT NULL CHECK (total > 0),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  CHECK (score <= total)
+);
+
+CREATE INDEX document_quiz_attempts_user_id_idx ON public.document_quiz_attempts (user_id, created_at DESC);
+
+ALTER TABLE public.document_quiz_attempts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own document quiz attempts"
+ON public.document_quiz_attempts FOR SELECT TO authenticated
+USING ((SELECT auth.uid()) = user_id OR private.is_staff((SELECT auth.uid())));
+
+CREATE POLICY "Users can insert their own document quiz attempts"
+ON public.document_quiz_attempts FOR INSERT TO authenticated
+WITH CHECK ((SELECT auth.uid()) = user_id);
+
 -- ---------------------------------------------------------------------------
 -- Forum: postingan, komentar, suka
 -- ---------------------------------------------------------------------------
@@ -702,6 +733,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.sign_items TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_documents TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_sessions TO authenticated;
 GRANT SELECT, INSERT ON public.chat_messages TO authenticated;
+GRANT SELECT, INSERT ON public.document_quiz_attempts TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.forum_posts TO authenticated;
 GRANT SELECT, INSERT, DELETE ON public.forum_comments TO authenticated;
 GRANT SELECT, INSERT, DELETE ON public.forum_post_likes TO authenticated;

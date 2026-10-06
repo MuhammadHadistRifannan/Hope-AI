@@ -1,6 +1,10 @@
 import { API_URL, authHeaders } from "@/lib/api";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { MessageSquare, ListChecks } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import DocumentQuiz from "@/components/DocumentQuiz";
 import { Camera, Volume2, Type, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -103,14 +107,28 @@ export default function EyeRead() {
       hour: "2-digit",
       minute: "2-digit",
     });
-    const { error } = await supabase.from("user_documents").insert({
-      user_id: user.id,
-      source: "scan",
-      title: `Pindaian ${waktu}`,
-      content: text,
-    });
-    if (error) console.error("Gagal menyimpan hasil pindai:", error);
+    const { data, error } = await supabase
+      .from("user_documents")
+      .insert({
+        user_id: user.id,
+        source: "scan",
+        title: `Pindaian ${waktu}`,
+        content: text,
+      })
+      .select("id, title")
+      .single();
+    if (error) {
+      console.error("Gagal menyimpan hasil pindai:", error);
+      return;
+    }
+    // Dengan id ini hasil pindai bisa ditanyakan ke NeoTutor
+    setSavedScan(data);
   };
+
+  // Hasil pindai terakhir yang sudah tersimpan, kuis, dan navigasi ke NeoTutor
+  const navigate = useNavigate();
+  const [savedScan, setSavedScan] = useState<{ id: string; title: string } | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
 
   const fetchSummary = async () => {
     setIsSummaryLoading(true);
@@ -739,6 +757,48 @@ export default function EyeRead() {
                 </TabsContent>
               </div>
             </Tabs>
+
+            {/* Lanjutkan dari hasil pindai: tanya tutor atau latihan soal */}
+            {scannedText && (
+              <div className="flex flex-wrap gap-2 pt-4 mt-4 border-t">
+                <Button
+                  variant="outline"
+                  disabled={!savedScan}
+                  onClick={() => {
+                    window.speechSynthesis?.cancel();
+                    navigate("/neotutor", {
+                      state: { context: { type: "document", id: savedScan?.id, title: savedScan?.title } },
+                    });
+                  }}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" aria-hidden="true" /> Tanya NeoTutor
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    window.speechSynthesis?.cancel();
+                    setShowQuiz(true);
+                  }}
+                >
+                  <ListChecks className="mr-2 h-4 w-4" aria-hidden="true" /> Buat Kuis dari Teks Ini
+                </Button>
+              </div>
+            )}
+            <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogTitle>Kuis dari hasil pindai</DialogTitle>
+                <DialogDescription>
+                  Soal dibuat AI dari teks yang dipindai dan menyesuaikan dengan jawabanmu.
+                </DialogDescription>
+                {showQuiz && (
+                  <DocumentQuiz
+                    title={savedScan?.title ?? "Hasil pindai"}
+                    text={scannedText}
+                    onClose={() => setShowQuiz(false)}
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
           </Card>
         </div>
       </motion.div>

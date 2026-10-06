@@ -1,6 +1,7 @@
 import { API_URL, authHeaders } from "@/lib/api";
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Volume2, Mic, MicOff, Plus } from "lucide-react"; // Import ikon Mic
+import { useLocation, useNavigate } from "react-router-dom";
+import { Send, Bot, User, Volume2, Mic, MicOff, Plus, BookOpen, X } from "lucide-react"; // Import ikon Mic
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,15 @@ type Message = {
 type ChatSession = {
   id: string;
   title: string;
+  // true bila percakapan ini membahas satu dokumen atau bab materi
+  hasMaterial: boolean;
+};
+
+// Materi yang dibawa dari Flexa atau EyeRead untuk dibahas di percakapan baru
+type MaterialContext = {
+  type: "document" | "material";
+  id: string;
+  title: string;
 };
 
 // Sapaan pembuka; hanya tampilan, tidak disimpan ke riwayat
@@ -45,6 +55,13 @@ export default function NeoTutor() {
   // Tiap sesi punya ingatannya sendiri; null berarti percakapan baru yang belum tersimpan
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Materi untuk percakapan baru; dikirim ke server bersama pesan pertama
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [pendingContext, setPendingContext] = useState<MaterialContext | null>(
+    (location.state as { context?: MaterialContext } | null)?.context ?? null
+  );
 
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -85,7 +102,7 @@ export default function NeoTutor() {
   const loadSessions = async () => {
     const { data, error } = await supabase
       .from("chat_sessions")
-      .select("id, title")
+      .select("id, title, document_id, material_id")
       .order("updated_at", { ascending: false })
       .limit(30);
 
@@ -93,12 +110,18 @@ export default function NeoTutor() {
       console.error("Gagal memuat daftar percakapan:", error);
       return [];
     }
-    setSessions(data);
-    return data;
+    const loaded = data.map((row) => ({
+      id: row.id,
+      title: row.title,
+      hasMaterial: row.document_id !== null || row.material_id !== null,
+    }));
+    setSessions(loaded);
+    return loaded;
   };
 
   const openSession = async (id: string) => {
     window.speechSynthesis?.cancel();
+    setPendingContext(null);
     setSessionId(id);
 
     const { data, error } = await supabase
@@ -123,16 +146,36 @@ export default function NeoTutor() {
 
   const startNewSession = () => {
     window.speechSynthesis?.cancel();
+    setPendingContext(null);
     setSessionId(null);
     setMessages([welcomeMessage]);
   };
 
-  // Saat halaman dibuka, lanjutkan percakapan terakhir pengguna
+  // Saat halaman dibuka: bila datang membawa materi, mulai percakapan baru tentang
+  // materi itu; kalau tidak, lanjutkan percakapan terakhir pengguna
   useEffect(() => {
     loadSessions().then((loaded) => {
-      if (loaded.length > 0) openSession(loaded[0].id);
+      if (pendingContext) {
+        setMessages([
+          {
+            ...welcomeMessage,
+            content: `Halo! Aku sudah siap membahas "${pendingContext.title}". Mau tanya apa tentang materi ini?`,
+          },
+        ]);
+        // Hapus dari riwayat navigasi agar memuat ulang halaman tidak mengulanginya
+        navigate(location.pathname, { replace: true, state: null });
+      } else if (loaded.length > 0) {
+        openSession(loaded[0].id);
+      }
     });
   }, []);
+
+  const activeSession = sessions.find((session) => session.id === sessionId);
+  const materialTitle = pendingContext
+    ? pendingContext.title
+    : activeSession?.hasMaterial
+    ? activeSession.title.replace(/^Tanya: /, "")
+    : null;
 
   // --- FUNGSI INPUT SUARA (SPEECH TO TEXT) - BARU ---
   const startListening = () => {
@@ -189,7 +232,12 @@ export default function NeoTutor() {
           "Content-Type": "application/json",
           ...(await authHeaders())
         },
-        body: JSON.stringify({ text, sessionId })
+        body: JSON.stringify({
+          text,
+          sessionId,
+          // Hanya percakapan baru yang bisa ditautkan ke materi
+          context: sessionId ? undefined : pendingContext ?? undefined,
+        })
       });
 
       if (!response.ok) {
@@ -210,6 +258,7 @@ export default function NeoTutor() {
       // Percakapan baru mendapat sesi dari server pada pesan pertamanya
       if (data.sessionId && data.sessionId !== sessionId) {
         setSessionId(data.sessionId);
+        setPendingContext(null);
         loadSessions();
       }
     } catch (error) {
@@ -262,6 +311,28 @@ export default function NeoTutor() {
             Percakapan Baru
           </Button>
         </div>
+
+        {/* Penanda bahwa jawaban NeoTutor didasarkan pada satu materi */}
+        {materialTitle && (
+          <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-lg bg-primary/10 border border-primary/20" role="status">
+            <BookOpen className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" />
+            <p className="flex-1 min-w-0 text-sm">
+              <span className="text-muted-foreground">Membahas materi: </span>
+              <span className="font-medium">{materialTitle}</span>
+            </p>
+            {pendingContext && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 flex-shrink-0"
+                onClick={startNewSession}
+                aria-label="Batalkan pembahasan materi ini"
+              >
+                <X className="w-4 h-4" aria-hidden="true" />
+              </Button>
+            )}
+          </div>
+        )}
 
         <Card className="h-[calc(100vh-250px)] md:h-[600px] flex flex-col">
           {/* Chat Messages */}

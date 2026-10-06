@@ -169,8 +169,20 @@ export type Database = {
         "id" | "summary" | "created_at" | "updated_at"
       >
       chat_sessions: Table<
-        { id: string; user_id: string; title: string; created_at: string; updated_at: string },
-        "id" | "title" | "created_at" | "updated_at"
+        {
+          id: string
+          user_id: string
+          title: string
+          document_id: string | null
+          material_id: string | null
+          created_at: string
+          updated_at: string
+        },
+        "id" | "title" | "document_id" | "material_id" | "created_at" | "updated_at"
+      >
+      document_quiz_attempts: Table<
+        { id: string; user_id: string; title: string; score: number; total: number; created_at: string },
+        "id" | "created_at"
       >
       chat_messages: Table<
         {

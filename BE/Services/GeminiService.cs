@@ -40,13 +40,24 @@ public class GeminiService : IGeminiService
 
     // Tidak menyimpan apa pun di service: riwayat dikirim per permintaan,
     // sehingga percakapan antar pengguna tidak pernah tercampur.
-    public async Task<string> Chat(ModelAi model, IReadOnlyList<ChatTurn> history, string message)
+    public async Task<string> Chat(ModelAi model, IReadOnlyList<ChatTurn> history, string message, ChatMaterial? material)
     {
         var contents = new List<Content>
         {
             TextContent("user", Persona),
             TextContent("model", "Siap, aku Neotutor!"),
         };
+
+        // Bila sesi membahas satu materi, jawaban didasarkan pada materi itu
+        if (material != null)
+        {
+            contents.Add(TextContent("user",
+                $"Pelajar sedang mempelajari materi berjudul \"{material.Title}\". " +
+                "Jawab pertanyaannya berdasarkan materi di bawah ini. " +
+                "Kalau jawabannya tidak ada di materi, katakan terus terang bahwa materi tidak membahasnya, " +
+                "baru kemudian bantu dengan pengetahuan umum.\n\nMATERI:\n" + material.Content));
+            contents.Add(TextContent("model", "Oke, aku sudah baca materinya. Mau tanya apa?"));
+        }
 
         foreach (var turn in history)
         {
@@ -75,6 +86,31 @@ public class GeminiService : IGeminiService
                 new Part { Text = text }
             }
         };
+    }
+
+    public async Task<List<QuizQuestion>> GenerateQuiz(ModelAi model, string text, int count)
+    {
+        string prompt = $@"Buat {count} soal pilihan ganda dalam Bahasa Indonesia HANYA berdasarkan teks di bawah.
+Aturan:
+- Tiap soal punya tepat 4 pilihan jawaban yang berbeda.
+- Nilai ""a"" harus sama persis dengan salah satu pilihan.
+- ""difficulty"": 1 untuk mudah (mengingat), 2 untuk sedang (memahami), 3 untuk sulit (menerapkan). Bagi rata.
+- Gunakan kalimat pendek dan sederhana.
+Kembalikan HANYA array JSON tanpa teks lain dan tanpa blok kode, dengan bentuk:
+[{{""q"": ""pertanyaan"", ""options"": [""A"", ""B"", ""C"", ""D""], ""a"": ""A"", ""difficulty"": 1}}]
+
+TEKS:
+" + text;
+
+        var content = new GenerateContentRequest
+        {
+            Model = model.nameModel,
+            Contents = new List<Content> { TextContent("user", prompt) }
+        };
+
+        var response = await client.V1.Models.GenerateContentAsync(model.nameModel, content);
+        string raw = response.Candidates![0].Content!.Parts![0].Text!;
+        return QuizParser.Parse(raw);
     }
 
     public async Task<string> Ringkasan(ModelAi model, string message)
