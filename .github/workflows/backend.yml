@@ -1,35 +1,72 @@
-name: Backend - deploy ke Render
+name: Backend - deploy ke VPS
 
 on:
   push:
     branches: [main]
     paths:
       - "BE/**"
-      - "render.yaml"
+      - "deploy/**"
       - ".github/workflows/backend.yml"
   workflow_dispatch:
 
 concurrency:
   group: backend-deploy
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/muhammadhadistrifannan/hope-ai-backend
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "10.0.x"
+      - name: Login ke GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
 
-      - name: Build
-        run: dotnet build BE/backend.csproj --configuration Release
+      # Image dibangun di sini, bukan di VPS, supaya VPS kecil tidak kehabisan memori
+      - name: Build dan push image
+        run: |
+          docker build --tag "$IMAGE:latest" --tag "$IMAGE:${{ github.sha }}" BE
+          docker push --all-tags "$IMAGE"
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
-      # Render membangun ulang image dari Dockerfile setelah hook dipanggil
-      - name: Picu deploy di Render
-        run: curl --fail --silent --show-error --request POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+      - uses: actions/checkout@v4
+
+      - name: Siapkan kunci SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Kirim berkas deploy
+        run: |
+          scp -i ~/.ssh/id_deploy deploy/docker-compose.yml deploy/Caddyfile \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/hopeai/"
+
+      - name: Tarik image baru dan jalankan ulang
+        run: |
+          ssh -i ~/.ssh/id_deploy "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io --username '${{ github.actor }}' --password-stdin \
+             && cd /opt/hopeai \
+             && docker compose pull \
+             && docker compose up -d --remove-orphans \
+             && docker image prune -f \
+             && docker logout ghcr.io"
+
+      - name: Cek /health
+        run: |
+          curl --fail --silent --show-error \
+            --retry 10 --retry-delay 6 --retry-all-errors --max-time 30 \
+            "${{ vars.BACKEND_URL }}/health"

@@ -35,202 +35,26 @@ import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 
 // --- DATA LEVEL (PATHLY) - 10 LEVEL LENGKAP ---
-const modules = [
-  {
-    id: 1,
-    title: "Pulau Angka",
-    topic: "Pengenalan Angka 1-10",
-    status: "unlocked",
-    position: "center",
-    color: "bg-emerald-500",
-    material: {
-      title: "Mengenal Angka Dasar",
-      content:
-        "Angka adalah simbol untuk menghitung. 1 (satu) seperti tiang, 2 (dua) seperti bebek, 3 (tiga) seperti burung terbang.",
-      summary: "Ingat bentuk visual angka untuk mempermudah hafalan.",
-    },
-    quiz: [
-      { q: "Angka setelah 2 adalah?", options: ["1", "3", "4", "5"], a: "3" },
-      {
-        q: "Mana yang lebih besar: 5 atau 2?",
-        options: ["5", "2", "Sama", "0"],
-        a: "5",
-      },
-      {
-        q: "Berapa jumlah jari di satu tangan?",
-        options: ["4", "5", "6", "10"],
-        a: "5",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Lembah Penjumlahan",
-    topic: "Penjumlahan Sederhana",
-    status: "locked",
-    position: "left",
-    color: "bg-blue-500",
-    material: {
-      title: "Konsep Penjumlahan",
-      content:
-        "Penjumlahan artinya menggabungkan. Jika kamu punya 1 apel, lalu diberi 1 apel lagi, kamu punya 2 apel. Simbolnya (+).",
-      summary: "Gabungkan dua kelompok benda menjadi satu.",
-    },
-    quiz: [
-      { q: "1 + 1 = ?", options: ["11", "2", "3", "0"], a: "2" },
-      { q: "2 + 3 = ?", options: ["5", "6", "4", "1"], a: "5" },
-      {
-        q: "Jika Alya punya 2 permen dan Budi memberi 1 lagi, berapa permen Alya?",
-        options: ["2", "3", "4", "1"],
-        a: "3",
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "Gua Pengurangan",
-    topic: "Pengurangan Dasar",
-    status: "locked",
-    position: "right",
-    color: "bg-purple-500",
-    material: {
-      title: "Konsep Pengurangan",
-      content: "Pengurangan artinya mengambil sebagian. Ada 5 burung, terbang 2, sisa 3. Simbolnya (-).",
-      summary: "Hitung mundur atau ambil benda."
-    },
-    quiz: [
-      { q: "5 - 2 = ?", options: ["3", "2", "7", "5"], a: "3" },
-      { q: "10 - 5 = ?", options: ["15", "5", "0", "2"], a: "5" },
-      { q: "Ibu membeli 4 telur, pecah 1. Sisa berapa?", options: ["3", "4", "5", "2"], a: "3" }
-    ]
-  },
-  {
-    id: 4,
-    title: "Puncak Logika",
-    topic: "Pola & Urutan",
-    status: "locked",
-    position: "center",
-    color: "bg-orange-500",
-    material: {
-      title: "Mengenal Pola",
-      content: "Pola adalah urutan yang berulang. Merah, Biru, Merah, Biru... selanjutnya pasti Merah!",
-      summary: "Perhatikan pengulangan untuk menebak selanjutnya."
-    },
-    quiz: [
-      { q: "1, 2, 1, 2, ... selanjutnya?", options: ["1", "2", "3", "0"], a: "1" },
-      { q: "A, B, A, B, ... selanjutnya?", options: ["A", "B", "C", "D"], a: "A" },
-      { q: "Siang, Malam, Siang, ... selanjutnya?", options: ["Pagi", "Malam", "Sore", "Siang"], a: "Malam" }
-    ]
-  },
-  {
-    id: 5,
-    title: "Hutan Pengetahuan",
-    topic: "Ilmu Pengetahuan Alam",
-    status: "locked",
-    position: "left",
-    color: "bg-green-600",
-    material: {
-      title: "Makhluk Hidup",
-      content: "Makhluk hidup itu bernapas, makan, dan tumbuh. Contohnya manusia, hewan, dan tumbuhan. Batu dan air adalah benda mati.",
-      summary: "Bedakan antara benda hidup dan benda mati."
-    },
-    quiz: [
-      { q: "Manakah yang merupakan makhluk hidup?", options: ["Batu", "Meja", "Kucing", "Air"], a: "Kucing" },
-      { q: "Makanan sapi adalah?", options: ["Daging", "Rumput", "Nasi", "Ikan"], a: "Rumput" },
-      { q: "Matahari terbit di sebelah?", options: ["Barat", "Timur", "Utara", "Selatan"], a: "Timur" }
-    ]
-  },
-  {
-    id: 6,
-    title: "Kota Bahasa",
-    topic: "Bahasa & Kata",
-    status: "locked",
-    position: "right",
-    color: "bg-pink-500",
-    material: {
-      title: "Lawan Kata",
-      content: "Lawan kata adalah kata yang maknanya berlawanan. Contoh: Besar lawannya Kecil. Panas lawannya Dingin.",
-      summary: "Belajar antonim untuk memperkaya kosakata."
-    },
-    quiz: [
-      { q: "Lawan kata dari 'Panas' adalah?", options: ["Dingin", "Hangat", "Api", "Terbakar"], a: "Dingin" },
-      { q: "Lawan kata dari 'Besar' adalah?", options: ["Raksasa", "Kecil", "Luas", "Tinggi"], a: "Kecil" },
-      { q: "Hewan yang mengeong adalah?", options: ["Anjing", "Ayam", "Kucing", "Bebek"], a: "Kucing" }
-    ]
-  },
-  {
-    id: 7,
-    title: "Samudra Geografi",
-    topic: "Lingkungan Sosial",
-    status: "locked",
-    position: "center",
-    color: "bg-cyan-500",
-    material: {
-      title: "Mengenal Tempat",
-      content: "Sekolah adalah tempat belajar. Pasar tempat jual beli. Rumah Sakit tempat berobat.",
-      summary: "Pahami fungsi tempat-tempat umum di sekitar kita."
-    },
-    quiz: [
-      { q: "Tempat untuk belajar disebut?", options: ["Pasar", "Sekolah", "Bandara", "Hotel"], a: "Sekolah" },
-      { q: "Ibu kota negara Indonesia adalah?", options: ["Bandung", "Surabaya", "Jakarta", "Medan"], a: "Jakarta" },
-      { q: "Lampu lalu lintas warna merah artinya?", options: ["Jalan", "Berhenti", "Hati-hati", "Ngebut"], a: "Berhenti" }
-    ]
-  },
-  {
-    id: 8,
-    title: "Benteng Kesehatan",
-    topic: "Kesehatan Diri",
-    status: "locked",
-    position: "left",
-    color: "bg-red-500",
-    material: {
-      title: "Menjaga Kebersihan",
-      content: "Mandi 2 kali sehari. Sikat gigi sesudah makan dan sebelum tidur. Cuci tangan sebelum makan agar bebas kuman.",
-      summary: "Kebersihan adalah pangkal kesehatan."
-    },
-    quiz: [
-      { q: "Kita harus menyikat gigi minimal ... kali sehari.", options: ["1", "2", "5", "Tidak perlu"], a: "2" },
-      { q: "Sebelum makan kita harus?", options: ["Tidur", "Mencuci tangan", "Bermain", "Lari"], a: "Mencuci tangan" },
-      { q: "Makanan yang sehat mengandung?", options: ["Banyak gula", "Vitamin", "Pengawet", "Pewarna"], a: "Vitamin" }
-    ]
-  },
-  {
-    id: 9,
-    title: "Galeri Seni",
-    topic: "Warna & Bentuk",
-    status: "locked",
-    position: "right",
-    color: "bg-yellow-500",
-    material: {
-      title: "Warna Dasar",
-      content: "Warna dasar ada Merah, Kuning, Biru. Campuran Merah dan Kuning jadi Oranye. Campuran Biru dan Kuning jadi Hijau.",
-      summary: "Eksplorasi percampuran warna dan bentuk benda."
-    },
-    quiz: [
-      { q: "Warna langit yang cerah adalah?", options: ["Hijau", "Merah", "Biru", "Hitam"], a: "Biru" },
-      { q: "Bentuk bola adalah?", options: ["Kotak", "Segitiga", "Bulat", "Persegi"], a: "Bulat" },
-      { q: "Campuran warna merah dan kuning menghasilkan?", options: ["Ungu", "Hijau", "Oranye", "Coklat"], a: "Oranye" }
-    ]
-  },
-  {
-    id: 10,
-    title: "Puncak Harapan",
-    topic: "Pengetahuan Umum",
-    status: "locked",
-    position: "center",
-    color: "bg-indigo-600",
-    material: {
-      title: "Rangkuman Pengetahuan",
-      content: "Dalam satu minggu ada 7 hari. Dalam satu tahun ada 12 bulan. Bumi itu bulat.",
-      summary: "Fakta-fakta dasar tentang dunia kita."
-    },
-    quiz: [
-      { q: "Ada berapa hari dalam satu minggu?", options: ["5", "6", "7", "10"], a: "7" },
-      { q: "Hari setelah Senin adalah?", options: ["Rabu", "Selasa", "Minggu", "Jumat"], a: "Selasa" },
-      { q: "Apa nama planet tempat kita tinggal?", options: ["Mars", "Bulan", "Bumi", "Matahari"], a: "Bumi" }
-    ]
-  }
-];
+// Modul, materi, dan soal Pathly dibaca dari database (learning_modules, quiz_questions).
+// Bentuk objek di bawah dipakai oleh tampilan peta, materi, dan kuis.
+type PathModule = {
+  id: number;
+  title: string;
+  topic: string;
+  status: "locked" | "unlocked" | "completed";
+  position: string;
+  color: string;
+  bestScore: number;
+  material: { title: string; content: string; summary: string };
+  quiz: { q: string; options: string[]; a: string }[];
+};
+
+// Tanggal lokal format YYYY-MM-DD, untuk menghitung streak harian
+const localDate = (offsetDays = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return d.toLocaleDateString("en-CA");
+};
 
 // --- DATA & HELPER GAME (PLAYGROUND) ---
 const fruitIcons = [
@@ -314,13 +138,15 @@ export default function Pathly() {
   const [qIndex, setQIndex] = useState(0);
   const [pathScore, setPathScore] = useState(0);
   const [isPathCompleted, setIsPathCompleted] = useState(false);
-  const [modulesState, setModulesState] = useState(modules);
+  const [modulesState, setModulesState] = useState<PathModule[]>([]);
+  const [isLoadingModules, setIsLoadingModules] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState("Siswa Hebat Hope.Ai"); // Default Name
 
   // --- STATE GAME ---
   const [activeGameTab, setActiveGameTab] = useState("memory");
-  const [xp, setXp] = useState(1250);
-  const [streak, setStreak] = useState(5);
+  const [xp, setXp] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   // Memory Game State
   const [memIsPlaying, setMemIsPlaying] = useState(false);
@@ -353,11 +179,21 @@ export default function Pathly() {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
+          setUserId(user.id);
+          loadPath(user.id);
           const { data } = await supabase
             .from("profiles")
-            .select("full_name")
+            .select("full_name, xp, streak, last_active_date")
             .eq("id", user.id)
             .maybeSingle();
+          if (data) {
+            setXp(data.xp);
+            // Streak hangus bila terakhir aktif sebelum kemarin
+            const stillActive =
+              data.last_active_date === localDate() ||
+              data.last_active_date === localDate(-1);
+            setStreak(stillActive ? data.streak : 0);
+          }
           if (data?.full_name) {
             setUserName(data.full_name);
           } else if (user.user_metadata?.full_name) {
@@ -372,6 +208,149 @@ export default function Pathly() {
     };
     fetchProfileName();
   }, []);
+
+  // --- MODUL & PROGRES DARI DATABASE ---
+  const loadPath = async (uid: string) => {
+    const [modulesRes, questionsRes, progressRes] = await Promise.all([
+      supabase.from("learning_modules").select("*").order("sort_order"),
+      supabase.from("quiz_questions").select("*").order("sort_order"),
+      supabase
+        .from("module_progress")
+        .select("module_id, status, best_score")
+        .eq("user_id", uid),
+    ]);
+
+    if (modulesRes.error || questionsRes.error) {
+      console.error("Gagal memuat modul:", modulesRes.error || questionsRes.error);
+      toast({
+        title: "Gagal memuat modul",
+        description: "Periksa koneksi lalu muat ulang halaman.",
+        variant: "destructive",
+      });
+      setIsLoadingModules(false);
+      return;
+    }
+
+    const progress = new Map(
+      (progressRes.data ?? []).map((row) => [row.module_id, row])
+    );
+
+    // Level terbuka bila itu level pertama atau level sebelumnya sudah selesai
+    let previousCompleted = true;
+    const built: PathModule[] = modulesRes.data.map((mod) => {
+      const completed = progress.get(mod.id)?.status === "completed";
+      const status = completed
+        ? "completed"
+        : previousCompleted
+        ? "unlocked"
+        : "locked";
+      previousCompleted = completed;
+
+      return {
+        id: mod.id,
+        title: mod.title,
+        topic: mod.topic,
+        status,
+        position: mod.position,
+        color: mod.color,
+        bestScore: progress.get(mod.id)?.best_score ?? 0,
+        material: {
+          title: mod.material_title,
+          content: mod.material_content,
+          summary: mod.material_summary ?? "",
+        },
+        quiz: questionsRes.data
+          .filter((question) => question.module_id === mod.id)
+          .map((question) => ({
+            q: question.question,
+            options: question.options as string[],
+            a: question.answer,
+          })),
+      };
+    });
+
+    setModulesState(built);
+    setIsLoadingModules(false);
+  };
+
+  // Tambah XP dan perbarui streak harian di profil
+  const recordActivity = async (xpGain: number) => {
+    if (!userId) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("xp, streak, last_active_date")
+      .eq("id", userId)
+      .maybeSingle();
+    if (!profile) return;
+
+    const today = localDate();
+    const newStreak =
+      profile.last_active_date === today
+        ? Math.max(profile.streak, 1)
+        : profile.last_active_date === localDate(-1)
+        ? profile.streak + 1
+        : 1;
+    const newXp = profile.xp + xpGain;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ xp: newXp, streak: newStreak, last_active_date: today })
+      .eq("id", userId);
+    if (error) {
+      console.error("Gagal menyimpan XP:", error);
+      return;
+    }
+
+    setXp(newXp);
+    setStreak(newStreak);
+  };
+
+  const saveQuizResult = async (mod: PathModule, score: number) => {
+    if (!userId) return;
+
+    const [attemptRes, progressRes] = await Promise.all([
+      supabase.from("quiz_attempts").insert({
+        user_id: userId,
+        module_id: mod.id,
+        score,
+        total: mod.quiz.length,
+      }),
+      supabase.from("module_progress").upsert({
+        user_id: userId,
+        module_id: mod.id,
+        status: "completed",
+        best_score: Math.max(mod.bestScore, score),
+        completed_at: new Date().toISOString(),
+      }),
+    ]);
+
+    if (attemptRes.error || progressRes.error) {
+      console.error("Gagal menyimpan progres:", attemptRes.error || progressRes.error);
+      toast({
+        title: "Progres belum tersimpan",
+        description: "Hasil kuis ini tidak tersimpan ke akun. Periksa koneksi.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await recordActivity(score * 10);
+  };
+
+  const saveGameScore = async (game: "memory" | "math", score: number, xpGain: number) => {
+    if (!userId) return;
+
+    const { error } = await supabase
+      .from("game_scores")
+      .insert({ user_id: userId, game, score });
+    if (error) {
+      console.error("Gagal menyimpan skor game:", error);
+      return;
+    }
+
+    await recordActivity(xpGain);
+  };
 
   // --- AUDIO & TTS ---
   const playTone = (freq: number, duration: number) => {
@@ -667,7 +646,8 @@ export default function Pathly() {
 
   const handlePathAnswer = (selected: string) => {
     const currentQ = activeModule.quiz[qIndex];
-    if (selected === currentQ.a) {
+    const isCorrect = selected === currentQ.a;
+    if (isCorrect) {
       setPathScore((prev) => prev + 1);
       toast({
         title: "Benar! 🎉",
@@ -682,19 +662,22 @@ export default function Pathly() {
     } else {
       setIsPathCompleted(true);
       confetti();
+      const finalScore = pathScore + (isCorrect ? 1 : 0);
+      saveQuizResult(activeModule, finalScore);
+
       // Unlock next level
       const idx = modulesState.findIndex((m) => m.id === activeModule.id);
-      if (idx < modulesState.length - 1) {
-        const newModules = [...modulesState];
-        newModules[idx].status = "completed";
-        newModules[idx + 1].status = "unlocked";
-        setModulesState(newModules);
-      } else if (idx === modulesState.length - 1) {
-        // Last level completed
-        const newModules = [...modulesState];
-        newModules[idx].status = "completed";
-        setModulesState(newModules);
-      }
+      setModulesState(
+        modulesState.map((m, i) => {
+          if (i === idx) {
+            return { ...m, status: "completed", bestScore: Math.max(m.bestScore, finalScore) };
+          }
+          if (i === idx + 1 && m.status === "locked") {
+            return { ...m, status: "unlocked" };
+          }
+          return m;
+        })
+      );
     }
   };
 
@@ -753,7 +736,6 @@ export default function Pathly() {
             if (newCount === cardsData.length / 2) {
               setMemGameOver(true);
               setMemIsPlaying(false);
-              setXp((prevXP) => prevXP + memScore + 50);
               confetti();
               playTone(600, 0.2);
             }
@@ -840,13 +822,24 @@ export default function Pathly() {
     if (mathIsPlaying && mathTimeLeft > 0 && !mathGameOver) {
       timer = setInterval(() => setMathTimeLeft((prev) => prev - 1), 1000);
     } else if (mathTimeLeft === 0 && mathIsPlaying) {
-      setMemGameOver(true);
-      setMemIsPlaying(false);
-      setXp((prev) => prev + mathScore);
+      setMathGameOver(true);
+      setMathIsPlaying(false);
       if (mathScore > 50) confetti();
     }
     return () => clearInterval(timer);
   }, [mathIsPlaying, mathTimeLeft, mathGameOver]);
+
+  // Simpan skor ke akun begitu permainan berakhir
+  useEffect(() => {
+    if (!memGameOver) return;
+    const allMatched = matchedCount === cardsData.length / 2;
+    saveGameScore("memory", memScore, memScore + (allMatched ? 50 : 0));
+  }, [memGameOver]);
+
+  useEffect(() => {
+    if (!mathGameOver) return;
+    saveGameScore("math", mathScore, mathScore);
+  }, [mathGameOver]);
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-slate-50 dark:bg-slate-950 font-sans">
@@ -976,6 +969,12 @@ export default function Pathly() {
                           vectorEffect="non-scaling-stroke"
                         />
                       </svg>
+
+                      {isLoadingModules && (
+                        <p className="text-center text-muted-foreground" role="status">
+                          Memuat peta belajar...
+                        </p>
+                      )}
 
                       {/* --- RENDER TITIK LEVEL (NODES) --- */}
                       {modulesState.map((mod) => (
@@ -1137,15 +1136,10 @@ export default function Pathly() {
                         size="lg"
                         className="w-full h-14 rounded-xl text-lg border-2"
                         onClick={() => {
-                          const resetModules = modules.map((m, idx) => ({
-                            ...m,
-                            status: idx === 0 ? "unlocked" : "locked",
-                          }));
-                          setModulesState(resetModules);
                           resetPath();
                           toast({
-                            title: "Perjalanan Diulang 🔄",
-                            description: "Semangat belajar dari awal!",
+                            title: "Main Lagi 🔄",
+                            description: "Semua level terbuka. Pilih level mana pun untuk diulang!",
                           });
                         }}
                       >

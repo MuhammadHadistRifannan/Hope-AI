@@ -1,4 +1,5 @@
 import { API_URL, authHeaders } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import { Camera, Volume2, Type, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,29 @@ export default function EyeRead() {
       fetchSummary();
     }
   }, [activeOutput, scannedText]);
+
+  // Simpan hasil pindai ke akun; muncul di "Dokumen Saya" pada Flexa
+  const saveScan = async (text: string) => {
+    if (!text.trim()) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const waktu = new Date().toLocaleString("id-ID", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const { error } = await supabase.from("user_documents").insert({
+      user_id: user.id,
+      source: "scan",
+      title: `Pindaian ${waktu}`,
+      content: text,
+    });
+    if (error) console.error("Gagal menyimpan hasil pindai:", error);
+  };
 
   const fetchSummary = async () => {
     setIsSummaryLoading(true);
@@ -292,6 +316,7 @@ export default function EyeRead() {
 
       const ocrText = await response.text();
       setScannedText(ocrText);
+      saveScan(ocrText);
       setIsProcessing(false);
       setActiveOutput("text");
       toast({ title: "Berhasil!", description: "Teks berhasil diekstrak" });
@@ -340,6 +365,7 @@ export default function EyeRead() {
 
       const text = await response.text();
       setScannedText(text);
+      saveScan(text);
       toast({ title: "Berhasil!", description: "Teks berhasil diekstrak." });
     } catch (err) {
       console.error(err);
@@ -387,6 +413,7 @@ export default function EyeRead() {
 
       const ocrText = await response.text();
       setScannedText(ocrText);
+      saveScan(ocrText);
       toast({ title: "Berhasil!", description: "Teks berhasil diekstrak" });
     } catch {
       toast({

@@ -1,4 +1,5 @@
 import { API_URL, authHeaders } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import {
   BookOpen,
@@ -31,81 +32,14 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
 
-// --- DATA MATERI UMUM (DIPERBANYAK) ---
+// Info tampilan tiap tingkat. Isi materi (tabel materials) dan kamus isyarat
+// (tabel sign_items) dibaca dari database.
 const learningPath = {
   mudah: {
     title: "Tingkat Dasar",
     description: "Fondasi awal untuk pemula. Pelajari konsep-konsep sederhana.",
     icon: <BookOpen className="w-12 h-12 text-green-500" />,
     color: "bg-green-100 text-green-700",
-    chapters: [
-      {
-        id: "m1",
-        title: "Bab 1: Pengenalan Angka",
-        content:
-          "Angka adalah simbol yang digunakan untuk mewakili bilangan. Dalam matematika dasar, kita mengenal angka 0 hingga 9 sebagai digit dasar. Kombinasi digit ini membentuk bilangan yang lebih besar.",
-      },
-      {
-        id: "m2",
-        title: "Bab 2: Penjumlahan Sederhana",
-        content:
-          "Penjumlahan adalah proses menggabungkan dua kelompok benda atau angka menjadi satu. Tanda tambah (+) digunakan untuk menunjukkan penjumlahan. Misalnya, 2 apel + 1 apel = 3 apel.",
-      },
-      {
-        id: "m3",
-        title: "Bab 3: Mengenal Warna Dasar",
-        content:
-          "Warna dasar atau primer adalah warna utama yang tidak bisa dibuat dari campuran warna lain. Tiga warna dasar adalah Merah, Kuning, dan Biru. Mencampur warna ini akan menghasilkan warna baru seperti Hijau atau Ungu.",
-      },
-      {
-        id: "m4",
-        title: "Bab 4: Mengenal Huruf Vokal",
-        content:
-          "Dalam abjad, terdapat huruf vokal dan konsonan. Huruf vokal terdiri dari A, I, U, E, dan O. Huruf-huruf ini sangat penting karena memberikan bunyi pada setiap kata yang kita ucapkan.",
-      },
-      {
-        id: "m5",
-        title: "Bab 5: Bagian Tubuh Kita",
-        content:
-          "Tubuh manusia terdiri dari berbagai bagian yang memiliki fungsi khusus. Mata untuk melihat, telinga untuk mendengar, hidung untuk mencium bau, dan kulit untuk meraba. Menjaga kebersihan tubuh sangat penting untuk kesehatan.",
-      },
-      {
-        id: "m6",
-        title: "Bab 6: Hewan di Sekitar Kita",
-        content:
-          "Hewan dapat dibagi menjadi hewan peliharaan dan hewan liar. Kucing dan anjing adalah contoh hewan peliharaan. Singa dan gajah adalah hewan liar. Setiap hewan memiliki cara bergerak yang berbeda, ada yang berjalan, terbang, atau berenang.",
-      },
-      {
-        id: "m7",
-        title: "Bab 7: Siang dan Malam",
-        content:
-          "Bumi berputar pada porosnya menyebabkan terjadinya siang dan malam. Saat bagian Bumi menghadap Matahari, kita mengalami siang. Saat membelakangi Matahari, kita mengalami malam yang gelap dan bisa melihat Bulan.",
-      },
-      {
-        id: "m8",
-        title: "Bab 8: Pentingnya Air",
-        content:
-          "Air adalah sumber kehidupan. Manusia, hewan, dan tumbuhan membutuhkan air untuk bertahan hidup. Kita menggunakan air untuk minum, mandi, dan mencuci. Kita harus hemat air dan tidak boleh membuang sampah ke sungai.",
-      },
-      {
-        id: "m9",
-        title: "Bab 9: Mengenal Bentuk Geometri",
-        content:
-          "Benda-benda di sekitar kita memiliki bentuk. Ada lingkaran seperti bola, persegi seperti jendela, dan segitiga seperti potongan pizza. Mengenal bentuk membantu kita menggambar dan memahami ruang.",
-      },
-      {
-        id: "m10",
-        title: "Bab 10: Keluarga Inti",
-        content:
-          "Keluarga inti terdiri dari Ayah, Ibu, dan Anak. Setiap anggota keluarga memiliki peran. Kita harus saling menyayangi dan menghormati orang tua serta rukun dengan saudara.",
-      },
-      {
-        id: "m11",
-        title: "Bab 11: Arah Mata Angin",
-        content:
-          "Untuk mengetahui arah, kita menggunakan mata angin. Empat arah utama adalah Utara, Selatan, Timur (tempat matahari terbit), dan Barat (tempat matahari terbenam).",
-      },
-    ],
   },
   menengah: {
     title: "Tingkat Menengah",
@@ -113,406 +47,17 @@ const learningPath = {
       "Tantangan lebih lanjut. Mulai memahami hubungan antar konsep.",
     icon: <GraduationCap className="w-12 h-12 text-yellow-500" />,
     color: "bg-yellow-100 text-yellow-700",
-    chapters: [
-      {
-        id: "t1",
-        title: "Bab 1: Konsep Perkalian",
-        content:
-          "Perkalian adalah penjumlahan berulang. Daripada menjumlahkan 3 + 3 + 3 + 3, kita bisa menulisnya sebagai 3 x 4. Hasilnya adalah 12. Ini membantu menghitung jumlah benda dalam kelompok yang sama dengan cepat.",
-      },
-      {
-        id: "t2",
-        title: "Bab 2: Siklus Air (Hidrologi)",
-        content:
-          "Air di Bumi tidak pernah habis karena siklus air. Air laut menguap menjadi awan (evaporasi), awan menjadi berat dan turun sebagai hujan (presipitasi), lalu air mengalir kembali ke laut. Proses ini terus berulang.",
-      },
-      {
-        id: "t3",
-        title: "Bab 3: Sistem Tata Surya",
-        content:
-          "Bumi adalah salah satu planet yang mengelilingi Matahari. Ada 8 planet dalam tata surya kita: Merkurius, Venus, Bumi, Mars, Jupiter, Saturnus, Uranus, dan Neptunus. Matahari adalah bintang pusat tata surya.",
-      },
-      {
-        id: "t4",
-        title: "Bab 4: Fotosintesis",
-        content:
-          "Tumbuhan memasak makanannya sendiri melalui fotosintesis. Dengan bantuan sinar matahari, air, dan karbon dioksida, daun menghasilkan oksigen dan gula. Oksigen inilah yang kita hirup setiap hari.",
-      },
-      {
-        id: "t5",
-        title: "Bab 5: Struktur Kalimat (SPOK)",
-        content:
-          "Kalimat yang lengkap biasanya memiliki struktur Subjek (pelaku), Predikat (tindakan), Objek (sasaran), dan Keterangan (waktu/tempat). Contoh: 'Ibu (S) memasak (P) nasi (O) di dapur (K)'.",
-      },
-      {
-        id: "t6",
-        title: "Bab 6: Sejarah Kemerdekaan",
-        content:
-          "Kemerdekaan adalah hak segala bangsa. Mempelajari sejarah para pahlawan yang berjuang melawan penjajah mengajarkan kita tentang keberanian, pengorbanan, dan cinta tanah air.",
-      },
-      {
-        id: "t7",
-        title: "Bab 7: Peta dan Globe",
-        content:
-          "Peta adalah gambaran permukaan bumi pada bidang datar, sedangkan Globe adalah tiruan bumi berbentuk bulat. Kita belajar tentang benua, samudra, garis khatulistiwa, dan skala jarak melalui peta.",
-      },
-      {
-        id: "t8",
-        title: "Bab 8: Energi Terbarukan",
-        content:
-          "Energi terbarukan adalah energi yang tidak akan habis, seperti sinar matahari, angin, dan air. Penggunaan energi ini lebih ramah lingkungan dibandingkan bahan bakar fosil seperti minyak bumi dan batu bara.",
-      },
-      {
-        id: "t9",
-        title: "Bab 9: Rantai Makanan",
-        content:
-          "Di alam, makhluk hidup saling memakan untuk bertahan hidup. Padi dimakan tikus, tikus dimakan ular, ular dimakan elang. Ini disebut rantai makanan. Jika satu hilang, keseimbangan alam akan terganggu.",
-      },
-      {
-        id: "t10",
-        title: "Bab 10: Demokrasi dan Pemilu",
-        content:
-          "Demokrasi berarti pemerintahan dari rakyat, oleh rakyat, dan untuk rakyat. Salah satu wujudnya adalah Pemilu, di mana warga negara memilih pemimpin mereka secara bebas dan adil.",
-      },
-      {
-        id: "t11",
-        title: "Bab 11: Pecahan Sederhana",
-        content:
-          "Pecahan mewakili bagian dari keseluruhan. Jika sebuah pizza dipotong menjadi 4 bagian sama besar, satu potong adalah 1/4 (satu per empat). Angka atas disebut pembilang, angka bawah disebut penyebut.",
-      },
-    ],
   },
   sulit: {
     title: "Tingkat Lanjut",
     description: "Analisis mendalam dan konsep kompleks untuk ahli.",
     icon: <Trophy className="w-12 h-12 text-red-500" />,
     color: "bg-red-100 text-red-700",
-    chapters: [
-      {
-        id: "s1",
-        title: "Bab 1: Aljabar Linear",
-        content:
-          "Aljabar linear mempelajari vektor, ruang vektor, transformasi linear, dan sistem persamaan linear. Konsep ini sangat penting dalam fisika modern, grafika komputer, dan pemrosesan data.",
-      },
-      {
-        id: "s2",
-        title: "Bab 2: Teori Relativitas",
-        content:
-          "Dikemukakan oleh Einstein, teori ini menjelaskan bahwa ruang dan waktu bukanlah hal yang mutlak, melainkan relatif tergantung pada kecepatan pengamat. E=mc² adalah rumus terkenal yang menghubungkan energi dan massa.",
-      },
-      {
-        id: "s3",
-        title: "Bab 3: Genetika dan DNA",
-        content:
-          "DNA adalah cetak biru kehidupan yang membawa informasi genetik. Genetika mempelajari bagaimana sifat-sifat fisik dan biologis diwariskan dari orang tua ke anak melalui gen dan kromosom.",
-      },
-      {
-        id: "s4",
-        title: "Bab 4: Makroekonomi: Inflasi",
-        content:
-          "Inflasi adalah penurunan nilai mata uang yang menyebabkan kenaikan harga barang secara umum. Hal ini dipengaruhi oleh jumlah uang beredar, permintaan pasar, dan biaya produksi. Bank sentral mengatur suku bunga untuk mengendalikannya.",
-      },
-      {
-        id: "s5",
-        title: "Bab 5: Kecerdasan Buatan (AI)",
-        content:
-          "Artificial Intelligence adalah simulasi kecerdasan manusia oleh mesin. Ini mencakup Machine Learning, di mana komputer belajar dari data tanpa diprogram secara eksplisit. AI digunakan dalam pengenalan wajah, mobil otonom, dan asisten digital.",
-      },
-      {
-        id: "s6",
-        title: "Bab 6: Perubahan Iklim Global",
-        content:
-          "Pemanasan global disebabkan oleh efek rumah kaca akibat emisi karbon berlebih. Dampaknya mencakup mencairnya es kutub, naiknya permukaan laut, dan cuaca ekstrem. Mitigasi dan adaptasi sangat diperlukan.",
-      },
-      {
-        id: "s7",
-        title: "Bab 7: Psikologi Kognitif",
-        content:
-          "Cabang psikologi ini mempelajari proses mental internal seperti persepsi, memori, pemecahan masalah, dan bahasa. Memahami bagaimana otak memproses informasi membantu dalam pendidikan dan terapi mental.",
-      },
-      {
-        id: "s8",
-        title: "Bab 8: Hukum Termodinamika",
-        content:
-          "Hukum fisika yang mengatur energi dan panas. Hukum pertama menyatakan energi tidak dapat diciptakan atau dimusnahkan. Hukum kedua menyatakan entropi (ketidakteraturan) dalam sistem tertutup akan selalu meningkat.",
-      },
-      {
-        id: "s9",
-        title: "Bab 9: Revolusi Industri 4.0",
-        content:
-          "Era industri yang menggabungkan teknologi otomatisasi dengan pertukaran data siber. Ini mencakup Internet of Things (IoT), Cloud Computing, dan Big Data, yang mengubah cara manusia bekerja dan hidup.",
-      },
-      {
-        id: "s10",
-        title: "Bab 10: Sastra dan Simbolisme",
-        content:
-          "Dalam sastra tingkat lanjut, penulis menggunakan simbolisme untuk menyampaikan makna tersembunyi. Metafora, alegori, dan ironi digunakan untuk mengkritik sosial atau menggambarkan kondisi psikologis karakter secara mendalam.",
-      },
-      {
-        id: "s11",
-        title: "Bab 11: Manajemen Strategis",
-        content:
-          "Proses perencanaan, pemantauan, analisis, dan penilaian yang dilakukan organisasi untuk mencapai tujuan jangka panjang. Termasuk analisis SWOT (Strengths, Weaknesses, Opportunities, Threats) untuk keunggulan kompetitif.",
-      },
-    ],
   },
 };
 
-// --- DATA BAHASA ISYARAT (ANGKA 10 DIHAPUS) ---
-const signLanguageData = {
-  abjad: [
-    {
-      id: "a",
-      title: "Huruf A",
-      desc: "Kepalkan tangan dengan ibu jari berada di samping jari telunjuk, menghadap ke depan.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/A.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/A.webm",
-    },
-    {
-      id: "b",
-      title: "Huruf B",
-      desc: "Buka telapak tangan lurus ke atas, rapatkan keempat jari, dan tekuk ibu jari ke dalam.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/B.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/B.webm",
-    },
-    {
-      id: "c",
-      title: "Huruf C",
-      desc: "Bentuk tangan melengkung menyerupai huruf C dengan semua jari.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/C.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/C.webm",
-    },
-    {
-      id: "d",
-      title: "Huruf D",
-      desc: "Acungkan jari telunjuk lurus ke atas, jari lainnya membentuk lingkaran.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/D.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/D.webm",
-    },
-    {
-      id: "e",
-      title: "Huruf E",
-      desc: "Tekuk semua jari ke arah telapak tangan.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/E.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/E.webm",
-    },
-    {
-      id: "f",
-      title: "Huruf F",
-      desc: "Tempelkan ujung jari telunjuk ke ibu jari, tiga jari lainnya berdiri tegak.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/F.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/F.webm",
-    },
-    {
-      id: "g",
-      title: "Huruf G",
-      desc: "Kepalkan tangan, acungkan jari telunjuk ke samping.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/G.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/G.webm",
-    },
-    {
-      id: "h",
-      title: "Huruf H",
-      desc: "Acungkan jari telunjuk dan jari tengah lurus ke samping.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/H.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/H.webm",
-    },
-    {
-      id: "i",
-      title: "Huruf I",
-      desc: "Acungkan jari kelingking tegak lurus ke atas.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/I.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/I.webm",
-    },
-    {
-      id: "j",
-      title: "Huruf J",
-      desc: "Gerakkan jari kelingking membentuk pola huruf J.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/J.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/J.webm",
-    },
-    {
-      id: "k",
-      title: "Huruf K",
-      desc: "Acungkan jari telunjuk lurus ke atas dan jari tengah miring ke depan.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/K.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/K.webm",
-    },
-    {
-      id: "l",
-      title: "Huruf L",
-      desc: "Bentuk huruf L dengan jari telunjuk dan ibu jari.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/L.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/L.webm",
-    },
-    {
-      id: "m",
-      title: "Huruf M",
-      desc: "Selipkan ibu jari di bawah jari telunjuk, tengah, dan manis.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/M.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/M.webm",
-    },
-    {
-      id: "n",
-      title: "Huruf N",
-      desc: "Selipkan ibu jari di bawah jari telunjuk dan tengah.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/N.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/N.webm",
-    },
-    {
-      id: "o",
-      title: "Huruf O",
-      desc: "Bentuk lingkaran dengan ujung jari-jari menyatu dengan ibu jari.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/O.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/O.webm",
-    },
-    {
-      id: "p",
-      title: "Huruf P",
-      desc: "Arahkan jari telunjuk ke depan dan jari tengah ke bawah.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/P.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/P.webm",
-    },
-    {
-      id: "q",
-      title: "Huruf Q",
-      desc: "Arahkan jari telunjuk dan ibu jari ke bawah.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/Q.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/Q.webm",
-    },
-    {
-      id: "r",
-      title: "Huruf R",
-      desc: "Silangkan jari tengah di atas jari telunjuk.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/R.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/R.webm",
-    },
-    {
-      id: "s",
-      title: "Huruf S",
-      desc: "Kepalkan tangan dengan ibu jari menindih jari lainnya.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/S.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/S.webm",
-    },
-    {
-      id: "t",
-      title: "Huruf T",
-      desc: "Selipkan ibu jari di antara jari telunjuk dan jari tengah.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/T.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/T.webm",
-    },
-    {
-      id: "u",
-      title: "Huruf U",
-      desc: "Acungkan jari telunjuk dan jari tengah rapat tegak lurus.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/U.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/U.webm",
-    },
-    {
-      id: "v",
-      title: "Huruf V",
-      desc: "Bentuk huruf V dengan jari telunjuk dan jari tengah.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/V.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/V.webm",
-    },
-    {
-      id: "w",
-      title: "Huruf W",
-      desc: "Acungkan tiga jari (telunjuk, tengah, manis) membentuk W.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/W.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/W.webm",
-    },
-    {
-      id: "x",
-      title: "Huruf X",
-      desc: "Bengkokkan jari telunjuk menyerupai kait.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/X.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/X.webm",
-    },
-    {
-      id: "y",
-      title: "Huruf Y",
-      desc: "Acungkan ibu jari dan jari kelingking.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/Y.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/Y.webm",
-    },
-    {
-      id: "z",
-      title: "Huruf Z",
-      desc: "Gambar huruf Z di udara menggunakan jari telunjuk.",
-      img: "http://pmpk.kemdikbud.go.id/sibi/SIBI/abjad/Z.png",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/katadasar/Z.webm",
-    },
-  ],
-  angka: [
-    {
-      id: "1",
-      title: "Angka 1",
-      desc: "Acungkan jari telunjuk tangan kanan lurus ke atas.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/1%40InForward.jpg/500px-1%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/01.webm",
-    },
-    {
-      id: "2",
-      title: "Angka 2",
-      desc: "Acungkan jari telunjuk dan jari tengah membentuk huruf V.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/V%40InForward.jpg/500px-V%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/02.webm",
-    },
-    {
-      id: "3",
-      title: "Angka 3",
-      desc: "Acungkan ibu jari, telunjuk, dan jari tengah.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/3%40InForward.jpg/500px-3%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/03.webm",
-    },
-    {
-      id: "4",
-      title: "Angka 4",
-      desc: "Acungkan empat jari dengan ibu jari ditekuk ke dalam.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/4%40InForward.jpg/500px-4%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/04.webm",
-    },
-    {
-      id: "5",
-      title: "Angka 5",
-      desc: "Buka kelima jari tangan.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/5%40InForward.jpg/500px-5%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/05.webm",
-    },
-    {
-      id: "6",
-      title: "Angka 6",
-      desc: "Tempelkan jari kelingking dengan ibu jari.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/6%40InForward.jpg/500px-6%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/06.webm",
-    },
-    {
-      id: "7",
-      title: "Angka 7",
-      desc: "Tempelkan jari manis dengan ibu jari.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/7%40InForward.jpg/500px-7%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/07.webm",
-    },
-    {
-      id: "8",
-      title: "Angka 8",
-      desc: "Tempelkan jari tengah dengan ibu jari.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/8%40InForward.jpg/500px-8%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/08.webm",
-    },
-    {
-      id: "9",
-      title: "Angka 9",
-      desc: "Tempelkan jari telunjuk dengan ibu jari.",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/9%40InForward.jpg/500px-9%40InForward.jpg",
-      video: "http://pmpk.kemdikbud.go.id/sibi/SIBI/angka/09.webm",
-    },
-  ],
-};
-
 type LevelKey = keyof typeof learningPath;
-type SignCategory = keyof typeof signLanguageData;
+type SignCategory = "abjad" | "angka";
 type Chapter = { id: string; title: string; content: string };
 type SignItem = {
   id: string;
@@ -520,6 +65,13 @@ type SignItem = {
   desc: string;
   img: string;
   video: string;
+};
+type SavedDocument = {
+  id: string;
+  title: string;
+  content: string;
+  source: string;
+  createdAt: string;
 };
 
 export default function Flexa() {
@@ -539,6 +91,19 @@ export default function Flexa() {
     null
   );
 
+  // Data dari database
+  const [chaptersByLevel, setChaptersByLevel] = useState<Record<LevelKey, Chapter[]>>({
+    mudah: [],
+    menengah: [],
+    sulit: [],
+  });
+  const [signLanguageData, setSignLanguageData] = useState<Record<SignCategory, SignItem[]>>({
+    abjad: [],
+    angka: [],
+  });
+  const [documents, setDocuments] = useState<SavedDocument[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+
   // State Fitur Lain
   const [isProcessingUpload, setIsProcessingUpload] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -551,6 +116,80 @@ export default function Flexa() {
 
   // Settings
   const { volume, speakingRate, autoPlayAudio } = useSettings();
+
+  // --- MUAT MATERI, KAMUS ISYARAT, DAN DOKUMEN PENGGUNA ---
+  const loadDocuments = async () => {
+    const { data, error } = await supabase
+      .from("user_documents")
+      .select("id, title, content, source, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error("Gagal memuat dokumen:", error);
+      return;
+    }
+    setDocuments(
+      data.map((row) => ({
+        id: row.id,
+        title: row.title,
+        content: row.content,
+        source: row.source,
+        createdAt: row.created_at,
+      }))
+    );
+  };
+
+  useEffect(() => {
+    const loadContent = async () => {
+      const [materialsRes, signsRes] = await Promise.all([
+        supabase
+          .from("materials")
+          .select("slug, level, title, content")
+          .order("sort_order"),
+        supabase
+          .from("sign_items")
+          .select("slug, category, title, description, image_url, video_url")
+          .order("sort_order"),
+      ]);
+
+      if (materialsRes.error || signsRes.error) {
+        console.error("Gagal memuat materi:", materialsRes.error || signsRes.error);
+        toast({
+          variant: "destructive",
+          title: "Gagal memuat materi",
+          description: "Periksa koneksi lalu muat ulang halaman.",
+        });
+        return;
+      }
+
+      const chapters: Record<LevelKey, Chapter[]> = { mudah: [], menengah: [], sulit: [] };
+      for (const row of materialsRes.data) {
+        chapters[row.level as LevelKey]?.push({
+          id: row.slug,
+          title: row.title,
+          content: row.content,
+        });
+      }
+      setChaptersByLevel(chapters);
+
+      const signs: Record<SignCategory, SignItem[]> = { abjad: [], angka: [] };
+      for (const row of signsRes.data) {
+        signs[row.category as SignCategory]?.push({
+          id: row.slug,
+          title: row.title,
+          desc: row.description,
+          img: row.image_url ?? "",
+          video: row.video_url ?? "",
+        });
+      }
+      setSignLanguageData(signs);
+    };
+
+    loadContent();
+    loadDocuments();
+    supabase.auth.getUser().then(({ data: { user } }) => setUserId(user?.id ?? null));
+  }, []);
 
   // --- FUNGSI HELPER ---
   const speakText = (text: string) => {
@@ -711,6 +350,18 @@ export default function Flexa() {
       setSelectedChapter(customChapter);
       setCurrentView("detail");
 
+      // Simpan ke akun supaya bisa dibuka lagi tanpa mengunggah ulang
+      if (userId) {
+        const { error: saveError } = await supabase.from("user_documents").insert({
+          user_id: userId,
+          source: "upload",
+          title: file.name,
+          content: cleanedText,
+        });
+        if (saveError) console.error("Gagal menyimpan dokumen:", saveError);
+        else loadDocuments();
+      }
+
       toast({
         title: "Selesai!",
         description: "Materi siap dipelajari.",
@@ -853,6 +504,53 @@ export default function Flexa() {
             </Card>
           </motion.div>
         </div>
+
+        {documents.length > 0 && (
+          <section aria-labelledby="dokumen-saya" className="mt-4">
+            <h2 id="dokumen-saya" className="text-2xl font-bold mb-4">
+              Dokumen Saya
+            </h2>
+            <div className="grid gap-3">
+              {documents.map((doc) => {
+                const open = () =>
+                  handleChapterSelect({
+                    id: "custom-upload",
+                    title: doc.title,
+                    content: doc.content,
+                  });
+                return (
+                  <Card
+                    key={doc.id}
+                    role="button"
+                    tabIndex={0}
+                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors flex justify-between items-center gap-4"
+                    onClick={open}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        open();
+                      }
+                    }}
+                  >
+                    <div className="min-w-0">
+                      <h3 className="font-bold truncate">{doc.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {doc.source === "scan" ? "Hasil pindai EyeRead" : "Unggahan"}
+                        {" · "}
+                        {new Date(doc.createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-6 h-6 text-muted-foreground flex-shrink-0" />
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </div>
     );
   }
@@ -1127,7 +825,10 @@ export default function Flexa() {
           <h1 className="text-3xl font-bold">Daftar Materi</h1>
         </div>
         <div className="grid gap-4">
-          {levelData.chapters.map((chapter, index) => (
+          {chaptersByLevel[selectedLevel].length === 0 && (
+            <p className="text-muted-foreground" role="status">Memuat materi...</p>
+          )}
+          {chaptersByLevel[selectedLevel].map((chapter, index) => (
             <Card
               key={chapter.id}
               className="p-6 cursor-pointer hover:bg-muted/50 transition-colors flex justify-between items-center group"

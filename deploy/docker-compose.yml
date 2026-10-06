@@ -1,0 +1,31 @@
+# Dijalankan di VPS dari /opt/hopeai. Berkas .env di folder yang sama berisi:
+#   DOMAIN, APIKEY, Supabase__Url, Supabase__PublishableKey, Cors__AllowedOrigins__0
+services:
+  backend:
+    image: ghcr.io/muhammadhadistrifannan/hope-ai-backend:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "8080"
+    expose:
+      - "8080"
+
+  # Caddy mengurus sertifikat HTTPS secara otomatis untuk DOMAIN
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+
+volumes:
+  caddy_data:
+  caddy_config:
