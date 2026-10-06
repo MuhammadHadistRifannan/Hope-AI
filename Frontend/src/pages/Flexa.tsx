@@ -1,4 +1,5 @@
 import { API_URL, authHeaders } from "@/lib/api";
+import { clickable } from "@/lib/a11y";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import {
@@ -283,11 +284,11 @@ export default function Flexa() {
   };
 
   const sanitizeText = (raw: string) => {
+    // Teks ditampilkan React sebagai teks biasa (bukan HTML), jadi tanda < dan >
+    // aman dan tidak perlu di-escape. Yang dirapikan hanya penanda Markdown.
     return raw
-      .replace(/</g, "&lt;") // escape <
-      .replace(/>/g, "&gt;") // escape >
       .replace(/\*/g, "•")
-      .replace("#", " "); // ganti * jadi bullet
+      .replace(/#/g, " ");
   };
 
   const handleFileUpload = async (
@@ -421,7 +422,7 @@ export default function Flexa() {
                 className={`p-6 cursor-pointer h-full flex flex-col items-center text-center hover:shadow-xl transition-all border-2 border-transparent hover:border-primary/20 ${
                   learningPath[key].color.replace("text-", "bg-").split(" ")[0]
                 }/10`}
-                onClick={() => handleLevelSelect(key)}
+                {...clickable(() => handleLevelSelect(key))}
               >
                 <div
                   className={`p-4 rounded-full mb-4 ${learningPath[key].color} bg-white shadow-sm`}
@@ -443,7 +444,7 @@ export default function Flexa() {
           <motion.div whileHover={{ scale: 1.02 }} className="group">
             <Card
               className="relative p-8 border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-background cursor-pointer h-full overflow-hidden hover:border-primary transition-all shadow-sm hover:shadow-md"
-              onClick={() => setCurrentView("sign-menu")}
+              {...clickable(() => setCurrentView("sign-menu"))}
             >
               <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <Languages className="w-40 h-40 text-primary" />
@@ -605,7 +606,7 @@ export default function Flexa() {
                 >
                   <Card
                     className="group cursor-pointer hover:shadow-xl transition-all border border-slate-200 hover:border-primary overflow-hidden bg-white dark:bg-slate-900 rounded-xl"
-                    onClick={() => handleSignItemSelect(item)}
+                    {...clickable(() => handleSignItemSelect(item), `Isyarat ${item.title}`)}
                   >
                     <div className="aspect-square bg-slate-100 relative overflow-hidden p-4">
                       <img
@@ -832,7 +833,7 @@ export default function Flexa() {
             <Card
               key={chapter.id}
               className="p-6 cursor-pointer hover:bg-muted/50 transition-colors flex justify-between items-center group"
-              onClick={() => handleChapterSelect(chapter)}
+              {...clickable(() => handleChapterSelect(chapter))}
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">

@@ -128,6 +128,9 @@ CREATE TABLE public.user_settings (
   speaking_rate TEXT NOT NULL DEFAULT 'normal' CHECK (speaking_rate IN ('slow', 'normal', 'fast')),
   volume SMALLINT NOT NULL DEFAULT 75 CHECK (volume BETWEEN 0 AND 100),
   language TEXT NOT NULL DEFAULT 'id',
+  dyslexia_font BOOLEAN NOT NULL DEFAULT false,
+  -- NULL berarti pengguna belum mengisi profil kebutuhan saat pertama masuk
+  onboarded_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
@@ -662,13 +665,21 @@ BEGIN
 
   RETURN json_build_object(
     'total_users', (SELECT count(*) FROM public.profiles),
-    'active_modules', (SELECT count(*) FROM public.learning_modules WHERE is_published),
-    'forum_posts', (SELECT count(*) FROM public.forum_posts),
-    'quiz_attempts', (SELECT count(*) FROM public.quiz_attempts),
     'active_users_7d', (
       SELECT count(*) FROM public.profiles
       WHERE last_active_date >= current_date - 7
-    )
+    ),
+    'active_modules', (SELECT count(*) FROM public.learning_modules WHERE is_published),
+    'forum_posts', (SELECT count(*) FROM public.forum_posts),
+    'forum_comments', (SELECT count(*) FROM public.forum_comments),
+    'quiz_attempts', (SELECT count(*) FROM public.quiz_attempts),
+    'avg_quiz_score_pct', (
+      SELECT COALESCE(round(avg(score * 100.0 / total)), 0) FROM public.quiz_attempts
+    ),
+    'chat_messages', (SELECT count(*) FROM public.chat_messages WHERE role = 'user'),
+    'documents_scanned', (SELECT count(*) FROM public.user_documents WHERE source = 'scan'),
+    'documents_uploaded', (SELECT count(*) FROM public.user_documents WHERE source = 'upload'),
+    'game_plays', (SELECT count(*) FROM public.game_scores)
   );
 END;
 $$;

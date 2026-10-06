@@ -2,12 +2,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client"; 
 import { 
   Home, Camera, MessageSquare, BookOpen, TrendingUp, 
-  Users, Bell, Settings, User, LogOut, Sparkles
+  Users, Bell, Settings, User, LogOut, Sparkles, Shield
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Footer from "./Footer"; 
 import { Gamepad2 } from "lucide-react";
+import { useRoles } from "@/hooks/use-roles";
+import OnboardingDialog from "./OnboardingDialog";
 
 const navigation = [
   { name: "Beranda", href: "/", icon: Home },
@@ -28,6 +30,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate(); 
   const { toast } = useToast();
+  const { isAdmin } = useRoles();
+
+  // Menu admin hanya tampil untuk admin; halamannya sendiri juga memeriksa peran
+  const secondaryItems = isAdmin
+    ? [...secondaryNav, { name: "Admin", href: "/admin", icon: Shield }]
+    : secondaryNav;
 
   const handleLogout = async () => {
     try {
@@ -53,16 +61,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-background font-sans">
+      <OnboardingDialog />
+
+      {/* Tautan lompat untuk pengguna keyboard dan pembaca layar */}
+      <a
+        href="#konten-utama"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-white focus:text-black focus:shadow-lg"
+      >
+        Lompat ke konten utama
+      </a>
+
       {/* Sidebar */}
       <aside className="w-20 lg:w-64 bg-gradient-to-b from-primary via-primary to-secondary text-primary-foreground fixed h-screen flex flex-col border-r border-white/10 shadow-2xl z-40 transition-all duration-300">
         {/* Logo Section */}
         <div className="p-4 lg:p-6 border-b border-white/10">
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" aria-label="Hope.Ai, ke Beranda" className="flex items-center gap-3 group">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary to-accent flex items-center justify-center shadow-lg group-hover:shadow-secondary/50 transition-shadow duration-300 p-1">
               {/* --- PERUBAHAN HANYA DISINI: Ikon Sparkles diganti Image Logo --- */}
               <img 
                 src="/images/logo.png" 
-                alt="Hope.Ai Logo" 
+                alt="" 
                 className="w-full h-full object-contain filter drop-shadow-sm"
               />
               {/* --------------------------------------------------------------- */}
@@ -75,7 +93,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex-1 p-3 lg:p-4 overflow-y-auto space-y-6">
+        <nav aria-label="Menu utama" className="flex-1 p-3 lg:p-4 overflow-y-auto space-y-6">
           <div className="space-y-1.5">
             <p className="px-4 text-xs font-semibold text-primary-foreground/50 uppercase tracking-wider hidden lg:block mb-2">
               Menu Utama
@@ -87,6 +105,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.name}
                   to={item.href}
+                  aria-label={item.name}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl transition-all duration-200 group relative",
                     isActive
@@ -114,12 +134,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               Lainnya
             </p>
             <div className="space-y-1.5">
-              {secondaryNav.map((item) => {
+              {secondaryItems.map((item) => {
                 const isActive = location.pathname === item.href;
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
+                    aria-label={item.name}
+                    aria-current={isActive ? "page" : undefined}
                     className={cn(
                       "flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl transition-all duration-200 group",
                       isActive
@@ -135,6 +157,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               
               <button
                 onClick={handleLogout}
+                aria-label="Keluar"
                 className="flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl transition-all duration-200 text-primary-foreground/70 hover:bg-red-500/20 hover:text-white w-full group mt-4 hover:translate-x-1"
               >
                 <LogOut className="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform duration-200" />
@@ -146,7 +169,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content Wrapper */}
-      <main className="flex-1 ml-20 lg:ml-64 flex flex-col min-w-0 transition-all duration-300">
+      <main id="konten-utama" tabIndex={-1} className="flex-1 ml-20 lg:ml-64 flex flex-col min-w-0 transition-all duration-300 focus:outline-none">
         {/* Page Content */}
         <div className="flex-1 w-full max-w-[1920px] mx-auto p-6 lg:p-8">
           {children}

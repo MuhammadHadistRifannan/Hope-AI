@@ -257,3 +257,20 @@ All colors MUST be HSL.
   font-weight: normal;
   font-style: bold;
 }
+
+/* --- HURUF RAMAH DISLEKSIA (Aksesibilitas) --- */
+/* Diaktifkan saat class 'dyslexia-font' ditambahkan ke elemen HTML root */
+.dyslexia-font body,
+.dyslexia-font body * {
+  font-family: Verdana, 'Trebuchet MS', Arial, sans-serif !important;
+}
+
+.dyslexia-font body {
+  letter-spacing: 0.05em;
+  word-spacing: 0.14em;
+}
+
+.dyslexia-font p,
+.dyslexia-font li {
+  line-height: 1.8;
+}

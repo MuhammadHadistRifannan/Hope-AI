@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { clickable } from "@/lib/a11y";
 import {
   BookOpen,
   Lock,
@@ -863,7 +864,7 @@ export default function Pathly() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Card
-                  onClick={() => setMainMode("path")}
+                  {...clickable(() => setMainMode("path"))}
                   className="cursor-pointer p-8 h-80 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-2xl hover:shadow-blue-500/30 border-0 rounded-[3rem] relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -883,7 +884,7 @@ export default function Pathly() {
                 whileTap={{ scale: 0.95 }}
               >
                 <Card
-                  onClick={() => setMainMode("arena")}
+                  {...clickable(() => setMainMode("arena"))}
                   className="cursor-pointer p-8 h-80 flex flex-col items-center justify-center text-center bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-2xl hover:shadow-purple-500/30 border-0 rounded-[3rem] relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -1284,7 +1285,10 @@ export default function Pathly() {
                         layout
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
-                        onClick={() => handleCardClick(card)}
+                        {...clickable(
+                          () => handleCardClick(card),
+                          card.isFlipped || card.isMatched ? `Kartu ${card.content}` : "Kartu tertutup"
+                        )}
                         className={`aspect-square cursor-pointer rounded-2xl flex items-center justify-center text-center p-2 text-sm md:text-xl font-bold shadow-sm border-2 select-none ${
                           card.isMatched
                             ? "bg-green-100 border-green-400 text-green-600 opacity-50"

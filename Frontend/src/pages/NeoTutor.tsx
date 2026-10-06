@@ -266,7 +266,7 @@ export default function NeoTutor() {
         <Card className="h-[calc(100vh-250px)] md:h-[600px] flex flex-col">
           {/* Chat Messages */}
           <ScrollArea className="flex-1 p-4 md:p-6">
-            <div className="space-y-4">
+            <div className="space-y-4" role="log" aria-live="polite" aria-label="Percakapan dengan NeoTutor">
               {messages.map((message, index) => (
                 <motion.div
                   key={message.id}
@@ -315,7 +315,7 @@ export default function NeoTutor() {
               ))}
 
               {isTyping && (
-                <div className="flex gap-3">
+                <div className="flex gap-3" role="status" aria-label="NeoTutor sedang mengetik">
                   <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                     <Bot className="w-5 h-5 text-white" />
                   </div>
@@ -352,7 +352,7 @@ export default function NeoTutor() {
           <div className="p-4 md:p-6 border-t">
             {/* Indikator Mendengarkan */}
             {isListening && (
-               <div className="text-center text-xs text-primary animate-pulse mb-2 font-bold">
+               <div role="status" className="text-center text-xs text-primary animate-pulse mb-2 font-bold">
                  🎤 Mendengarkan... Silakan bicara...
                </div>
             )}
@@ -372,6 +372,8 @@ export default function NeoTutor() {
                 onClick={startListening}
                 className={isListening ? "bg-red-100 text-red-600 border-red-200" : ""}
                 title="Input Suara (Voice Note)"
+                aria-label={isListening ? "Hentikan input suara" : "Mulai input suara"}
+                aria-pressed={isListening}
               >
                 {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </Button>
@@ -380,10 +382,11 @@ export default function NeoTutor() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isListening ? "Sedang mendengarkan..." : "Tanyakan apa saja..."}
+                aria-label="Pertanyaan untuk NeoTutor"
                 className="flex-1"
               />
               
-              <Button type="submit" className="bg-primary">
+              <Button type="submit" className="bg-primary" aria-label="Kirim pertanyaan">
                 <Send className="w-4 h-4" />
               </Button>
             </form>

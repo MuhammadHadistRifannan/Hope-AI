@@ -18,9 +18,15 @@ type SettingsType = {
   // Sistem
   language: string;
 
+  // Profil kebutuhan
+  needs: string[];
+  dyslexiaFont: boolean;
+  needsOnboarding: boolean;
+
   // Actions
   updateSetting: (key: string, value: any) => void;
   saveSettings: () => void;
+  completeOnboarding: (needs: string[]) => Promise<void>;
 };
 
 // Nilai Default
@@ -33,6 +39,8 @@ const defaultSettings = {
   speakingRate: 'normal',
   volume: 75,
   language: 'id',
+  needs: [] as string[],
+  dyslexiaFont: false,
 };
 
 type SettingsValues = typeof defaultSettings;
@@ -49,7 +57,45 @@ const toRow = (s: SettingsValues) => ({
   speaking_rate: s.speakingRate,
   volume: s.volume,
   language: s.language,
+  needs: s.needs,
+  dyslexia_font: s.dyslexiaFont,
 });
+
+// Pilihan kebutuhan yang ditawarkan saat pertama kali masuk
+export const needOptions = [
+  { id: 'netra', label: 'Tunanetra', hint: 'Saya memakai pembaca layar atau mengandalkan suara' },
+  { id: 'low_vision', label: 'Low vision', hint: 'Saya butuh teks besar dan kontras tinggi' },
+  { id: 'tuli', label: 'Tuli / hambatan pendengaran', hint: 'Saya mengandalkan teks dan isyarat' },
+  { id: 'disleksia', label: 'Disleksia', hint: 'Saya lebih mudah membaca dengan huruf berjarak renggang' },
+  { id: 'kognitif', label: 'Hambatan belajar', hint: 'Saya butuh penjelasan pelan dan sederhana' },
+  { id: 'motorik', label: 'Hambatan gerak', hint: 'Saya memakai keyboard atau alat bantu, bukan mouse' },
+];
+
+// Pengaturan awal yang cocok untuk tiap kebutuhan; pengguna tetap bisa mengubahnya nanti
+const applyNeeds = (base: SettingsValues, needs: string[]): SettingsValues => {
+  const next = { ...base, needs };
+  const has = (need: string) => needs.includes(need);
+
+  if (has('low_vision')) {
+    next.highContrast = true;
+    next.largeText = true;
+    next.textSize = 80;
+  }
+  if (has('disleksia') || has('kognitif')) {
+    next.textSize = Math.max(next.textSize, 65);
+    next.speakingRate = 'slow';
+  }
+  if (has('disleksia')) {
+    next.dyslexiaFont = true;
+  }
+  if (has('netra')) {
+    next.screenReader = true;
+    next.autoPlayAudio = true;
+  } else if (has('tuli')) {
+    next.autoPlayAudio = false;
+  }
+  return next;
+};
 
 // Buat Context
 const SettingsContext = createContext<SettingsType | undefined>(undefined);
@@ -58,6 +104,7 @@ const SettingsContext = createContext<SettingsType | undefined>(undefined);
 export const SettingsProvider = ({ children }: { children: React.ReactNode }) => {
   const [settings, setSettings] = useState(defaultSettings);
   const [userId, setUserId] = useState<string | null>(null);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   // Load settings dari LocalStorage saat pertama kali render
   useEffect(() => {
@@ -88,13 +135,16 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
 
   // Pengaturan di akun menimpa yang tersimpan di perangkat, supaya ikut pindah perangkat
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setNeedsOnboarding(false);
+      return;
+    }
     let cancelled = false;
 
     const loadFromAccount = async () => {
       const { data, error } = await supabase
         .from('user_settings')
-        .select('large_text, high_contrast, screen_reader, text_size, auto_play_audio, speaking_rate, volume, language')
+        .select('large_text, high_contrast, screen_reader, text_size, auto_play_audio, speaking_rate, volume, language, needs, dyslexia_font, onboarded_at')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -114,7 +164,10 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
         speakingRate: data.speaking_rate,
         volume: data.volume,
         language: data.language,
+        needs: data.needs,
+        dyslexiaFont: data.dyslexia_font,
       };
+      setNeedsOnboarding(data.onboarded_at === null);
       setSettings(fromAccount);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(fromAccount));
     };
@@ -141,7 +194,10 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
     const baseSizePercentage = 100 + (settings.textSize - 50);
     root.style.fontSize = `${baseSizePercentage}%`;
 
-  }, [settings.highContrast, settings.textSize]);
+    // 3. Huruf ramah disleksia
+    root.classList.toggle('dyslexia-font', settings.dyslexiaFont);
+
+  }, [settings.highContrast, settings.textSize, settings.dyslexiaFont]);
 
   // Fungsi Update State
   const updateSetting = (key: string, value: any) => {
@@ -170,8 +226,28 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
     toast.success("Pengaturan berhasil disimpan!");
   };
 
+  // Menyimpan profil kebutuhan dari dialog pertama masuk dan menerapkan pengaturan awalnya
+  const completeOnboarding = async (needs: string[]) => {
+    const next = applyNeeds(settings, needs);
+    setSettings(next);
+    setNeedsOnboarding(false);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+
+    if (!userId) return;
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert({ user_id: userId, ...toRow(next), onboarded_at: new Date().toISOString() });
+
+    if (error) {
+      console.error("Gagal menyimpan profil kebutuhan:", error);
+      toast.error("Profil kebutuhan belum tersimpan ke akun.");
+      return;
+    }
+    if (needs.length > 0) toast.success("Tampilan sudah disesuaikan. Bisa diubah kapan saja di Pengaturan.");
+  };
+
   return (
-    <SettingsContext.Provider value={{ ...settings, updateSetting, saveSettings }}>
+    <SettingsContext.Provider value={{ ...settings, needsOnboarding, updateSetting, saveSettings, completeOnboarding }}>
       {children}
     </SettingsContext.Provider>
   );

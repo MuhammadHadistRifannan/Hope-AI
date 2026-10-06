@@ -11,7 +11,7 @@ import { useSettings } from "@/context/SettingsContext"; // Import hook
 export default function Settings() {
   // Ambil value dan fungsi dari Context Global
   const { 
-    largeText, highContrast, screenReader, textSize,
+    largeText, highContrast, screenReader, textSize, dyslexiaFont,
     autoPlayAudio, speakingRate, volume,
     updateSetting, saveSettings 
   } = useSettings();
@@ -64,6 +64,18 @@ export default function Settings() {
                 <Switch 
                   checked={highContrast}
                   onCheckedChange={(val) => updateSetting('highContrast', val)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="dyslexia-font">Huruf Ramah Disleksia</Label>
+                  <p className="text-sm text-muted-foreground">Huruf sederhana dengan jarak antar huruf dan kata lebih renggang</p>
+                </div>
+                <Switch
+                  id="dyslexia-font"
+                  checked={dyslexiaFont}
+                  onCheckedChange={(val) => updateSetting('dyslexiaFont', val)}
                 />
               </div>
 

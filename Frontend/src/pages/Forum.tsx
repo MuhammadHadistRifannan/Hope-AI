@@ -266,6 +266,7 @@ export default function Forum() {
             value={newPost}
             onChange={(e) => setNewPost(e.target.value)}
             placeholder="Bagikan pikiran Anda, ajukan pertanyaan, atau mulai diskusi..."
+            aria-label="Isi postingan baru"
             className={`mb-4 min-h-[100px] text-base md:text-lg ${highContrast ? 'bg-black text-yellow-400 border-yellow-600 placeholder:text-yellow-700' : ''}`}
           />
           <Button onClick={handleCreatePost} disabled={isSubmitting || !newPost.trim()} className="bg-primary">
@@ -334,6 +335,7 @@ export default function Forum() {
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleComments(post.id)}
+                        aria-expanded={expandedPosts.has(post.id)}
                         className={highContrast ? 'text-yellow-400 hover:text-white hover:bg-gray-800' : 'text-muted-foreground hover:text-secondary'}
                       >
                         {expandedPosts.has(post.id) ? (
@@ -367,6 +369,7 @@ export default function Forum() {
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
                             placeholder="Tulis komentar Anda..."
+                            aria-label={`Komentar untuk postingan ${post.author}`}
                             className={`mb-2 min-h-[80px] ${highContrast ? 'bg-black text-yellow-400 border-yellow-600' : ''}`}
                           />
                           <div className="flex gap-2">

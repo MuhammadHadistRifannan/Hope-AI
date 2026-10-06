@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { clickable } from "@/lib/a11y";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Trophy, Flame, Zap, Timer, RefreshCcw, X, Brain, 
@@ -363,7 +364,10 @@ export default function Playground() {
                      animate={{ scale: 1, opacity: 1 }}
                      whileHover={{ scale: 1.05 }}
                      whileTap={{ scale: 0.95 }}
-                     onClick={() => handleCardClick(card)}
+                     {...clickable(
+                       () => handleCardClick(card),
+                       card.isFlipped || card.isMatched ? `Kartu ${card.content}` : "Kartu tertutup"
+                     )}
                      className={`
                        aspect-square cursor-pointer rounded-2xl flex items-center justify-center text-center p-2 text-sm md:text-xl font-bold shadow-[0_4px_0_0_rgba(0,0,0,0.1)] transition-all duration-300 border-2 select-none
                        ${card.isMatched 
