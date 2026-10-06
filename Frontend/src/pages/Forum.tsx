@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { applyIndonesianVoice } from "@/lib/voice";
 import { MessageSquare, ThumbsUp, Reply, Send, ChevronDown, ChevronUp, Volume2 } from "lucide-react"; // Added Volume2 icon
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -146,7 +147,7 @@ export default function Forum() {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'id-ID';
+      applyIndonesianVoice(utterance);
       
       // Terapkan Setting
       utterance.volume = volume / 100;

@@ -1,4 +1,5 @@
 import { API_URL, authHeaders } from "@/lib/api";
+import { speak, stopSpeech } from "@/lib/speech";
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Send, Bot, User, Volume2, Mic, MicOff, Plus, BookOpen, X } from "lucide-react"; // Import ikon Mic
@@ -77,25 +78,18 @@ export default function NeoTutor() {
   ];
 
   // --- SETTINGS INTEGRATION ---
-  const { volume, speakingRate, autoPlayAudio } = useSettings(); 
+  const { volume, speakingRate, autoPlayAudio, aiVoice } = useSettings();
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   // --- FUNGSI AUDIO (TEXT TO SPEECH) ---
   const speakText = (text: string) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "id-ID";
-      
-      utterance.volume = volume / 100;
-      if (speakingRate === 'slow') utterance.rate = 0.8;
-      else if (speakingRate === 'fast') utterance.rate = 1.2;
-      else utterance.rate = 1.0;
-
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
+    speak(text, {
+      volume,
+      rate: speakingRate,
+      aiVoice,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+    });
   };
 
   // --- RIWAYAT PERCAKAPAN ---
@@ -120,7 +114,7 @@ export default function NeoTutor() {
   };
 
   const openSession = async (id: string) => {
-    window.speechSynthesis?.cancel();
+    stopSpeech();
     setPendingContext(null);
     setSessionId(id);
 
@@ -145,7 +139,7 @@ export default function NeoTutor() {
   };
 
   const startNewSession = () => {
-    window.speechSynthesis?.cancel();
+    stopSpeech();
     setPendingContext(null);
     setSessionId(null);
     setMessages([welcomeMessage]);

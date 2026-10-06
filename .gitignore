@@ -33,3 +33,5 @@ npm-debug.log*
 .claude/settings.local.json
 
 .claude
+# Contoh audio untuk memilih suara TTS
+contoh-suara/

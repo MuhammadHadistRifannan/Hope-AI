@@ -129,6 +129,8 @@ CREATE TABLE public.user_settings (
   volume SMALLINT NOT NULL DEFAULT 75 CHECK (volume BETWEEN 0 AND 100),
   language TEXT NOT NULL DEFAULT 'id',
   dyslexia_font BOOLEAN NOT NULL DEFAULT false,
+  -- true: bacaan memakai suara AI dari server; false: suara bawaan perangkat
+  ai_voice BOOLEAN NOT NULL DEFAULT true,
   -- NULL berarti pengguna belum mengisi profil kebutuhan saat pertama masuk
   onboarded_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),

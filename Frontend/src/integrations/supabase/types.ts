@@ -51,12 +51,14 @@ export type Database = {
           volume: number
           language: string
           dyslexia_font: boolean
+          ai_voice: boolean
           onboarded_at: string | null
           created_at: string
           updated_at: string
         },
         | "needs"
         | "dyslexia_font"
+        | "ai_voice"
         | "onboarded_at"
         | "large_text"
         | "high_contrast"

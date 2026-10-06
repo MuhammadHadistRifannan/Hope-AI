@@ -23,6 +23,9 @@ type SettingsType = {
   dyslexiaFont: boolean;
   needsOnboarding: boolean;
 
+  // Suara AI (Gemini TTS) atau suara bawaan perangkat
+  aiVoice: boolean;
+
   // Actions
   updateSetting: (key: string, value: any) => void;
   saveSettings: () => void;
@@ -41,6 +44,7 @@ const defaultSettings = {
   language: 'id',
   needs: [] as string[],
   dyslexiaFont: false,
+  aiVoice: true,
 };
 
 type SettingsValues = typeof defaultSettings;
@@ -59,6 +63,7 @@ const toRow = (s: SettingsValues) => ({
   language: s.language,
   needs: s.needs,
   dyslexia_font: s.dyslexiaFont,
+  ai_voice: s.aiVoice,
 });
 
 // Pilihan kebutuhan yang ditawarkan saat pertama kali masuk
@@ -144,7 +149,7 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
     const loadFromAccount = async () => {
       const { data, error } = await supabase
         .from('user_settings')
-        .select('large_text, high_contrast, screen_reader, text_size, auto_play_audio, speaking_rate, volume, language, needs, dyslexia_font, onboarded_at')
+        .select('large_text, high_contrast, screen_reader, text_size, auto_play_audio, speaking_rate, volume, language, needs, dyslexia_font, ai_voice, onboarded_at')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -166,6 +171,7 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
         language: data.language,
         needs: data.needs,
         dyslexiaFont: data.dyslexia_font,
+        aiVoice: data.ai_voice,
       };
       setNeedsOnboarding(data.onboarded_at === null);
       setSettings(fromAccount);

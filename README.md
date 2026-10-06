@@ -55,9 +55,11 @@ Hope.Ai mencoba membuka penghalang itu. Aplikasi ini bisa membacakan halaman buk
 
 | | Modul | Buat apa |
 |---|---|---|
-| 📷 | **EyeRead** | Foto halaman buku atau unggah gambar, lalu teksnya dibacakan dan bisa diringkas AI. Hasilnya tersimpan di akun. |
-| 🤖 | **NeoTutor** | Tutor AI yang bisa diajak ngobrol lewat ketikan atau suara. Tiap orang punya percakapannya sendiri, dan tiap percakapan diingat terpisah. |
-| 📖 | **Flexa** | Materi tiga tingkat, kamus isyarat SIBI (gambar dan video), dan unggah dokumen sendiri (PDF, gambar, teks). |
+| 📷 | **EyeRead** | Foto halaman buku atau unggah gambar, lalu teksnya dibacakan dan bisa diringkas AI. Dari hasil pindai bisa langsung tanya tutor atau bikin kuis. |
+| 🤖 | **NeoTutor** | Tutor AI yang bisa diajak ngobrol lewat ketikan atau suara. Bisa membahas satu materi atau dokumen tertentu, dan tiap percakapan diingat terpisah. |
+| 📖 | **Flexa** | Materi tiga tingkat, kamus isyarat SIBI (gambar dan video), dan unggah dokumen sendiri (PDF, gambar, teks), lengkap dengan ringkasan AI. |
+| 📝 | **Kuis adaptif** | AI menyusun soal dari materi atau dokumen apa pun. Tingkat soal naik kalau jawabanmu benar dan turun kalau salah. |
+| 🔊 | **Suara AI** | Materi, hasil pindai, dan jawaban tutor dibacakan dengan suara natural. Kalau tidak tersedia, otomatis pakai suara perangkat. |
 | 🗺️ | **Pathly** | Jalur belajar berlevel dengan kuis, XP, streak harian, sertifikat PDF, dan dua game latihan. |
 | 💬 | **EchoForum** | Forum diskusi dengan komentar, suka, dan tombol untuk membacakan postingan. |
 | ♿ | **Aksesibilitas** | Kontras tinggi, ukuran teks, huruf ramah disleksia, kecepatan suara, navigasi keyboard. Saat pertama masuk, pengguna memilih kebutuhannya dan tampilan langsung menyesuaikan. |
@@ -90,8 +92,8 @@ Singkatnya:
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion |
 | Backend | ASP.NET Core 10 (C#) |
 | Database | Supabase (PostgreSQL) dengan Row Level Security |
-| AI | Google Gemini 2.5 Flash |
-| Suara | Web Speech API bawaan browser |
+| AI | Google Gemini 2.5 Flash (OCR, chat, ringkasan, kuis) dan Gemini TTS (suara) |
+| Suara | Gemini TTS dengan cache di server, cadangan Web Speech API bawaan browser |
 | Infrastruktur | Vercel, VPS + Docker Compose + Caddy, Cloudflare, GitHub Actions |
 
 ---
@@ -280,6 +282,8 @@ Semua endpoint, kecuali `/health`, butuh header `Authorization: Bearer <token lo
 | `GET /health` | - | `{ "status": "ok" }` |
 | `POST /gemini/chat` | JSON `{ "text", "sessionId"? }` | `{ "status", "response", "sessionId" }` |
 | `POST /gemini/summary` | JSON `{ "text" }` | `{ "message" }` |
+| `POST /gemini/quiz` | JSON `{ "text" }` | `{ "questions": [{ "q", "options", "a", "difficulty" }] }` |
+| `POST /gemini/tts` | JSON `{ "text" }` (maks. 1.200 karakter) | audio WAV |
 | `POST /scan/ocr` | form-data `image` (PNG, JPG, WEBP) | teks polos |
 | `POST /scan/extract` | form-data `file` (PDF, PNG, JPG, TXT) | `{ "text" }` |
 
@@ -292,7 +296,7 @@ Arti kode status:
 | `404` | Sesi chat tidak ditemukan atau bukan milikmu |
 | `413` | Berkas lebih dari 10 MB |
 | `415` | Jenis berkas tidak didukung |
-| `429` | Terlalu banyak permintaan (batas 30 per menit per pengguna) |
+| `429` | Terlalu banyak permintaan (batas 30 per menit per pengguna), atau kuota suara AI sedang habis |
 | `502` | Layanan AI sedang bermasalah |
 
 ---

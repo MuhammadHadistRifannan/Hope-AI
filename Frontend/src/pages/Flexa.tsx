@@ -1,4 +1,5 @@
 import { API_URL, authHeaders } from "@/lib/api";
+import { speak, stopSpeech } from "@/lib/speech";
 import { clickable } from "@/lib/a11y";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
@@ -127,7 +128,7 @@ export default function Flexa() {
   const [signMediaTab, setSignMediaTab] = useState("image");
 
   // Settings
-  const { volume, speakingRate, autoPlayAudio } = useSettings();
+  const { volume, speakingRate, autoPlayAudio, aiVoice } = useSettings();
 
   // --- MUAT MATERI, KAMUS ISYARAT, DAN DOKUMEN PENGGUNA ---
   const loadDocuments = async () => {
@@ -205,18 +206,13 @@ export default function Flexa() {
 
   // --- FUNGSI HELPER ---
   const speakText = (text: string) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "id-ID";
-      utterance.volume = volume / 100;
-      if (speakingRate === "slow") utterance.rate = 0.8;
-      else if (speakingRate === "fast") utterance.rate = 1.2;
-      else utterance.rate = 1.0;
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
+    speak(text, {
+      volume,
+      rate: speakingRate,
+      aiVoice,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+    });
   };
 
   const cleanMarkdown = (text) => {
@@ -238,7 +234,7 @@ export default function Flexa() {
     );
   };
   const stopSpeaking = () => {
-    window.speechSynthesis.cancel();
+    stopSpeech();
     setIsSpeaking(false);
   };
 

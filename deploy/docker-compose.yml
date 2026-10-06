@@ -7,6 +7,9 @@ services:
     env_file: .env
     environment:
       PORT: "8080"
+      Tts__CacheDir: /data/tts
+    volumes:
+      - tts_cache:/data/tts
     expose:
       - "8080"
 
@@ -27,5 +30,6 @@ services:
       - backend
 
 volumes:
+  tts_cache:
   caddy_data:
   caddy_config:

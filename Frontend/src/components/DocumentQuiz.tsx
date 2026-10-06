@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { applyIndonesianVoice } from "@/lib/voice";
 import { CheckCircle2, Loader2, RefreshCcw, Volume2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -60,7 +61,7 @@ export default function DocumentQuiz({ title, text, onClose }: Props) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(content);
-    utterance.lang = "id-ID";
+    applyIndonesianVoice(utterance);
     utterance.volume = volume / 100;
     utterance.rate = speakingRate === "slow" ? 0.8 : speakingRate === "fast" ? 1.2 : 1.0;
     window.speechSynthesis.speak(utterance);

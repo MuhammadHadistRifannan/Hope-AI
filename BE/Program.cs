@@ -11,6 +11,7 @@ builder.Services.AddSingleton<IGeminiService , GeminiService>();
 builder.Services.AddSingleton<IOcrService , OcrService>();
 
 builder.Services.AddScoped<IChatHistoryService , ChatHistoryService>();
+builder.Services.AddSingleton<ITtsService , TtsService>();
 builder.Services.AddHttpClient();
 
 // Token login Supabase diverifikasi lewat kunci publik (JWKS) milik project
@@ -43,6 +44,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins);
         policy.AllowAnyHeader(); 
         policy.AllowAnyMethod();
+        policy.WithExposedHeaders("X-Tts-Cache");
     });
 });
 

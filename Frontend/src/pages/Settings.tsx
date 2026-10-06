@@ -7,14 +7,44 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useSettings } from "@/context/SettingsContext"; // Import hook
+import { useEffect, useState } from "react";
+import { applyIndonesianVoice, indonesianVoice } from "@/lib/voice";
 
 export default function Settings() {
   // Ambil value dan fungsi dari Context Global
   const { 
     largeText, highContrast, screenReader, textSize, dyslexiaFont,
-    autoPlayAudio, speakingRate, volume,
+    autoPlayAudio, speakingRate, volume, aiVoice,
     updateSetting, saveSettings 
   } = useSettings();
+
+  // Suara yang dipakai bergantung pada perangkat; tampilkan agar pengguna tahu
+  const [voiceName, setVoiceName] = useState<string | null>(null);
+  const [voicesReady, setVoicesReady] = useState(false);
+
+  useEffect(() => {
+    if (!("speechSynthesis" in window)) return;
+    const refresh = () => {
+      if (window.speechSynthesis.getVoices().length === 0) return;
+      setVoiceName(indonesianVoice()?.name ?? null);
+      setVoicesReady(true);
+    };
+    refresh();
+    window.speechSynthesis.addEventListener("voiceschanged", refresh);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", refresh);
+  }, []);
+
+  const testVoice = () => {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(
+      "Halo, ini contoh suara Hope A I. Selamat belajar!"
+    );
+    applyIndonesianVoice(utterance);
+    utterance.volume = volume / 100;
+    utterance.rate = speakingRate === "slow" ? 0.8 : speakingRate === "fast" ? 1.2 : 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
 
   return (
     <div className="min-h-screen p-4 md:p-8 pb-20 md:pb-8">
@@ -136,6 +166,39 @@ export default function Settings() {
                     <SelectItem value="fast">Cepat (1.5x)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label htmlFor="ai-voice">Suara AI</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Suara yang lebih natural untuk membacakan materi, hasil pindai, dan jawaban
+                    NeoTutor. Perlu beberapa detik untuk disiapkan; bila tidak tersedia, suara
+                    perangkat dipakai otomatis.
+                  </p>
+                </div>
+                <Switch
+                  id="ai-voice"
+                  checked={aiVoice}
+                  onCheckedChange={(val) => updateSetting('aiVoice', val)}
+                />
+              </div>
+
+              <div className="space-y-2 p-4 rounded-lg bg-muted" role="status">
+                <p className="text-sm font-medium">
+                  Suara perangkat (cadangan):{" "}
+                  {!voicesReady ? "memeriksa..." : voiceName ?? "tidak ada suara Bahasa Indonesia"}
+                </p>
+                {voicesReady && !voiceName && (
+                  <p className="text-sm text-muted-foreground">
+                    Perangkat atau browser ini belum punya suara Bahasa Indonesia, jadi
+                    pengucapannya bisa terdengar aneh. Coba pakai Google Chrome atau Microsoft
+                    Edge, atau pasang suara Bahasa Indonesia di pengaturan sistem.
+                  </p>
+                )}
+                <Button variant="outline" size="sm" onClick={testVoice}>
+                  Tes Suara
+                </Button>
               </div>
 
               <div className="space-y-3">

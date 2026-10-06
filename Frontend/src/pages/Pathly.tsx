@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { applyIndonesianVoice } from "@/lib/voice";
 import { clickable } from "@/lib/a11y";
 import {
   BookOpen,
@@ -373,7 +374,7 @@ export default function Pathly() {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "id-ID";
+      applyIndonesianVoice(utterance);
       utterance.rate = 1.0;
       utterance.volume = volume / 100;
       window.speechSynthesis.speak(utterance);

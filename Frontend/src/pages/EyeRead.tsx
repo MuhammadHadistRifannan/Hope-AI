@@ -1,4 +1,6 @@
 import { API_URL, authHeaders } from "@/lib/api";
+import { speak, stopSpeech } from "@/lib/speech";
+import { applyIndonesianVoice } from "@/lib/voice";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -49,7 +51,7 @@ export default function EyeRead() {
   const { toast } = useToast();
 
   // --- SETTINGS INTEGRATION ---
-  const { volume, speakingRate } = useSettings(); // Ambil settingan global
+  const { volume, speakingRate, aiVoice } = useSettings(); // Ambil settingan global
 
   // 1. Load Tesseract
   useEffect(() => {
@@ -198,7 +200,7 @@ export default function EyeRead() {
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = "id-ID";
+        applyIndonesianVoice(utterance);
 
         // Terapkan Setting untuk Guidance juga (Opsional, tapi konsisten)
         utterance.volume = volume / 100;
@@ -451,26 +453,17 @@ export default function EyeRead() {
 
   // --- UPDATE: FUNGSI SPEAK TEXT TERINTEGRASI SETTINGS ---
   const speakText = (text: string) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "id-ID";
-
-      // Terapkan Setting dari Context
-      utterance.volume = volume / 100;
-
-      if (speakingRate === "slow") utterance.rate = 0.7;
-      else if (speakingRate === "fast") utterance.rate = 1.2;
-      else utterance.rate = 1.0;
-
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
+    speak(text, {
+      volume,
+      rate: speakingRate,
+      aiVoice,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+    });
   };
 
   const stopSpeaking = () => {
-    window.speechSynthesis.cancel();
+    stopSpeech();
     setIsSpeaking(false);
   };
 
@@ -765,7 +758,7 @@ export default function EyeRead() {
                   variant="outline"
                   disabled={!savedScan}
                   onClick={() => {
-                    window.speechSynthesis?.cancel();
+                    stopSpeech();
                     navigate("/neotutor", {
                       state: { context: { type: "document", id: savedScan?.id, title: savedScan?.title } },
                     });
@@ -776,7 +769,7 @@ export default function EyeRead() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    window.speechSynthesis?.cancel();
+                    stopSpeech();
                     setShowQuiz(true);
                   }}
                 >

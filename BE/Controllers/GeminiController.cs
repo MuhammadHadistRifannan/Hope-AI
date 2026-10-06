@@ -20,15 +20,19 @@ namespace MyApp.Namespace
         const int MinQuizTextLength = 80;
         const int MaxQuizTextLength = 30000;
         const int QuizQuestionCount = 9;
+        // Teks panjang dipotong di frontend; satu permintaan untuk satu potongan
+        const int MaxTtsLength = 1200;
 
         readonly IGeminiService _client; 
         readonly IChatHistoryService _history;
+        readonly ITtsService _tts;
         readonly ModelAi _model; 
 
-        public GeminiController(IGeminiService client , IChatHistoryService history)
+        public GeminiController(IGeminiService client , IChatHistoryService history , ITtsService tts)
         {
             _client = client;
             _history = history;
+            _tts = tts;
             _model = new ModelAi
             {
                 nameModel = "gemini-2.5-flash"  
@@ -106,6 +110,30 @@ namespace MyApp.Namespace
             catch (Exception e)
             {
                 return StatusCode(502, "Kuis belum bisa dibuat: " + e.Message);
+            }
+        }
+
+        // Mengubah teks menjadi audio WAV dengan suara AI
+        [HttpPost("tts")]
+        public async Task<IActionResult> Speak([FromBody] Message message)
+        {
+            string text = (message.text ?? "").Trim();
+            if (text.Length == 0) return BadRequest("Teks tidak boleh kosong");
+            if (text.Length > MaxTtsLength) return BadRequest("Teks terlalu panjang");
+
+            try
+            {
+                var result = await _tts.Synthesize(text);
+                Response.Headers["X-Tts-Cache"] = result.FromCache ? "hit" : "miss";
+                return File(result.Audio, "audio/wav");
+            }
+            catch (TtsQuotaException e)
+            {
+                return StatusCode(429, e.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(502, "Suara AI belum bisa dibuat: " + e.Message);
             }
         }
 
