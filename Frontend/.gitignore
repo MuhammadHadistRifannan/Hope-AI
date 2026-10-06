@@ -28,3 +28,6 @@ npm-debug.log*
 .DS_Store
 *.suo
 *.sw?
+
+# Berkas MediaPipe disiapkan oleh scripts/prepare-mediapipe.mjs
+public/mediapipe/

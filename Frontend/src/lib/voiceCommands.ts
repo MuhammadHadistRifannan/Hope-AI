@@ -47,6 +47,7 @@ export const destinations: Destination[] = [
   { path: "/eyeread", name: "EyeRead", keywords: ["eyeread", "eye read", "airit", "pindai buku", "baca buku", "kamera"] },
   { path: "/neotutor", name: "NeoTutor", keywords: ["neotutor", "neo tutor", "tutor"] },
   { path: "/flexa", name: "Flexa", keywords: ["flexa", "fleksa", "materi", "kamus isyarat"] },
+  { path: "/isyarat", name: "Isyarat", keywords: ["isyarat", "latihan isyarat"] },
   { path: "/pathly", name: "Pathly", keywords: ["pathly", "patli", "jalur belajar", "latihan", "permainan"] },
   { path: "/forum", name: "Forum", keywords: ["forum", "diskusi"] },
   { path: "/profile", name: "Profil", keywords: ["profil"] },

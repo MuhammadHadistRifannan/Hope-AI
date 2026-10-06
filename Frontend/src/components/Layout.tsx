@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { supabase } from "@/integrations/supabase/client"; 
 import { 
   Home, Camera, MessageSquare, BookOpen, TrendingUp, 
-  Users, Bell, Settings, User, LogOut, Sparkles, Shield, GraduationCap
+  Users, Bell, Settings, User, LogOut, Sparkles, Shield, GraduationCap, Hand, Menu
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -11,6 +12,7 @@ import { Gamepad2 } from "lucide-react";
 import { useRoles } from "@/hooks/use-roles";
 import OnboardingDialog from "./OnboardingDialog";
 import VoiceAssistant from "./VoiceAssistant";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const navigation = [
   { name: "Beranda", href: "/", icon: Home },
@@ -18,6 +20,7 @@ const navigation = [
   { name: "NeoTutor", href: "/neotutor", icon: MessageSquare },
   { name: "Flexa", href: "/flexa", icon: BookOpen },
   { name: "Pathly", href: "/pathly", icon: TrendingUp },
+  { name: "Isyarat", href: "/isyarat", icon: Hand },
   { name: "EchoForum", href: "/forum", icon: Users },
 ];
 
@@ -27,7 +30,15 @@ const secondaryNav = [
   { name: "Pengaturan", href: "/settings", icon: Settings },
 ];
 
+// Di layar ponsel menu pindah ke bilah bawah: dua menu di kiri, NeoTutor di
+// tengah, satu menu di kanan, dan sisanya di lembar "Lainnya".
+const bottomLeft = [navigation[0], navigation[1]];
+const bottomCenter = navigation[2];
+const bottomRight = [navigation[3]];
+const bottomHrefs = [...bottomLeft, bottomCenter, ...bottomRight].map((item) => item.href);
+
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate(); 
   const { toast } = useToast();
@@ -39,6 +50,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     ...(isStaff ? [{ name: "Ruang Guru", href: "/guru", icon: GraduationCap }] : []),
     ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Shield }] : []),
   ];
+
+  const moreItems = [...navigation.filter((item) => !bottomHrefs.includes(item.href)), ...secondaryItems];
+  const moreActive = moreItems.some((item) => item.href === location.pathname);
+
+  const bottomTab = (item: (typeof navigation)[number]) => {
+    const isActive = location.pathname === item.href;
+    return (
+      <Link
+        key={item.name}
+        to={item.href}
+        aria-current={isActive ? "page" : undefined}
+        className={cn(
+          "flex-1 min-w-0 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 border-t-2 text-[11px] transition-colors",
+          isActive
+            ? "border-primary text-primary font-bold bg-gradient-to-b from-primary/10 to-transparent"
+            : "border-transparent text-muted-foreground"
+        )}
+      >
+        <item.icon className="w-5 h-5" aria-hidden="true" />
+        <span className="truncate max-w-full px-1">{item.name}</span>
+      </Link>
+    );
+  };
 
   const handleLogout = async () => {
     try {
@@ -75,8 +109,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         Lompat ke konten utama
       </a>
 
-      {/* Sidebar */}
-      <aside className="w-20 lg:w-64 bg-gradient-to-b from-primary via-primary to-secondary text-primary-foreground fixed h-screen flex flex-col border-r border-white/10 shadow-2xl z-40 transition-all duration-300">
+      {/* Sidebar: hanya di tablet dan desktop */}
+      <aside className="hidden md:flex w-20 lg:w-64 bg-gradient-to-b from-primary via-primary to-secondary text-primary-foreground fixed h-screen flex-col border-r border-white/10 shadow-2xl z-40 transition-all duration-300">
         {/* Logo Section */}
         <div className="p-4 lg:p-6 border-b border-white/10">
           <Link to="/" aria-label="Hope.Ai, ke Beranda" className="flex items-center gap-3 group">
@@ -173,15 +207,94 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content Wrapper */}
-      <main id="konten-utama" tabIndex={-1} className="flex-1 ml-20 lg:ml-64 flex flex-col min-w-0 transition-all duration-300 focus:outline-none">
+      <main id="konten-utama" tabIndex={-1} className="flex-1 md:ml-20 lg:ml-64 pb-20 md:pb-0 flex flex-col min-w-0 transition-all duration-300 focus:outline-none">
         {/* Page Content */}
-        <div className="flex-1 w-full max-w-[1920px] mx-auto p-6 lg:p-8">
+        <div className="flex-1 w-full max-w-[1920px] mx-auto p-2 md:p-6 lg:p-8">
           {children}
         </div>
 
         {/* Footer */}
         <Footer />
       </main>
+
+      {/* Bilah menu bawah: hanya di ponsel */}
+      <nav
+        aria-label="Menu utama"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-card border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]"
+      >
+        {bottomLeft.map(bottomTab)}
+
+        <div className="flex-1 flex justify-center">
+          <Link
+            to={bottomCenter.href}
+            aria-label={bottomCenter.name}
+            aria-current={location.pathname === bottomCenter.href ? "page" : undefined}
+            className={cn(
+              "-mt-5 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-primary to-secondary ring-4 ring-card transition-transform active:scale-95",
+              location.pathname === bottomCenter.href && "ring-primary/30"
+            )}
+          >
+            <bottomCenter.icon className="w-6 h-6" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {bottomRight.map(bottomTab)}
+
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          className={cn(
+            "flex-1 min-w-0 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 border-t-2 text-[11px] transition-colors",
+            moreActive
+              ? "border-primary text-primary font-bold bg-gradient-to-b from-primary/10 to-transparent"
+              : "border-transparent text-muted-foreground"
+          )}
+        >
+          <Menu className="w-5 h-5" aria-hidden="true" />
+          <span>Lainnya</span>
+        </button>
+      </nav>
+
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="md:hidden rounded-t-2xl max-h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Menu Lainnya</SheetTitle>
+          </SheetHeader>
+          <div className="grid grid-cols-3 gap-2 mt-4">
+            {moreItems.map((item) => {
+              const isActive = location.pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={() => setMoreOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-2 min-h-20 p-3 rounded-xl text-sm text-center transition-colors",
+                    isActive ? "bg-primary text-primary-foreground font-bold" : "bg-muted text-foreground"
+                  )}
+                >
+                  <item.icon className="w-6 h-6" aria-hidden="true" />
+                  {item.name}
+                </Link>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => {
+                setMoreOpen(false);
+                handleLogout();
+              }}
+              className="flex flex-col items-center justify-center gap-2 min-h-20 p-3 rounded-xl text-sm bg-destructive/10 text-destructive"
+            >
+              <LogOut className="w-6 h-6" aria-hidden="true" />
+              Keluar
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

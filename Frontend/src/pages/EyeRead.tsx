@@ -503,7 +503,7 @@ export default function EyeRead() {
   };
 
   return (
-    <div className="min-h-screen p-8 bg-background text-foreground">
+    <div className="min-h-screen p-2 md:p-8 bg-background text-foreground">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -521,8 +521,8 @@ export default function EyeRead() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* CAMERA CARD */}
-          <Card className="p-6 shadow-lg">
-            <div className="aspect-video bg-muted rounded-lg overflow-hidden mb-4 relative flex items-center justify-center ring-1 ring-border">
+          <Card className="p-3 md:p-6 shadow-lg">
+            <div className="aspect-[3/4] sm:aspect-video bg-muted rounded-lg overflow-hidden mb-4 relative flex items-center justify-center ring-1 ring-border">
               {capturedImage ? (
                 <img
                   src={capturedImage}
@@ -672,7 +672,7 @@ export default function EyeRead() {
           </Card>
 
           {/* OUTPUT CARD */}
-          <Card className="p-6 shadow-lg flex flex-col h-full">
+          <Card className="p-3 md:p-6 shadow-lg flex flex-col h-full">
             <Tabs
               value={activeOutput}
               onValueChange={(v) => setActiveOutput(v as any)}

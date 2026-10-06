@@ -21,6 +21,7 @@ import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import TeacherRoom from "./pages/TeacherRoom";
+import SignLanguage from "./pages/SignLanguage";
 import NotFound from "./pages/NotFound";
 import Playground from "./pages/Playground";
 
@@ -114,6 +115,10 @@ function App() {
               <Route
                 path="/admin"
                 element={session ? <Layout><AdminDashboard /></Layout> : <Navigate to="/landing" />}
+              />
+              <Route
+                path="/isyarat"
+                element={session ? <Layout><SignLanguage /></Layout> : <Navigate to="/landing" />}
               />
               <Route
                 path="/guru"
