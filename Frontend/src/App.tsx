@@ -24,7 +24,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import TeacherRoom from "./pages/TeacherRoom";
 import SignLanguage from "./pages/SignLanguage";
 import NotFound from "./pages/NotFound";
-import Playground from "./pages/Playground";
 
 // IMPORT SETTINGS PROVIDER (Pastikan file ini sudah dibuat di src/context/SettingsContext.tsx)
 import { SettingsProvider } from "./context/SettingsContext";
@@ -128,10 +127,8 @@ function App() {
                 element={session ? <Layout><TeacherRoom /></Layout> : <Navigate to="/landing" />}
               />
 
-              <Route
-   path="/playground"
-   element={session ? <Layout><Playground /></Layout> : <Navigate to="/landing" />}
-/>
+              {/* Game Playground sudah menyatu di Pathly (tab Arena), tempat skornya tersimpan */}
+              <Route path="/playground" element={<Navigate to="/pathly" replace />} />
               
               {/* Fallback 404 */}
               <Route path="*" element={<NotFound />} />

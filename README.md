@@ -10,6 +10,7 @@ Foto bukunya, dengarkan isinya, tanya ke tutor AI, lalu latihan soal. Semua bisa
 
 [![Demo](https://img.shields.io/badge/Demo-hope--ai--nu.vercel.app-7c3aed?style=for-the-badge&logo=vercel&logoColor=white)](https://hope-ai-nu.vercel.app)
 [![API](https://img.shields.io/badge/API-online-22c55e?style=for-the-badge&logo=dotnet&logoColor=white)](https://api.bennedistus.web.id/health)
+[![Tes](https://img.shields.io/github/actions/workflow/status/MuhammadHadistRifannan/Hope-AI/ci.yml?branch=main&style=for-the-badge&label=Tes&logo=githubactions&logoColor=white)](https://github.com/MuhammadHadistRifannan/Hope-AI/actions/workflows/ci.yml)
 
 ![React](https://img.shields.io/badge/React_18-20232a?style=flat-square&logo=react&logoColor=61dafb)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=flat-square&logo=typescript&logoColor=white)
@@ -277,11 +278,14 @@ Begitu ada yang mendaftar, database otomatis membuatkan profil, pengaturan akses
 
 Semua endpoint, kecuali `/health`, butuh header `Authorization: Bearer <token login Supabase>`.
 
+Dokumentasi interaktifnya (Swagger) ada di **[api.bennedistus.web.id/docs](https://api.bennedistus.web.id/docs)**, atau `http://localhost:5114/docs` saat jalan di lokal.
+
 | Metode dan jalur | Kirim apa | Dapat apa |
 |---|---|---|
 | `GET /health` | - | `{ "status": "ok" }` |
 | `POST /gemini/chat` | JSON `{ "text", "sessionId"? }` | `{ "status", "response", "sessionId" }` |
 | `POST /gemini/summary` | JSON `{ "text" }` | `{ "message" }` |
+| `POST /gemini/simplify` | JSON `{ "text" }` | `{ "message", "truncated" }`, versi bahasa sederhana |
 | `POST /gemini/quiz` | JSON `{ "text" }` | `{ "questions": [{ "q", "options", "a", "difficulty" }] }` |
 | `POST /gemini/tts` | JSON `{ "text" }` (maks. 1.200 karakter) | audio WAV |
 | `POST /scan/ocr` | form-data `image` (PNG, JPG, WEBP) | teks polos |

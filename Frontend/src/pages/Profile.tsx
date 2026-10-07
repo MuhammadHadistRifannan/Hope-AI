@@ -40,20 +40,48 @@ interface ProfileData {
   created_at?: string;
 }
 
-// --- DATA STATIS ---
-const achievements = [
-  { name: "Pembelajar Cepat", icon: "⚡", earned: true },
-  { name: "Master Membaca", icon: "📚", earned: true },
-  { name: "Ahli Matematika", icon: "🧮", earned: true },
-  { name: "Penjelajah Sains", icon: "🔬", earned: false },
-  { name: "Nilai Sempurna", icon: "💯", earned: false },
-  { name: "Penolong", icon: "🤝", earned: true },
-];
+// Angka belajar pengguna, dihitung dari kegiatannya sendiri di database
+type Learning = {
+  xp: number;
+  streak: number;
+  modulesTotal: number;
+  modulesCompleted: number;
+  quizCount: number;
+  quizAveragePct: number | null;
+  hasPerfectQuiz: boolean;
+  documentQuizCount: number;
+  scans: number;
+  questions: number;
+  forumActivity: number;
+  modules: { id: number; title: string; pct: number; completed: boolean }[];
+};
 
-const stats = [
-  { label: "Pelajaran Selesai", value: "42", icon: BookOpen },
-  { label: "Rata-rata Nilai Kuis", value: "87%", icon: Target },
-  { label: "Konsistensi Belajar", value: "12 hari", icon: Award },
+const emptyLearning: Learning = {
+  xp: 0,
+  streak: 0,
+  modulesTotal: 0,
+  modulesCompleted: 0,
+  quizCount: 0,
+  quizAveragePct: null,
+  hasPerfectQuiz: false,
+  documentQuizCount: 0,
+  scans: 0,
+  questions: 0,
+  forumActivity: 0,
+  modules: [],
+};
+
+// Lencana diberikan dari kegiatan nyata; `progress` memberi tahu seberapa dekat pengguna
+const buildAchievements = (l: Learning) => [
+  { name: "Langkah Pertama", icon: "🚀", how: "Selesaikan 1 modul di Peta Belajar", earned: l.modulesCompleted >= 1, progress: `${Math.min(l.modulesCompleted, 1)}/1` },
+  { name: "Penjelajah", icon: "🗺️", how: "Selesaikan 5 modul", earned: l.modulesCompleted >= 5, progress: `${Math.min(l.modulesCompleted, 5)}/5` },
+  { name: "Tamat Peta Belajar", icon: "👑", how: "Selesaikan semua modul", earned: l.modulesTotal > 0 && l.modulesCompleted >= l.modulesTotal, progress: `${l.modulesCompleted}/${l.modulesTotal}` },
+  { name: "Nilai Sempurna", icon: "💯", how: "Jawab benar semua soal dalam satu kuis", earned: l.hasPerfectQuiz, progress: "" },
+  { name: "Kuis Mandiri", icon: "📝", how: "Kerjakan kuis dari dokumenmu sendiri", earned: l.documentQuizCount >= 1, progress: "" },
+  { name: "Pemindai", icon: "📷", how: "Pindai 1 dokumen dengan EyeRead", earned: l.scans >= 1, progress: "" },
+  { name: "Penanya Aktif", icon: "💬", how: "Ajukan 10 pertanyaan ke NeoTutor", earned: l.questions >= 10, progress: `${Math.min(l.questions, 10)}/10` },
+  { name: "Penolong", icon: "🤝", how: "Tulis postingan atau komentar di forum", earned: l.forumActivity >= 1, progress: "" },
+  { name: "Konsisten", icon: "🔥", how: "Belajar 3 hari berturut-turut", earned: l.streak >= 3, progress: `${Math.min(l.streak, 3)}/3` },
 ];
 
 export default function Profile() {
@@ -71,6 +99,8 @@ export default function Profile() {
     avatar_url: "",
     email: "",
   });
+
+  const [learning, setLearning] = useState<Learning>(emptyLearning);
 
   // State Form Edit
   const [editForm, setEditForm] = useState({
@@ -118,6 +148,60 @@ export default function Profile() {
       setEditForm({
         full_name: finalProfile.full_name,
         avatar_url: finalProfile.avatar_url,
+      });
+
+      // Angka belajar: semuanya baris milik pengguna sendiri
+      const countOnly = { count: "exact", head: true } as const;
+
+      const [modulesRes, questionsRes, progressRes, attemptsRes, docAttemptsRes, scansRes, chatRes, postsRes, commentsRes] =
+        await Promise.all([
+          supabase.from("learning_modules").select("id, title, sort_order").eq("is_published", true).order("sort_order"),
+          supabase.from("quiz_questions").select("module_id"),
+          supabase.from("module_progress").select("module_id, status, best_score").eq("user_id", user.id),
+          supabase.from("quiz_attempts").select("score, total").eq("user_id", user.id),
+          supabase.from("document_quiz_attempts").select("score, total").eq("user_id", user.id),
+          supabase.from("user_documents").select("id", countOnly).eq("user_id", user.id).eq("source", "scan"),
+          supabase.from("chat_messages").select("id", countOnly).eq("user_id", user.id).eq("role", "user"),
+          supabase.from("forum_posts").select("id", countOnly).eq("author_id", user.id),
+          supabase.from("forum_comments").select("id", countOnly).eq("author_id", user.id),
+        ]);
+
+      const failed = [modulesRes, questionsRes, progressRes, attemptsRes, docAttemptsRes, scansRes, chatRes, postsRes, commentsRes].find((res) => res.error);
+      if (failed?.error) console.error("Gagal memuat sebagian data belajar:", failed.error);
+
+      const questionCount = new Map<number, number>();
+      for (const row of questionsRes.data ?? []) {
+        questionCount.set(row.module_id, (questionCount.get(row.module_id) ?? 0) + 1);
+      }
+      const progress = new Map((progressRes.data ?? []).map((row) => [row.module_id, row]));
+      const attempts = [...(attemptsRes.data ?? []), ...(docAttemptsRes.data ?? [])].filter((a) => a.total > 0);
+
+      setLearning({
+        xp: profileData?.xp ?? 0,
+        streak: profileData?.streak ?? 0,
+        modulesTotal: modulesRes.data?.length ?? 0,
+        modulesCompleted: (modulesRes.data ?? []).filter((m) => progress.get(m.id)?.status === "completed").length,
+        quizCount: attempts.length,
+        quizAveragePct: attempts.length
+          ? Math.round((attempts.reduce((sum, a) => sum + a.score / a.total, 0) / attempts.length) * 100)
+          : null,
+        hasPerfectQuiz: attempts.some((a) => a.score === a.total),
+        documentQuizCount: docAttemptsRes.data?.length ?? 0,
+        scans: scansRes.count ?? 0,
+        questions: chatRes.count ?? 0,
+        forumActivity: (postsRes.count ?? 0) + (commentsRes.count ?? 0),
+        modules: (modulesRes.data ?? [])
+          .filter((m) => progress.has(m.id))
+          .map((m) => {
+            const total = questionCount.get(m.id) ?? 0;
+            const row = progress.get(m.id)!;
+            return {
+              id: m.id,
+              title: m.title,
+              pct: total ? Math.min(100, Math.round((row.best_score / total) * 100)) : 0,
+              completed: row.status === "completed",
+            };
+          }),
       });
     } catch (error: any) {
       console.error("Error fetching profile:", error);
@@ -364,7 +448,15 @@ export default function Profile() {
           {/* --- RIGHT COLUMN: STATS & ACHIEVEMENTS --- */}
           <div className="lg:col-span-2 space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {stats.map((stat, index) => (
+              {[
+                { label: "Modul Selesai", value: `${learning.modulesCompleted} / ${learning.modulesTotal}`, icon: BookOpen },
+                {
+                  label: learning.quizCount ? `Rata-rata dari ${learning.quizCount} kuis` : "Belum ada kuis",
+                  value: learning.quizAveragePct === null ? "–" : `${learning.quizAveragePct}%`,
+                  icon: Target,
+                },
+                { label: `Belajar beruntun · ${learning.xp} XP`, value: `${learning.streak} hari`, icon: Award },
+              ].map((stat, index) => (
                 <motion.div
                   key={stat.label}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -391,28 +483,44 @@ export default function Profile() {
                 <Target className="w-5 h-5 text-primary" />
                 Progress Belajar
               </h3>
-              <div className="space-y-6">
-                {[
-                  { name: "Matematika", value: 85, color: "bg-blue-500" },
-                  { name: "IPA", value: 72, color: "bg-green-500" },
-                  { name: "Bahasa Inggris", value: 90, color: "bg-purple-500" },
-                  { name: "Sejarah", value: 68, color: "bg-orange-500" },
-                ].map((item) => (
-                  <div key={item.name}>
-                    <div className="flex justify-between mb-2 text-sm font-medium">
-                      <span>{item.name}</span>
-                      <span className="text-muted-foreground">
-                        {item.value}%
-                      </span>
-                    </div>
-                    <Progress
-                      value={item.value}
-                      className="h-2.5 bg-muted"
-                      indicatorClassName={item.color}
-                    />
-                  </div>
-                ))}
+              <div className="mb-6">
+                <div className="flex justify-between mb-2 text-sm font-medium">
+                  <span>Peta Belajar</span>
+                  <span className="text-muted-foreground">
+                    {learning.modulesCompleted} dari {learning.modulesTotal} modul selesai
+                  </span>
+                </div>
+                <Progress
+                  value={learning.modulesTotal ? (learning.modulesCompleted / learning.modulesTotal) * 100 : 0}
+                  className="h-2.5 bg-muted"
+                  aria-label="Kemajuan Peta Belajar"
+                />
               </div>
+              {learning.modules.length === 0 ? (
+                <p className="text-muted-foreground">
+                  Belum ada modul yang dikerjakan. Mulai dari Peta Belajar di Pathly.
+                </p>
+              ) : (
+                <div className="space-y-5">
+                  <p className="text-sm font-medium text-muted-foreground">Nilai terbaik per modul</p>
+                  {learning.modules.map((item) => (
+                    <div key={item.id}>
+                      <div className="flex justify-between mb-2 text-sm font-medium">
+                        <span>
+                          {item.title}
+                          {item.completed && <span className="text-muted-foreground font-normal"> · selesai</span>}
+                        </span>
+                        <span className="text-muted-foreground">{item.pct}%</span>
+                      </div>
+                      <Progress
+                        value={item.pct}
+                        className="h-2.5 bg-muted"
+                        aria-label={`Nilai terbaik ${item.title}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card className="p-6 md:p-8">
@@ -421,7 +529,7 @@ export default function Profile() {
                 Pencapaian
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {achievements.map((achievement, index) => (
+                {buildAchievements(learning).map((achievement, index) => (
                   <motion.div
                     key={achievement.name}
                     initial={{ opacity: 0, y: 10 }}
@@ -432,21 +540,20 @@ export default function Profile() {
                       ${
                         achievement.earned
                           ? "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 shadow-sm"
-                          : "bg-muted/50 border-muted grayscale opacity-60"
+                          : "bg-muted/50 border-muted grayscale opacity-80"
                       }
                     `}
                   >
-                    <div className="text-4xl filter drop-shadow-sm">
+                    <div className="text-4xl filter drop-shadow-sm" aria-hidden="true">
                       {achievement.icon}
                     </div>
                     <div className="text-sm font-semibold leading-tight">
                       {achievement.name}
                     </div>
-                    {achievement.earned && (
-                      <div className="text-[10px] text-primary font-medium uppercase tracking-wider">
-                        Tercapai
-                      </div>
-                    )}
+                    <div className="text-xs text-muted-foreground leading-snug">{achievement.how}</div>
+                    <div className="text-[10px] font-medium uppercase tracking-wider text-primary">
+                      {achievement.earned ? "Tercapai" : achievement.progress || "Belum tercapai"}
+                    </div>
                   </motion.div>
                 ))}
               </div>

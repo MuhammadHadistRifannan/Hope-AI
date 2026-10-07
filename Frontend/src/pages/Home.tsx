@@ -433,8 +433,8 @@ export default function Home() {
 
         {/* 3D CARDS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 auto-rows-[minmax(300px,auto)]">
-          {features.map((feature, index) => (
-            <ThreeDCard key={feature.name} feature={feature} index={index} />
+          {features.map((feature) => (
+            <ThreeDCard key={feature.name} feature={feature} />
           ))}
         </div>
       </section>

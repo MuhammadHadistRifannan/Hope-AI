@@ -23,6 +23,8 @@ namespace MyApp.Namespace
         }
 
         [HttpPost("ocr")]
+        [EndpointSummary("Membaca teks dari foto")]
+        [EndpointDescription("Menerima satu gambar (field image) dan mengembalikan teks yang terbaca.")]
         [RequestSizeLimit(OcrService.MaxFileSize + 1024 * 1024)]
         public async Task<IActionResult> GetOcrResult([FromForm] IFormFile image)
         {
@@ -38,6 +40,8 @@ namespace MyApp.Namespace
         }
 
         [HttpPost("extract")]
+        [EndpointSummary("Mengambil teks dari dokumen")]
+        [EndpointDescription("Menerima PDF, gambar, atau berkas teks (field file, maksimal 10 MB) dan mengembalikan isinya sebagai teks.")]
         [RequestSizeLimit(OcrService.MaxFileSize + 1024 * 1024)]
         public async Task<IActionResult> ExtractDocument([FromForm] IFormFile file)
         {

@@ -12,7 +12,8 @@
     "prepare:mediapipe": "node scripts/prepare-mediapipe.mjs",
     "predev": "npm run prepare:mediapipe",
     "prebuild": "npm run prepare:mediapipe",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

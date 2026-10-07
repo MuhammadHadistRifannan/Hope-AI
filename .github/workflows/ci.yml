@@ -1,0 +1,47 @@
+name: Tes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: tes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend (tes, tipe, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - run: npm ci
+      - name: Tes unit
+        run: npm test
+      - name: Periksa tipe
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
+
+  backend:
+    name: Backend (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build
+        run: dotnet build BE/backend.csproj -c Release -warnaserror

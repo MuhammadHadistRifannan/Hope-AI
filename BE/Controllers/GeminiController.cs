@@ -41,6 +41,8 @@ namespace MyApp.Namespace
         }
 
         [HttpPost("chat")]
+        [EndpointSummary("Bertanya ke NeoTutor")]
+        [EndpointDescription("Mengirim satu pesan. Sertakan sessionId untuk melanjutkan percakapan, atau context untuk membahas satu dokumen atau bab materi. Riwayat disimpan per pengguna.")]
         public async Task<IActionResult> GetResponses([FromBody] Message message)
         {
             string text = (message.text ?? "").Trim();
@@ -93,6 +95,8 @@ namespace MyApp.Namespace
 
         // Membuat soal pilihan ganda dari teks materi; dipakai kuis adaptif di frontend
         [HttpPost("quiz")]
+        [EndpointSummary("Membuat kuis dari teks")]
+        [EndpointDescription("Menghasilkan soal pilihan ganda bertingkat mudah, sedang, dan sulit dari teks materi (minimal 80 karakter).")]
         public async Task<IActionResult> Quiz([FromBody] Message message)
         {
             string text = (message.text ?? "").Trim();
@@ -116,6 +120,8 @@ namespace MyApp.Namespace
 
         // Mengubah teks menjadi audio WAV dengan suara AI
         [HttpPost("tts")]
+        [EndpointSummary("Mengubah teks menjadi suara")]
+        [EndpointDescription("Mengembalikan audio WAV untuk teks sampai 1200 karakter. Header X-Tts-Cache berisi hit bila audio diambil dari cache. 429 bila kuota suara AI habis.")]
         public async Task<IActionResult> Speak([FromBody] Message message)
         {
             string text = (message.text ?? "").Trim();
@@ -139,6 +145,8 @@ namespace MyApp.Namespace
         }
 
         [HttpPost("summary")]
+        [EndpointSummary("Meringkas teks")]
+        [EndpointDescription("Ringkasan 3 sampai 5 kalimat dari teks materi.")]
         public async Task<IActionResult> Summary([FromBody] Message message)
         {
             string text = (message.text ?? "").Trim();
@@ -155,6 +163,8 @@ namespace MyApp.Namespace
 
         // Versi bahasa sederhana dari sebuah materi
         [HttpPost("simplify")]
+        [EndpointSummary("Menulis ulang teks dengan bahasa sederhana")]
+        [EndpointDescription("Versi yang mudah dibaca untuk siswa dengan hambatan belajar. Teks di atas 15000 karakter dipotong dan ditandai truncated.")]
         public async Task<IActionResult> Simplify([FromBody] Message message)
         {
             string text = (message.text ?? "").Trim();
