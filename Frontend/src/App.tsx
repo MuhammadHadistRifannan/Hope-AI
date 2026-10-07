@@ -10,6 +10,7 @@ import Layout from "./components/Layout";
 import LoadingScreen from "./components/LoadingScreen";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import EyeRead from "./pages/EyeRead";
 import NeoTutor from "./pages/NeoTutor";
@@ -74,6 +75,8 @@ function App() {
               {/* Public Routes */}
               <Route path="/landing" element={session ? <Navigate to="/" /> : <Landing />} />
               <Route path="/auth" element={session ? <Navigate to="/" /> : <Auth />} />
+              {/* Tautan dari email atur ulang password; pengguna datang dalam keadaan sudah masuk sementara */}
+              <Route path="/reset-password" element={<ResetPassword hasSession={!!session} />} />
               
               {/* Protected Routes (Dibungkus Layout) */}
               <Route

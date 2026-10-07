@@ -1,8 +1,17 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 
 export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
   // Pastikan file GIF sudah ada di folder public
   const logoImageSrc = "/gif/loading-hero.gif"; 
+
+  // Pakai timer biasa, bukan akhir animasi: animasi tidak berjalan saat tab
+  // tidak terlihat, sehingga layar pembuka bisa macet selamanya.
+  useEffect(() => {
+    const timer = setTimeout(onComplete, 3000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <motion.div
@@ -12,9 +21,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
-      onAnimationComplete={() => {
-        setTimeout(onComplete, 3000); 
-      }}
     >
       <div className="text-center">
         

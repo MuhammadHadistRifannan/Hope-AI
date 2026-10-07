@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
   Users, BookOpen, MessageSquare, BarChart3,
-  TrendingUp, Eye, Shield, Activity, Trash2,
+  TrendingUp, Eye, Shield, Activity, Trash2, Ban, LineChart as LineChartIcon,
 } from "lucide-react";
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,6 +33,7 @@ type Stats = {
   forum_posts: number;
   forum_comments: number;
   quiz_attempts: number;
+  document_quiz_attempts: number;
   avg_quiz_score_pct: number;
   chat_messages: number;
   documents_scanned: number;
@@ -42,6 +44,8 @@ type Stats = {
 type UserRow = {
   id: string;
   name: string;
+  email: string;
+  isBlocked: boolean;
   roles: AppRole[];
   xp: number;
   streak: number;
@@ -52,6 +56,18 @@ type UserRow = {
 type ModuleRow = { id: number; title: string; topic: string; isPublished: boolean };
 
 type PostRow = { id: string; author: string; content: string; createdAt: string };
+
+type TrendRow = { day: string; signups: number; questions: number; quizzes: number; forum: number };
+
+// Garis grafik tren; warna dipilih agar tetap terbedakan pada buta warna merah-hijau
+const trendSeries = [
+  { key: "questions", label: "Pertanyaan ke NeoTutor", color: "#2563eb", dash: undefined },
+  { key: "quizzes", label: "Kuis dikerjakan", color: "#d97706", dash: "6 3" },
+  { key: "forum", label: "Postingan dan komentar forum", color: "#7c3aed", dash: "2 3" },
+  { key: "signups", label: "Pendaftar baru", color: "#0f766e", dash: "8 3 2 3" },
+] as const;
+
+const TREND_DAYS = 14;
 
 const roleLabel: Record<AppRole, string> = {
   student: "Siswa",
@@ -70,13 +86,15 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [modules, setModules] = useState<ModuleRow[]>([]);
   const [posts, setPosts] = useState<PostRow[]>([]);
+  const [comments, setComments] = useState<PostRow[]>([]);
+  const [trends, setTrends] = useState<TrendRow[]>([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (!isAdmin) return;
 
     const load = async () => {
-      const [statsRes, profilesRes, rolesRes, modulesRes, postsRes] = await Promise.all([
+      const [statsRes, profilesRes, rolesRes, modulesRes, postsRes, accountsRes, commentsRes, trendsRes] = await Promise.all([
         supabase.rpc("admin_stats"),
         supabase
           .from("profiles")
@@ -93,9 +111,16 @@ export default function AdminDashboard() {
           .select("id, author_id, content, created_at")
           .order("created_at", { ascending: false })
           .limit(20),
+        supabase.rpc("admin_user_accounts"),
+        supabase
+          .from("forum_comments")
+          .select("id, author_id, content, created_at")
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase.rpc("admin_trends", { _days: TREND_DAYS }),
       ]);
 
-      const failed = [statsRes, profilesRes, rolesRes, modulesRes, postsRes].find((res) => res.error);
+      const failed = [statsRes, profilesRes, rolesRes, modulesRes, postsRes, accountsRes, commentsRes, trendsRes].find((res) => res.error);
       if (failed?.error) {
         console.error("Gagal memuat dashboard admin:", failed.error);
         toast({
@@ -107,12 +132,17 @@ export default function AdminDashboard() {
       }
 
       setStats(statsRes.data as unknown as Stats);
+      setTrends((trendsRes.data as unknown as TrendRow[]) ?? []);
+
+      const accounts = new Map((accountsRes.data ?? []).map((a) => [a.user_id, a]));
 
       const names = new Map((profilesRes.data ?? []).map((p) => [p.id, p.full_name || "Tanpa nama"]));
       setUsers(
         (profilesRes.data ?? []).map((p) => ({
           id: p.id,
           name: p.full_name || "Tanpa nama",
+          email: accounts.get(p.id)?.email ?? "",
+          isBlocked: accounts.get(p.id)?.is_blocked ?? false,
           roles: (rolesRes.data ?? []).filter((r) => r.user_id === p.id).map((r) => r.role),
           xp: p.xp,
           streak: p.streak,
@@ -134,6 +164,14 @@ export default function AdminDashboard() {
           author: names.get(p.author_id) ?? "Pengguna",
           content: p.content,
           createdAt: p.created_at,
+        }))
+      );
+      setComments(
+        (commentsRes.data ?? []).map((c) => ({
+          id: c.id,
+          author: names.get(c.author_id) ?? "Pengguna",
+          content: c.content,
+          createdAt: c.created_at,
         }))
       );
     };
@@ -190,6 +228,31 @@ export default function AdminDashboard() {
     toast({ title: "Postingan dihapus" });
   };
 
+  const deleteComment = async (comment: PostRow) => {
+    if (!window.confirm(`Hapus komentar dari ${comment.author}? Tindakan ini tidak bisa dibatalkan.`)) return;
+
+    const { error } = await supabase.from("forum_comments").delete().eq("id", comment.id);
+    if (error) {
+      toast({ title: "Gagal menghapus komentar", description: error.message, variant: "destructive" });
+      return;
+    }
+    setComments(comments.filter((c) => c.id !== comment.id));
+    toast({ title: "Komentar dihapus" });
+  };
+
+  // Akun yang diblokir tidak bisa masuk lagi; sesi yang masih berjalan berakhir paling lama satu jam
+  const toggleBlocked = async (user: UserRow, block: boolean) => {
+    if (block && !window.confirm(`Blokir akun ${user.name}? Pengguna ini tidak akan bisa masuk sampai blokirnya dibuka.`)) return;
+
+    const { error } = await supabase.rpc("admin_set_user_blocked", { _user_id: user.id, _blocked: block });
+    if (error) {
+      toast({ title: block ? "Gagal memblokir akun" : "Gagal membuka blokir", description: error.message, variant: "destructive" });
+      return;
+    }
+    setUsers(users.map((u) => (u.id === user.id ? { ...u, isBlocked: block } : u)));
+    toast({ title: block ? "Akun diblokir" : "Blokir dibuka", description: user.name });
+  };
+
   if (isLoadingRoles) {
     return (
       <p className="p-8 text-muted-foreground" role="status">
@@ -215,12 +278,21 @@ export default function AdminDashboard() {
     { name: "NeoTutor (pertanyaan)", count: stats?.chat_messages ?? 0 },
     { name: "Flexa (dokumen diunggah)", count: stats?.documents_uploaded ?? 0 },
     { name: "Pathly (kuis dikerjakan)", count: stats?.quiz_attempts ?? 0 },
+    { name: "Kuis dari dokumen", count: stats?.document_quiz_attempts ?? 0 },
     { name: "Playground (game dimainkan)", count: stats?.game_plays ?? 0 },
     { name: "Forum (postingan dan komentar)", count: (stats?.forum_posts ?? 0) + (stats?.forum_comments ?? 0) },
   ];
   const maxUsage = Math.max(1, ...usage.map((u) => u.count));
 
-  const filteredUsers = users.filter((u) => u.name.toLowerCase().includes(search.trim().toLowerCase()));
+  const keyword = search.trim().toLowerCase();
+  const filteredUsers = users.filter(
+    (u) => u.name.toLowerCase().includes(keyword) || u.email.toLowerCase().includes(keyword)
+  );
+
+  const trendData = trends.map((row) => ({
+    ...row,
+    label: new Date(`${row.day}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+  }));
 
   return (
     <div className="min-h-screen p-4 md:p-8 pb-20 md:pb-8">
@@ -279,6 +351,59 @@ export default function AdminDashboard() {
 
           {/* Overview Tab */}
           <TabsContent value="overview">
+            <Card className="p-4 md:p-6 mb-6">
+              <h2 className="text-xl font-bold mb-1 flex items-center gap-2">
+                <LineChartIcon className="w-5 h-5 text-primary" aria-hidden="true" />
+                Tren {TREND_DAYS} Hari Terakhir
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">Jumlah kegiatan per hari (WIB).</p>
+              <div className="h-72" aria-hidden="true">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData} margin={{ top: 8, right: 12, left: -16, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.3} />
+                    <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    {trendSeries.map((series) => (
+                      <Line
+                        key={series.key}
+                        type="monotone"
+                        dataKey={series.key}
+                        name={series.label}
+                        stroke={series.color}
+                        strokeDasharray={series.dash}
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Angka yang sama dalam bentuk tabel untuk pembaca layar */}
+              <table className="sr-only">
+                <caption>Kegiatan per hari selama {TREND_DAYS} hari terakhir</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Tanggal</th>
+                    {trendSeries.map((series) => (
+                      <th key={series.key} scope="col">{series.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {trendData.map((row) => (
+                    <tr key={row.day}>
+                      <th scope="row">{row.label}</th>
+                      {trendSeries.map((series) => (
+                        <td key={series.key}>{row[series.key]}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="p-6">
                 <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -311,7 +436,7 @@ export default function AdminDashboard() {
                 <dl className="space-y-4">
                   <div className="flex items-center justify-between py-2 border-b">
                     <dt className="text-sm">Kuis dikerjakan</dt>
-                    <dd className="font-bold">{stats?.quiz_attempts ?? "…"}</dd>
+                    <dd className="font-bold">{stats ? stats.quiz_attempts + stats.document_quiz_attempts : "…"}</dd>
                   </div>
                   <div className="flex items-center justify-between py-2 border-b">
                     <dt className="text-sm">Rata-rata nilai kuis</dt>
@@ -334,8 +459,8 @@ export default function AdminDashboard() {
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari nama..."
-                  aria-label="Cari pengguna berdasarkan nama"
+                  placeholder="Cari nama atau email..."
+                  aria-label="Cari pengguna berdasarkan nama atau email"
                   className="max-w-xs"
                 />
               </div>
@@ -346,6 +471,7 @@ export default function AdminDashboard() {
                       <TableHead>Nama</TableHead>
                       <TableHead>Peran</TableHead>
                       <TableHead>Guru</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>XP</TableHead>
                       <TableHead>Streak</TableHead>
                       <TableHead>Terakhir Aktif</TableHead>
@@ -355,7 +481,10 @@ export default function AdminDashboard() {
                   <TableBody>
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {user.name}
+                          <div className="text-xs font-normal text-muted-foreground">{user.email}</div>
+                        </TableCell>
                         <TableCell>{user.roles.map((role) => roleLabel[role]).join(", ") || "-"}</TableCell>
                         <TableCell>
                           <Switch
@@ -363,6 +492,26 @@ export default function AdminDashboard() {
                             onCheckedChange={(checked) => toggleTeacher(user, checked)}
                             aria-label={`Jadikan ${user.name} guru`}
                           />
+                        </TableCell>
+                        <TableCell>
+                          {user.roles.includes("admin") ? (
+                            <span className="text-sm text-muted-foreground">Aktif</span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className={user.isBlocked ? "text-sm font-medium text-destructive" : "text-sm"}>
+                                {user.isBlocked ? "Diblokir" : "Aktif"}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleBlocked(user, !user.isBlocked)}
+                                aria-label={user.isBlocked ? `Buka blokir ${user.name}` : `Blokir ${user.name}`}
+                              >
+                                {!user.isBlocked && <Ban className="w-4 h-4 mr-1" aria-hidden="true" />}
+                                {user.isBlocked ? "Buka Blokir" : "Blokir"}
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>{user.xp}</TableCell>
                         <TableCell>{user.streak} hari</TableCell>
@@ -433,6 +582,37 @@ export default function AdminDashboard() {
                           size="icon"
                           onClick={() => deletePost(post)}
                           aria-label={`Hapus postingan dari ${post.author}`}
+                          className="flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <h3 className="font-bold mt-6 mb-3">Komentar Terbaru</h3>
+                {comments.length === 0 ? (
+                  <p className="text-muted-foreground">Belum ada komentar.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="flex items-start justify-between gap-4 p-3 bg-muted rounded-lg">
+                        <div className="min-w-0">
+                          <div className="text-sm">
+                            <span className="font-medium">{comment.author}</span>
+                            <span className="text-muted-foreground">
+                              {" · "}
+                              {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: idLocale })}
+                            </span>
+                          </div>
+                          <p className="text-sm mt-1 line-clamp-2">{comment.content}</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => deleteComment(comment)}
+                          aria-label={`Hapus komentar dari ${comment.author}`}
                           className="flex-shrink-0"
                         >
                           <Trash2 className="w-4 h-4" aria-hidden="true" />

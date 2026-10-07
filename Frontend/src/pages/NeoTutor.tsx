@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
 import { supabase } from "@/integrations/supabase/client";
-import { useVoiceCommands } from "@/lib/voiceCommands";
+import { isAppCommand, useVoiceCommands } from "@/lib/voiceCommands";
 
 // Definisi tipe SpeechRecognition untuk TypeScript
 declare global {
@@ -176,7 +176,7 @@ export default function NeoTutor() {
       startNewSession();
       return true;
     }
-    if (/^(buka|ke|pergi ke|baca|bacakan)\b/.test(command) || command.split(" ").length < 2) {
+    if (isAppCommand(command) || command.split(" ").length < 2) {
       return false;
     }
     sendMessage(command, true);
@@ -291,25 +291,25 @@ export default function NeoTutor() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8 pb-20 md:pb-8">
+    <div className="p-2 md:min-h-screen md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-4xl mx-auto"
       >
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 gradient-text">
+        <div className="mb-3 md:mb-8">
+          <h1 className="text-2xl md:text-4xl font-bold md:mb-2 gradient-text">
             NeoTutor
           </h1>
-          <p className="text-muted-foreground text-base md:text-lg">
+          <p className="hidden md:block text-muted-foreground text-base md:text-lg">
             Tutor AI pribadi Anda, tersedia 24/7 untuk membantu Anda belajar
           </p>
         </div>
 
         {/* Pilih percakapan: tiap percakapan diingat terpisah */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-3 md:mb-4">
           <Select value={sessionId ?? ""} onValueChange={openSession}>
-            <SelectTrigger className="flex-1" aria-label="Pilih percakapan">
+            <SelectTrigger className="flex-1 min-w-0" aria-label="Pilih percakapan">
               <SelectValue placeholder="Percakapan baru" />
             </SelectTrigger>
             <SelectContent>
@@ -320,9 +320,15 @@ export default function NeoTutor() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={startNewSession} disabled={isTyping}>
-            <Plus className="w-4 h-4 mr-2" />
-            Percakapan Baru
+          <Button
+            variant="outline"
+            onClick={startNewSession}
+            disabled={isTyping}
+            aria-label="Percakapan baru"
+            className="flex-shrink-0"
+          >
+            <Plus className="w-4 h-4 md:mr-2" aria-hidden="true" />
+            <span className="hidden md:inline">Percakapan Baru</span>
           </Button>
         </div>
 
@@ -348,9 +354,9 @@ export default function NeoTutor() {
           </div>
         )}
 
-        <Card className="h-[calc(100vh-250px)] md:h-[600px] flex flex-col">
+        <Card className="h-[calc(100dvh-13.5rem)] min-h-[20rem] md:h-[600px] flex flex-col">
           {/* Chat Messages */}
-          <ScrollArea className="flex-1 p-4 md:p-6">
+          <ScrollArea className="flex-1 p-3 md:p-6">
             <div className="space-y-4" role="log" aria-live="polite" aria-label="Percakapan dengan NeoTutor">
               {messages.map((message, index) => (
                 <motion.div
@@ -366,7 +372,7 @@ export default function NeoTutor() {
                     </div>
                   )}
 
-                  <div className="flex flex-col gap-1 max-w-[80%]">
+                  <div className="flex flex-col gap-1 max-w-[85%] md:max-w-[80%]">
                     <div
                       className={`rounded-2xl px-4 py-3 ${
                         message.role === "user"
@@ -417,15 +423,15 @@ export default function NeoTutor() {
           </ScrollArea>
 
           {/* Quick Questions */}
-          <div className="px-4 md:px-6 py-3 border-t">
-            <div className="flex gap-2 flex-wrap mb-3">
+          <div className="px-3 md:px-6 py-2 md:py-3 border-t">
+            <div className="flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible md:mb-3">
               {quickQuestions.map((question) => (
                 <Button
                   key={question}
                   variant="outline"
                   size="sm"
                   onClick={() => sendMessage(question)}
-                  className="text-xs"
+                  className="text-xs flex-shrink-0"
                 >
                   {question}
                 </Button>
@@ -434,7 +440,7 @@ export default function NeoTutor() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 md:p-6 border-t">
+          <div className="p-3 pr-20 md:p-6 border-t">
             {/* Indikator Mendengarkan */}
             {isListening && (
                <div role="status" className="text-center text-xs text-primary animate-pulse mb-2 font-bold">

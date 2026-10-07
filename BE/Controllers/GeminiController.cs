@@ -20,6 +20,7 @@ namespace MyApp.Namespace
         const int MinQuizTextLength = 80;
         const int MaxQuizTextLength = 30000;
         const int QuizQuestionCount = 9;
+        const int MaxSimplifyLength = 15000;
         // Teks panjang dipotong di frontend; satu permintaan untuk satu potongan
         const int MaxTtsLength = 1200;
 
@@ -150,6 +151,27 @@ namespace MyApp.Namespace
             {
                 message = cleanResponse
             });
+        }
+
+        // Versi bahasa sederhana dari sebuah materi
+        [HttpPost("simplify")]
+        public async Task<IActionResult> Simplify([FromBody] Message message)
+        {
+            string text = (message.text ?? "").Trim();
+            if (text.Length == 0) return BadRequest("Teks tidak boleh kosong");
+
+            bool truncated = text.Length > MaxSimplifyLength;
+            if (truncated) text = text[..MaxSimplifyLength];
+
+            try
+            {
+                string simple = await _client.Sederhanakan(_model, text);
+                return Ok(new { message = simple, truncated });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(502, "Versi sederhana belum bisa dibuat: " + e.Message);
+            }
         }
     }
 

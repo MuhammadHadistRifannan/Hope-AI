@@ -227,6 +227,12 @@ export type Database = {
     }
     Functions: {
       admin_stats: { Args: Record<PropertyKey, never>; Returns: Json }
+      admin_trends: { Args: { _days?: number }; Returns: Json }
+      admin_user_accounts: {
+        Args: Record<PropertyKey, never>
+        Returns: { user_id: string; email: string; is_blocked: boolean }[]
+      }
+      admin_set_user_blocked: { Args: { _user_id: string; _blocked: boolean }; Returns: undefined }
     }
     Enums: {
       app_role: AppRole

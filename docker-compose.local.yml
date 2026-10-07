@@ -1,0 +1,38 @@
+# Menjalankan HopeAI di laptop: docker compose -f docker-compose.local.yml up -d
+# Frontend di http://localhost:5173, backend di http://localhost:5114.
+# Untuk server produksi pakai deploy/docker-compose.yml.
+services:
+  backend:
+    build: ./BE
+    image: hopeai-backend:local
+    container_name: hopeai-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5114:8080"
+    environment:
+      Tts__CacheDir: /data/tts
+    volumes:
+      # Konfigurasi dan kunci dibaca dari berkas lokal, tidak ikut masuk ke image
+      - ./BE/appsettings.json:/app/appsettings.json:ro
+      - tts_cache:/data/tts
+
+  frontend:
+    image: node:22
+    container_name: hopeai-frontend
+    restart: unless-stopped
+    working_dir: /app
+    # Jalan sebagai pengguna laptop supaya berkas yang dibuat tidak dimiliki root
+    user: "${HOPEAI_UID:-1000}:${HOPEAI_GID:-1000}"
+    environment:
+      HOME: /tmp
+    command: sh -c "[ -d node_modules ] || npm ci; npm run dev"
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      # Kode dipasang langsung, jadi perubahan berkas langsung tampil di browser
+      - ./Frontend:/app
+    depends_on:
+      - backend
+
+volumes:
+  tts_cache:

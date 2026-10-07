@@ -698,16 +698,30 @@ BEGIN
 
   RETURN json_build_object(
     'total_users', (SELECT count(*) FROM public.profiles),
+    -- Aktif = melakukan sesuatu atau masuk dalam 7 hari terakhir
     'active_users_7d', (
-      SELECT count(*) FROM public.profiles
-      WHERE last_active_date >= current_date - 7
+      SELECT count(DISTINCT user_id) FROM (
+        SELECT user_id FROM public.chat_messages WHERE created_at >= now() - interval '7 days'
+        UNION ALL SELECT user_id FROM public.quiz_attempts WHERE created_at >= now() - interval '7 days'
+        UNION ALL SELECT user_id FROM public.document_quiz_attempts WHERE created_at >= now() - interval '7 days'
+        UNION ALL SELECT user_id FROM public.game_scores WHERE created_at >= now() - interval '7 days'
+        UNION ALL SELECT user_id FROM public.user_documents WHERE created_at >= now() - interval '7 days'
+        UNION ALL SELECT author_id FROM public.forum_posts WHERE created_at >= now() - interval '7 days'
+        UNION ALL SELECT author_id FROM public.forum_comments WHERE created_at >= now() - interval '7 days'
+        UNION ALL SELECT id FROM auth.users WHERE last_sign_in_at >= now() - interval '7 days'
+      ) activity
     ),
     'active_modules', (SELECT count(*) FROM public.learning_modules WHERE is_published),
     'forum_posts', (SELECT count(*) FROM public.forum_posts),
     'forum_comments', (SELECT count(*) FROM public.forum_comments),
     'quiz_attempts', (SELECT count(*) FROM public.quiz_attempts),
+    'document_quiz_attempts', (SELECT count(*) FROM public.document_quiz_attempts),
     'avg_quiz_score_pct', (
-      SELECT COALESCE(round(avg(score * 100.0 / total)), 0) FROM public.quiz_attempts
+      SELECT COALESCE(round(avg(score * 100.0 / total)), 0) FROM (
+        SELECT score, total FROM public.quiz_attempts WHERE total > 0
+        UNION ALL
+        SELECT score, total FROM public.document_quiz_attempts WHERE total > 0
+      ) attempts
     ),
     'chat_messages', (SELECT count(*) FROM public.chat_messages WHERE role = 'user'),
     'documents_scanned', (SELECT count(*) FROM public.user_documents WHERE source = 'scan'),
@@ -801,3 +815,96 @@ USING (
   bucket_id = 'avatars'
   AND (storage.foldername(name))[1] = (SELECT auth.uid())::text
 );
+
+-- ---------------------------------------------------------------------------
+-- Admin: akun pengguna (email dan status blokir), blokir akun, dan tren harian
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.admin_user_accounts()
+RETURNS TABLE (user_id UUID, email TEXT, is_blocked BOOLEAN)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF NOT private.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Hanya admin yang boleh melihat akun pengguna' USING ERRCODE = '42501';
+  END IF;
+
+  RETURN QUERY
+  SELECT u.id, u.email::text, COALESCE(u.banned_until > now(), false)
+  FROM auth.users u;
+END;
+$$;
+
+-- Akun yang diblokir tidak bisa masuk lagi; sesi yang sedang berjalan berakhir
+-- saat tokennya habis (paling lama satu jam).
+CREATE OR REPLACE FUNCTION public.admin_set_user_blocked(_user_id UUID, _blocked BOOLEAN)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF NOT private.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Hanya admin yang boleh memblokir akun' USING ERRCODE = '42501';
+  END IF;
+  IF _user_id = auth.uid() THEN
+    RAISE EXCEPTION 'Anda tidak bisa memblokir akun sendiri' USING ERRCODE = '42501';
+  END IF;
+  IF private.has_role(_user_id, 'admin') THEN
+    RAISE EXCEPTION 'Akun admin tidak bisa diblokir' USING ERRCODE = '42501';
+  END IF;
+
+  UPDATE auth.users
+  SET banned_until = CASE WHEN _blocked THEN now() + interval '100 years' ELSE NULL END
+  WHERE id = _user_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Pengguna tidak ditemukan' USING ERRCODE = 'P0002';
+  END IF;
+END;
+$$;
+
+-- Kegiatan per hari (waktu Indonesia Barat) untuk grafik tren di dashboard admin
+CREATE OR REPLACE FUNCTION public.admin_trends(_days INT DEFAULT 14)
+RETURNS JSON
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+  _today DATE := (now() AT TIME ZONE 'Asia/Jakarta')::date;
+  _span INT := LEAST(GREATEST(_days, 1), 90);
+BEGIN
+  IF NOT private.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Hanya admin yang boleh melihat statistik' USING ERRCODE = '42501';
+  END IF;
+
+  RETURN (
+    SELECT COALESCE(json_agg(row_to_json(t) ORDER BY t.day), '[]'::json)
+    FROM (
+      SELECT
+        d::date AS day,
+        (SELECT count(*) FROM public.profiles p
+          WHERE (p.created_at AT TIME ZONE 'Asia/Jakarta')::date = d::date) AS signups,
+        (SELECT count(*) FROM public.chat_messages m
+          WHERE m.role = 'user' AND (m.created_at AT TIME ZONE 'Asia/Jakarta')::date = d::date) AS questions,
+        (SELECT count(*) FROM public.quiz_attempts q
+          WHERE (q.created_at AT TIME ZONE 'Asia/Jakarta')::date = d::date)
+        + (SELECT count(*) FROM public.document_quiz_attempts dq
+          WHERE (dq.created_at AT TIME ZONE 'Asia/Jakarta')::date = d::date) AS quizzes,
+        (SELECT count(*) FROM public.forum_posts fp
+          WHERE (fp.created_at AT TIME ZONE 'Asia/Jakarta')::date = d::date)
+        + (SELECT count(*) FROM public.forum_comments fc
+          WHERE (fc.created_at AT TIME ZONE 'Asia/Jakarta')::date = d::date) AS forum
+      FROM generate_series(_today - (_span - 1), _today, interval '1 day') AS d
+    ) t
+  );
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.admin_user_accounts() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_user_accounts() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.admin_set_user_blocked(UUID, BOOLEAN) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_set_user_blocked(UUID, BOOLEAN) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.admin_trends(INT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_trends(INT) TO authenticated;

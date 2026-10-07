@@ -6,5 +6,7 @@ public interface IGeminiService
 
     public Task<string> Ringkasan(ModelAi model , string message);
 
+    public Task<string> Sederhanakan(ModelAi model , string text);
+
     public Task<List<QuizQuestion>> GenerateQuiz(ModelAi model , string text , int count);
 }

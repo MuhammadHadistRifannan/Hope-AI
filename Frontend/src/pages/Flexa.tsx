@@ -115,6 +115,9 @@ export default function Flexa() {
   const navigate = useNavigate();
   const [summaries, setSummaries] = useState<Record<string, string>>({});
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
+  // Versi bahasa sederhana per materi: teks, atau pesan galat bila gagal dibuat
+  const [simpleTexts, setSimpleTexts] = useState<Record<string, { text: string; truncated: boolean }>>({});
+  const [simpleStatus, setSimpleStatus] = useState<"idle" | "loading" | "error">("idle");
   const [showQuiz, setShowQuiz] = useState(false);
 
   // State Fitur Lain
@@ -128,7 +131,7 @@ export default function Flexa() {
   const [signMediaTab, setSignMediaTab] = useState("image");
 
   // Settings
-  const { volume, speakingRate, autoPlayAudio, aiVoice } = useSettings();
+  const { volume, speakingRate, autoPlayAudio, aiVoice, needs } = useSettings();
 
   // --- MUAT MATERI, KAMUS ISYARAT, DAN DOKUMEN PENGGUNA ---
   const loadDocuments = async () => {
@@ -256,7 +259,8 @@ export default function Flexa() {
     setSelectedChapter(chapter);
     setCurrentView("detail");
     stopSpeaking();
-    setActiveTab("text");
+    // Siswa dengan hambatan belajar langsung disuguhi versi bahasa sederhana
+    setActiveTab(needs.includes("kognitif") ? "simple" : "text");
   };
 
   const handleSignItemSelect = (item: SignItem) => {
@@ -409,6 +413,26 @@ export default function Flexa() {
     }
   }, [currentView, selectedChapter, autoPlayAudio]);
 
+  // Versi sederhana dibuat AI saat tabnya pertama kali dibuka, lalu disimpan sementara
+  const loadSimpleText = async (key: string, content: string) => {
+    setSimpleStatus("loading");
+    try {
+      const response = await fetch(`${API_URL}/gemini/simplify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+        body: JSON.stringify({ text: content }),
+      });
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
+      if (!data.message) throw new Error("Jawaban kosong");
+      setSimpleTexts((prev) => ({ ...prev, [key]: { text: data.message, truncated: !!data.truncated } }));
+      setSimpleStatus("idle");
+    } catch (error) {
+      console.error("Gagal membuat versi sederhana:", error);
+      setSimpleStatus("error");
+    }
+  };
+
   // Ringkasan dibuat AI saat tab Ringkasan pertama kali dibuka, lalu disimpan sementara
   const summaryKey = selectedChapter
     ? selectedChapter.documentId ?? `${selectedChapter.id}:${selectedChapter.title}`
@@ -451,6 +475,11 @@ export default function Flexa() {
     };
   }, [activeTab, summaryKey]);
 
+  useEffect(() => {
+    if (activeTab !== "simple" || !selectedChapter || simpleTexts[summaryKey]) return;
+    loadSimpleText(summaryKey, selectedChapter.content);
+  }, [activeTab, summaryKey]);
+
   // Membuka NeoTutor dengan materi ini sebagai dasar jawabannya
   const askTutor = () => {
     if (!selectedChapter) return;
@@ -472,7 +501,7 @@ export default function Flexa() {
   // ==================================================================================
   if (currentView === "levels") {
     return (
-      <div className="min-h-screen p-8 max-w-6xl mx-auto">
+      <div className="min-h-screen p-3 md:p-8 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -637,7 +666,7 @@ export default function Flexa() {
   // ==================================================================================
   if (currentView === "sign-menu") {
     return (
-      <div className="min-h-screen p-8 max-w-5xl mx-auto">
+      <div className="min-h-screen p-3 md:p-8 max-w-5xl mx-auto">
         <Button variant="ghost" onClick={goBack} className="mb-6 ">
           <ArrowLeft className="mr-2 h-5 w-5" /> Kembali ke Dashboard
         </Button>
@@ -725,9 +754,9 @@ export default function Flexa() {
         <div className="absolute top-20 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -z-10" />
         <div className="absolute top-40 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl -z-10" />
 
-        <div className="max-w-6xl mx-auto p-6 md:p-12">
-          <div className="flex items-center justify-between mb-8">
-            <Button variant="ghost" onClick={goBack} className="mb-6 ">
+        <div className="max-w-6xl mx-auto p-3 md:p-12">
+          <div className="flex items-center justify-between mb-4 md:mb-8">
+            <Button variant="ghost" onClick={goBack}>
               <ArrowLeft className="mr-2 h-5 w-5" /> Kembali ke Kamus
             </Button>
             <span className="bg-white/20 px-4 py-1 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">
@@ -743,7 +772,7 @@ export default function Flexa() {
                 transition={{ duration: 0.5 }}
               >
                 <Card className="border-0 shadow-2xl bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden relative group">
-                  <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/50 flex gap-1">
+                  <div className="relative z-20 w-fit mx-auto mt-4 mb-3 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/50 flex gap-1">
                     <Button
                       size="sm"
                       variant="ghost"
@@ -770,7 +799,7 @@ export default function Flexa() {
                     </Button>
                   </div>
 
-                  <div className="aspect-[4/3] md:aspect-video bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-8 md:p-12 relative">
+                  <div className="aspect-[4/3] md:aspect-video bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-2 md:p-8 relative">
                     <AnimatePresence mode="wait">
                       {signMediaTab === "image" ? (
                         <motion.img
@@ -799,7 +828,8 @@ export default function Flexa() {
                             controls
                             autoPlay
                             loop
-                            className="w-full h-full object-cover"
+                            playsInline
+                            className="w-full h-full object-contain"
                           >
                             <source
                               src={selectedSignItem.video}
@@ -889,7 +919,7 @@ export default function Flexa() {
   if (currentView === "chapters" && selectedLevel) {
     const levelData = learningPath[selectedLevel];
     return (
-      <div className="min-h-screen p-8 max-w-4xl mx-auto">
+      <div className="min-h-screen p-3 md:p-8 max-w-4xl mx-auto">
         <Button variant="ghost" onClick={goBack} className="mb-6 pl-0">
           <ArrowLeft className="mr-2 h-5 w-5" /> Kembali
         </Button>
@@ -939,7 +969,7 @@ export default function Flexa() {
       extra: "text-4xl leading-tight font-bold",
     };
     return (
-      <div className="min-h-screen p-6 md:p-12 max-w-5xl mx-auto">
+      <div className="min-h-screen p-3 md:p-12 max-w-5xl mx-auto">
         <Button variant="outline" onClick={goBack} className="mb-8">
           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Button>
@@ -1065,9 +1095,12 @@ export default function Flexa() {
                   <h1 className="text-3xl font-bold mb-2">
                     {selectedChapter.title}
                   </h1>
-                  <TabsList className="grid w-full grid-cols-3 mb-6">
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto mb-6">
                     <TabsTrigger value="text">
                       <Type className="w-4 h-4 mr-2" /> Bacaan
+                    </TabsTrigger>
+                    <TabsTrigger value="simple">
+                      <Sparkles className="w-4 h-4 mr-2" /> Sederhana
                     </TabsTrigger>
                     <TabsTrigger value="audio">
                       <Volume2 className="w-4 h-4 mr-2" /> Audio Fokus
@@ -1113,6 +1146,54 @@ export default function Flexa() {
                         <h3 className="text-2xl font-bold mb-2">
                           {isSpeaking ? "Sedang Membaca..." : "Siap Membaca"}
                         </h3>
+                      </motion.div>
+                    )}
+                    {activeTab === "simple" && (
+                      <motion.div key="simple" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-200 p-4 md:p-6 rounded-xl">
+                          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                            <h3 className="font-bold text-xl text-sky-900 dark:text-sky-100">
+                              Versi Bahasa Sederhana
+                            </h3>
+                            {simpleTexts[summaryKey] && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => speakText(simpleTexts[summaryKey].text)}
+                              >
+                                <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Dengarkan
+                              </Button>
+                            )}
+                          </div>
+                          <div aria-live="polite">
+                            {simpleTexts[summaryKey] ? (
+                              <>
+                                <p
+                                  className={`${fontSizeClass[textSize]} leading-loose whitespace-pre-line text-slate-800 dark:text-slate-100`}
+                                >
+                                  {simpleTexts[summaryKey].text}
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-4">
+                                  Ditulis ulang oleh AI agar lebih mudah dibaca. Isi lengkap ada di tab Bacaan.
+                                  {simpleTexts[summaryKey].truncated &&
+                                    " Materi ini panjang, jadi hanya bagian awalnya yang disederhanakan."}
+                                </p>
+                              </>
+                            ) : simpleStatus === "error" ? (
+                              <div role="alert">
+                                <p className="mb-3">Versi sederhana belum bisa dibuat saat ini.</p>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => loadSimpleText(summaryKey, selectedChapter.content)}
+                                >
+                                  Coba Lagi
+                                </Button>
+                              </div>
+                            ) : (
+                              <p className="text-lg">NeoTutor sedang menulis ulang materi ini dengan bahasa sederhana...</p>
+                            )}
+                          </div>
+                        </div>
                       </motion.div>
                     )}
                     {activeTab === "summary" && (

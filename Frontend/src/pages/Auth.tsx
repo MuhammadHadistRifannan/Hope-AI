@@ -18,6 +18,8 @@ export default function Auth() {
 
   // Jika mode=signup, maka isLogin = false (artinya mode daftar)
   const [isLogin, setIsLogin] = useState(!initialMode);
+  // Mode lupa password: hanya meminta email, lalu mengirim tautan atur ulang
+  const [isForgot, setIsForgot] = useState(false);
   
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,7 +41,20 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (isForgot) {
+        const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+
+        if (error) throw error;
+
+        // Pesannya sama baik email terdaftar maupun tidak, agar tidak membocorkan siapa yang punya akun
+        toast({
+          title: "Periksa email Anda",
+          description: "Jika email itu terdaftar, tautan untuk mengatur ulang password sudah dikirim. Cek juga folder spam.",
+        });
+        setIsForgot(false);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -75,7 +90,9 @@ export default function Auth() {
     } catch (error: any) {
       toast({
         title: "Terjadi kesalahan",
-        description: error.message,
+        description: /banned/i.test(error.message ?? "")
+          ? "Akun ini sedang diblokir. Hubungi admin untuk membukanya."
+          : error.message,
         variant: "destructive",
       });
     } finally {
@@ -157,10 +174,12 @@ export default function Auth() {
             <div className="relative z-10">
               <div className="mb-8">
                 <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                  {isLogin ? "Selamat Datang Kembali!" : "Buat Akun Baru"}
+                  {isForgot ? "Lupa Password?" : isLogin ? "Selamat Datang Kembali!" : "Buat Akun Baru"}
                 </h2>
                 <p className="text-slate-500 dark:text-slate-400">
-                  {isLogin
+                  {isForgot
+                    ? "Masukkan email akun Anda. Kami akan mengirim tautan untuk membuat password baru."
+                    : isLogin
                     ? "Masuk untuk melanjutkan progres belajar Anda"
                     : "Lengkapi data diri untuk mulai belajar"}
                 </p>
@@ -168,7 +187,7 @@ export default function Auth() {
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <AnimatePresence mode="wait">
-                  {!isLogin && (
+                  {!isLogin && !isForgot && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
@@ -185,7 +204,7 @@ export default function Auth() {
                           className="pl-12 h-12 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl"
                           value={formData.fullName}
                           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                          required={!isLogin}
+                          required={!isLogin && !isForgot}
                         />
                       </div>
                     </motion.div>
@@ -208,6 +227,7 @@ export default function Auth() {
                   </div>
                 </div>
 
+                {!isForgot && (
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">Password</Label>
                   <div className="relative">
@@ -224,12 +244,25 @@ export default function Auth() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+                  {isLogin && (
+                    <div className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => setIsForgot(true)}
+                        className="text-sm text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                      >
+                        Lupa password?
+                      </button>
+                    </div>
+                  )}
                 </div>
+                )}
 
                 <Button
                   type="submit"
@@ -245,7 +278,7 @@ export default function Auth() {
                     </motion.div>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
-                      {isLogin ? "Masuk Sekarang" : "Daftar Akun"}
+                      {isForgot ? "Kirim Tautan" : isLogin ? "Masuk Sekarang" : "Daftar Akun"}
                       <ArrowRight className="w-5 h-5" />
                     </span>
                   )}
@@ -254,14 +287,21 @@ export default function Auth() {
 
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
                 <p className="text-slate-500 dark:text-slate-400 mb-2">
-                  {isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
+                  {isForgot ? "Sudah ingat password?" : isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
                 </p>
                 <button
                   type="button"
-                  onClick={() => setIsLogin(!isLogin)}
+                  onClick={() => {
+                    if (isForgot) {
+                      setIsForgot(false);
+                      setIsLogin(true);
+                    } else {
+                      setIsLogin(!isLogin);
+                    }
+                  }}
                   className="text-blue-600 dark:text-blue-400 font-bold hover:underline transition-all"
                 >
-                  {isLogin ? "Buat Akun Gratis" : "Masuk ke Akun Saya"}
+                  {isForgot ? "Kembali ke Halaman Masuk" : isLogin ? "Buat Akun Gratis" : "Masuk ke Akun Saya"}
                 </button>
               </div>
             </div>

@@ -17,6 +17,7 @@ import {
   Timer,
   RefreshCcw,
   Volume2,
+  Mic,
   Apple,
   Cherry,
   Banana,
@@ -35,6 +36,7 @@ import confetti from "canvas-confetti";
 import { useSettings } from "@/context/SettingsContext";
 import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
+import { requestVoiceInput, useVoiceCommands } from "@/lib/voiceCommands";
 
 // --- DATA LEVEL (PATHLY) - 10 LEVEL LENGKAP ---
 // Modul, materi, dan soal Pathly dibaca dari database (learning_modules, quiz_questions).
@@ -59,6 +61,14 @@ const localDate = (offsetDays = 0) => {
 };
 
 // --- DATA & HELPER GAME (PLAYGROUND) ---
+// Warna modul disimpan di database sebagai nama kelas. Kelas itu harus tertulis
+// di sini supaya ikut dibangun oleh Tailwind; warna lain memakai biru.
+const moduleColors = new Set([
+  "bg-blue-500", "bg-cyan-500", "bg-emerald-500", "bg-green-600", "bg-indigo-600",
+  "bg-orange-500", "bg-pink-500", "bg-purple-500", "bg-red-500", "bg-yellow-500",
+]);
+const moduleColor = (color: string) => (moduleColors.has(color) ? color : "bg-blue-500");
+
 const fruitIcons = [
   { icon: Apple, color: "text-red-500", name: "apel" },
   { icon: Cherry, color: "text-rose-600", name: "ceri" },
@@ -130,7 +140,7 @@ const loadImage = (src: string): Promise<HTMLImageElement> => {
 
 export default function Pathly() {
   const { toast } = useToast();
-  const { volume } = useSettings();
+  const { volume, autoPlayAudio } = useSettings();
 
   const [mainMode, setMainMode] = useState<"menu" | "path" | "arena">("menu");
 
@@ -644,11 +654,46 @@ export default function Pathly() {
     }
     setActiveModule(mod);
     setPathView("material");
+    if (autoPlayAudio) readMaterial(mod);
   };
 
-  const handlePathAnswer = (selected: string) => {
+  // --- MODE SUARA PATHLY: materi dan soal dibacakan, jawaban bisa diucapkan ---
+  const optionLetters = ["A", "B", "C", "D", "E", "F"];
+
+  const questionText = (question: any, number: number, total: number) =>
+    `Soal ${number} dari ${total}. ${question.q}. Pilihan: ` +
+    question.options.map((opt: string, i: number) => `${optionLetters[i]}, ${opt}`).join(". ") +
+    ".";
+
+  const readMaterial = (mod: any) =>
+    speak(`${mod.material.title}. ${mod.material.content}. Tips: ${mod.material.summary ?? ""}. Katakan mulai kuis bila sudah siap.`);
+
+  const readQuestion = () => {
+    if (!activeModule) return;
+    speak(questionText(activeModule.quiz[qIndex], qIndex + 1, activeModule.quiz.length));
+  };
+
+  const startQuiz = (aloud: boolean) => {
+    setPathView("quiz");
+    if (aloud && activeModule) {
+      speak(questionText(activeModule.quiz[qIndex], qIndex + 1, activeModule.quiz.length));
+    }
+  };
+
+  const handlePathAnswer = (selected: string, aloud = autoPlayAudio) => {
     const currentQ = activeModule.quiz[qIndex];
     const isCorrect = selected === currentQ.a;
+    // Hasil jawaban dan soal berikutnya diucapkan dalam satu giliran agar tidak saling memotong
+    if (aloud) {
+      const total = activeModule.quiz.length;
+      const feedback = isCorrect ? "Benar!" : `Kurang tepat. Jawabannya ${currentQ.a}.`;
+      const finalScore = pathScore + (isCorrect ? 1 : 0);
+      speak(
+        qIndex < total - 1
+          ? `${feedback} ${questionText(activeModule.quiz[qIndex + 1], qIndex + 2, total)}`
+          : `${feedback} Kuis selesai. Nilaimu ${finalScore} dari ${total}.`
+      );
+    }
     if (isCorrect) {
       setPathScore((prev) => prev + 1);
       toast({
@@ -690,6 +735,53 @@ export default function Pathly() {
     setPathScore(0);
     setIsPathCompleted(false);
   };
+
+  // Perintah suara di Pathly: "baca materi", "mulai kuis", "ulangi", lalu
+  // "A" sampai "D" (atau isi pilihannya) untuk menjawab.
+  useVoiceCommands((command) => {
+    if (!activeModule || isPathCompleted) return false;
+
+    if (pathView === "material") {
+      if (/^(baca materi|bacakan materi|baca|bacakan|ulangi)$/.test(command)) {
+        readMaterial(activeModule);
+        return true;
+      }
+      if (/^(mulai kuis|mulai|kuis|lanjut)$/.test(command)) {
+        startQuiz(true);
+        return true;
+      }
+      return false;
+    }
+
+    if (pathView !== "quiz") return false;
+    const current = activeModule.quiz[qIndex];
+
+    if (/^(ulangi|ulang|bacakan soal|baca soal|baca|bacakan)$/.test(command)) {
+      readQuestion();
+      return true;
+    }
+
+    const choices: Record<string, number> = {
+      a: 0, satu: 0, pertama: 0,
+      b: 1, be: 1, dua: 1, kedua: 1,
+      c: 2, ce: 2, tiga: 2, ketiga: 2,
+      d: 3, de: 3, empat: 3, keempat: 3,
+    };
+    const word = command.replace(/^(jawab|pilih|pilihan|jawaban)\s+/, "");
+    // Isi pilihan didahulukan: di soal berhitung "dua" berarti jawaban 2, bukan pilihan kedua
+    const numberWords = ["nol", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh"];
+    const plain = (text: string) => {
+      const clean = text.toLowerCase().replace(/[.,!?]/g, "").trim();
+      const asNumber = numberWords.indexOf(clean);
+      return asNumber >= 0 ? String(asNumber) : clean;
+    };
+    let index = current.options.findIndex((opt: string) => plain(opt) === plain(word));
+    if (index < 0) index = choices[word] ?? -1;
+    if (index < 0 || index >= current.options.length) return false;
+
+    handlePathAnswer(current.options[index], true);
+    return true;
+  });
 
   // --- LOGIC PLAYGROUND: MEMORY ---
   const startMemoryGame = () => {
@@ -1001,7 +1093,7 @@ export default function Pathly() {
                                   ? "bg-slate-200 border-slate-300 text-slate-400 grayscale"
                                   : mod.status === "completed"
                                   ? "bg-yellow-400 border-yellow-600 text-yellow-900 ring-4 ring-yellow-100"
-                                  : `${mod.color} border-white text-white ring-4 ring-blue-100`
+                                  : `${moduleColor(mod.color)} border-white text-white ring-4 ring-blue-200`
                               }
                             `}
                           >
@@ -1012,7 +1104,7 @@ export default function Pathly() {
                             ) : (
                               <Star className="w-10 h-10 fill-current animate-pulse" />
                             )}
-                            <div className="absolute -bottom-10 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl shadow-md text-xs font-bold whitespace-nowrap border border-slate-100 dark:border-slate-700 z-20">
+                            <div className="absolute -bottom-10 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-1.5 rounded-xl shadow-md text-xs font-bold whitespace-nowrap border border-slate-100 dark:border-slate-700 z-20">
                               {mod.title}
                             </div>
                           </motion.button>
@@ -1042,7 +1134,7 @@ export default function Pathly() {
                   </Button>
                   <div className="text-center space-y-6 mt-4">
                     <div
-                      className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center text-white ${activeModule.color}`}
+                      className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center text-white ${moduleColor(activeModule.color)}`}
                     >
                       <BookOpen className="w-10 h-10" />
                     </div>
@@ -1058,9 +1150,16 @@ export default function Pathly() {
                     <Button
                       size="lg"
                       className="w-full h-14 text-lg rounded-xl mt-4"
-                      onClick={() => setPathView("quiz")}
+                      onClick={() => startQuiz(autoPlayAudio)}
                     >
                       Mulai Kuis <ChevronRight className="ml-2" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => readMaterial(activeModule)}
+                    >
+                      <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Bacakan Materi
                     </Button>
                   </div>
                 </Card>
@@ -1084,18 +1183,40 @@ export default function Pathly() {
                       Keluar
                     </Button>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-center mb-10">
+                  <h2 className="text-2xl md:text-3xl font-bold text-center mb-4" aria-live="polite">
                     {activeModule.quiz[qIndex].q}
                   </h2>
-                  <div className="grid gap-4">
+                  <div className="flex justify-center gap-2 mb-8">
+                    <Button variant="outline" size="sm" onClick={readQuestion}>
+                      <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Bacakan Soal
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={requestVoiceInput}
+                      aria-label="Jawab dengan suara. Katakan A, B, C, atau D."
+                    >
+                      <Mic className="w-4 h-4 mr-2" aria-hidden="true" /> Jawab dengan Suara
+                    </Button>
+                  </div>
+                  <div className="grid gap-4" role="group" aria-label="Pilihan jawaban">
                     {activeModule.quiz[qIndex].options.map(
                       (opt: string, i: number) => (
                         <button
                           key={i}
                           onClick={() => handlePathAnswer(opt)}
-                          className="p-4 text-lg font-bold bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-xl transition-all text-left"
+                          className="p-4 text-lg font-bold bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-xl transition-all text-left flex items-center gap-3"
                         >
-                          {opt}
+                          <span
+                            className="w-8 h-8 flex-shrink-0 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center"
+                            aria-hidden="true"
+                          >
+                            {optionLetters[i]}
+                          </span>
+                          <span>
+                            <span className="sr-only">Pilihan {optionLetters[i]}: </span>
+                            {opt}
+                          </span>
                         </button>
                       )
                     )}

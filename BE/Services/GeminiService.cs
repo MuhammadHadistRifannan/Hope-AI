@@ -150,4 +150,33 @@ TEKS:
 
     }
 
+    // Menulis ulang materi dengan bahasa yang mudah dipahami, untuk siswa dengan
+    // hambatan belajar atau yang baru belajar membaca. Isi tidak boleh berubah.
+    public async Task<string> Sederhanakan(ModelAi model, string text)
+    {
+        string prompt = @"
+Tulis ulang teks pelajaran berikut dengan bahasa Indonesia yang sangat mudah dipahami,
+untuk siswa yang kesulitan membaca teks panjang.
+
+Aturan:
+- Pakai kalimat pendek, paling banyak sekitar 12 kata per kalimat.
+- Pakai kata sehari-hari. Bila ada istilah sulit yang penting, tetap tulis istilahnya lalu jelaskan artinya dalam kurung.
+- Satu paragraf berisi satu gagasan, paling banyak 3 kalimat. Pisahkan paragraf dengan satu baris kosong.
+- Pertahankan semua fakta, angka, dan nama penting. Jangan menambah fakta baru dan jangan memberi pendapat.
+- Jangan pakai markdown, tanda bintang, daftar bernomor, atau judul.
+- Kembalikan hanya teks hasil tulis ulang, tanpa kalimat pembuka atau penutup.
+
+TEKS:
+" + text;
+
+        var content = new GenerateContentRequest
+        {
+            Model = model.nameModel,
+            Contents = new List<Content> { TextContent("user", prompt) }
+        };
+
+        var response = await client.V1.Models.GenerateContentAsync(model.nameModel, content);
+        return response.Candidates![0].Content!.Parts![0].Text!.Replace("*", "").Trim();
+    }
+
 }
