@@ -21,9 +21,9 @@ Dikerjakan satu per satu sesuai urutan. Sebuah butir baru ditandai selesai setel
 | # | Butir | Kriteria yang terbantu | Selesai bila | Status |
 |---|---|---|---|---|
 | 1 | Profil dengan pencapaian nyata | Teknis, Kebutuhan pengguna | Angka dan lencana di Profil berasal dari database dan berubah setelah mengerjakan kuis | **Selesai**, dicek di browser |
-| 2 | Tes otomatis di GitHub Actions | Teknis, Dokumentasi | Tiap push menjalankan tes frontend dan build backend; lencana status tampil di README | Dibuat; terbukti setelah push berikutnya |
-| 3 | Dokumentasi API (Swagger) | Dokumentasi | Halaman dokumentasi API bisa dibuka dan memuat semua endpoint beserta syarat login | **Selesai** di lokal (`/docs`); produksi setelah push |
-| 4 | Media kamus isyarat di penyimpanan sendiri | Teknis | Gambar dan video kamus dimuat dari Supabase Storage, bukan dari situs lain | Ditahan: perlu keputusan hak cipta (lihat bawah) |
+| 2 | Tes otomatis di GitHub Actions | Teknis, Dokumentasi | Tiap push menjalankan tes frontend dan build backend; lencana status tampil di README | **Selesai**, run pertama di GitHub lolos |
+| 3 | Dokumentasi API (Swagger) | Dokumentasi | Halaman dokumentasi API bisa dibuka dan memuat semua endpoint beserta syarat login | **Selesai**, online di api.bennedistus.web.id/docs |
+| 4 | Kredit sumber media kamus isyarat | Teknis | Kamus dan halaman Isyarat mencantumkan Kamus SIBI Kemendikdasmen sebagai sumber, dengan tautan | **Selesai**: diputuskan menautkan dengan kredit, tidak menyalin |
 | 5 | Model pengenal abjad SIBI | Inovasi | Mode Latihan mengenali huruf dari kamera; akurasi pada peraga yang tidak ikut dilatih dicatat di proposal | Menunggu data |
 | 6 | Mode dengar terus untuk tunanetra | Kebutuhan pengguna, Inovasi | Setelah diaktifkan, perintah berikutnya bisa diucapkan tanpa menekan tombol, dan suara asisten sendiri tidak ikut tertangkap | Belum |
 | 7 | Aksesibilitas forum dan halaman tersisa | UI/UX, Kebutuhan pengguna | Forum, Profil, Notifikasi, dan Playground bisa dipakai penuh dengan keyboard dan pembaca layar | Belum |
@@ -34,7 +34,6 @@ Dikerjakan satu per satu sesuai urutan. Sebuah butir baru ditandai selesai setel
 ## Yang bergantung pada tim, bukan pada kode
 
 - **Data latih SIBI (butir 5).** Rekam abjad A–Z lewat tab Rekam Data di halaman Isyarat, minimal dari 3 orang, 3–5 rekaman per huruf. Berkas hasil unduhan dipakai untuk melatih model dengan `ml/sibi/train.py`. Dataset SIBI Udayana tidak dipakai karena perjanjian penggunaannya membatasi pemakaian di luar riset.
-- **Hak cipta media kamus isyarat (butir 4).** Gambar dan video kamus berasal dari situs SIBI Kemendikdasmen yang berstatus "All rights reserved". Menyalinnya ke penyimpanan sendiri berarti menyebarkan ulang, jadi perlu izin atau keputusan tim. Pilihan lain: tetap menautkan ke sumber resmi dengan mencantumkan kredit, atau memakai foto buatan sendiri.
 - **Uji pengguna (butir 10).** Dua anggota tim menguji aplikasi dengan penyandang disabilitas dan mengisi kuesioner SUS; hasilnya masuk proposal.
 - **Pengaturan Supabase untuk lupa password.** Di Authentication → URL Configuration, Site URL diisi alamat Vercel, dan alamat Vercel serta `http://localhost:5173` didaftarkan di Redirect URLs.
 - **Kuota suara AI.** Paket gratis Gemini TTS hanya 10 permintaan per hari per model. Pilihannya mengaktifkan penagihan atau merekam materi sedikit demi sedikit dengan `deploy/warm_tts.py`.

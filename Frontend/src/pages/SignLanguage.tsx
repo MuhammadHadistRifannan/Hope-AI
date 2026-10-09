@@ -15,6 +15,7 @@ import { toFeatures } from "@/lib/sign/landmarks";
 import { loadSignModel, predict, type SignModel } from "@/lib/sign/classifier";
 import { Stabilizer, type StabilizerState } from "@/lib/sign/stabilizer";
 import { speak, stopSpeech } from "@/lib/speech";
+import SignCredit from "@/components/SignCredit";
 
 const MODEL_URL = "/models/sibi-abjad.json";
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -338,7 +339,8 @@ export default function SignLanguage() {
                         className="w-40 h-40 object-contain mx-auto mb-3 rounded-lg bg-white"
                       />
                     )}
-                    {reference && <p className="text-sm text-muted-foreground mb-6">{reference.description}</p>}
+                    {reference && <p className="text-sm text-muted-foreground mb-2">{reference.description}</p>}
+                    {reference?.image && <SignCredit className="mb-6" />}
                     <p className="font-medium mb-4" aria-live="polite">
                       {justCorrect ? "Benar! 🎉" : `Benar sejauh ini: ${correctCount}`}
                     </p>

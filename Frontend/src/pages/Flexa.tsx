@@ -36,7 +36,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
+import { useSettings } from "@/context/SettingsContext";
+import SignCredit from "@/components/SignCredit"; // Import Settings Context
 
 // Info tampilan tiap tingkat. Isi materi (tabel materials) dan kamus isyarat
 // (tabel sign_items) dibaca dari database.
@@ -564,7 +565,7 @@ export default function Flexa() {
                     </h3>
                   </div>
                   <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                    Pelajari SIBI & BISINDO dengan panduan visual modern.
+                    Pelajari abjad dan angka SIBI dengan gambar dan video dari kamus resmi.
                     Tingkatkan komunikasi inklusifmu.
                   </p>
                 </div>
@@ -678,6 +679,7 @@ export default function Flexa() {
           <p className="text-slate-500 dark:text-slate-400 text-lg">
             Eksplorasi gerakan isyarat berdasarkan kategori.
           </p>
+          <SignCredit className="mt-3" />
         </div>
 
         <Tabs
@@ -860,9 +862,10 @@ export default function Flexa() {
                       {selectedSignItem.title}
                     </h2>
                     <p className="text-primary font-medium flex items-center justify-center lg:justify-start gap-2 mt-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                      Bahasa Isyarat Indonesia
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                      Sistem Isyarat Bahasa Indonesia (SIBI)
                     </p>
+                    <SignCredit className="mt-4" />
                   </div>
                 </Card>
               </motion.div>
