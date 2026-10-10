@@ -59,7 +59,8 @@ export const destinations: Destination[] = [
   { path: "/", name: "Beranda", keywords: ["beranda", "halaman utama", "home"] },
   { path: "/eyeread", name: "EyeRead", keywords: ["eyeread", "eye read", "airit", "pindai buku", "baca buku", "kamera"] },
   { path: "/neotutor", name: "NeoTutor", keywords: ["neotutor", "neo tutor", "tutor"] },
-  { path: "/flexa", name: "Flexa", keywords: ["flexa", "fleksa", "materi", "kamus isyarat"] },
+  { path: "/isyarat?tab=kamus", name: "Kamus Isyarat", keywords: ["kamus isyarat", "kamus"] },
+  { path: "/flexa", name: "Flexa", keywords: ["flexa", "fleksa", "materi"] },
   { path: "/isyarat", name: "Isyarat", keywords: ["isyarat", "latihan isyarat"] },
   { path: "/pathly", name: "Pathly", keywords: ["pathly", "patli", "jalur belajar", "latihan", "permainan"] },
   { path: "/forum", name: "Forum", keywords: ["forum", "diskusi"] },
@@ -196,7 +197,7 @@ export const pageHelp: Record<string, string> = {
   "/flexa": "Di Flexa, katakan pilih lalu nama materi atau tombol. Di dalam materi, katakan pilih sederhana, pilih ringkasan, atau baca halaman.",
   "/pathly": "Di Pathly, katakan pilih lalu nama level. Di materi, katakan mulai kuis. Saat kuis, katakan A, B, C, atau D.",
   "/forum": "Di Forum, katakan baca halaman untuk mendengar postingan, atau pilih lalu nama tombol.",
-  "/isyarat": "Di halaman Isyarat, katakan pilih nyalakan kamera, lalu pilih latihan atau pilih eja ke suara.",
+  "/isyarat": "Di halaman Isyarat, katakan nyalakan kamera, lalu pilih latihan, pilih eja ke suara, atau pilih kamus untuk melihat contoh isyarat.",
   "/settings": "Di Pengaturan, katakan pilih lalu nama pengaturan untuk mengubahnya.",
 };
 
@@ -205,6 +206,7 @@ export const helpText =
   "Katakan baca halaman untuk mendengar isi halaman, dan berhenti untuk menghentikan suara. " +
   "Katakan di mana saya untuk tahu halaman yang terbuka, tombol apa saja untuk mendengar pilihan di layar, " +
   "lalu pilih dan nama tombolnya untuk menekannya. Katakan kembali untuk mundur. " +
+  "Katakan dengar terus agar tidak perlu menekan tombol mikrofon setiap kali, dan berhenti mendengar untuk mematikannya. " +
   "Untuk bertanya ke tutor, katakan tanya, lalu pertanyaanmu. " +
   "Di EyeRead, katakan mulai kamera, lalu ambil gambar. " +
   "Saat kuis, katakan A, B, C, atau D untuk menjawab, lalu lanjut.";

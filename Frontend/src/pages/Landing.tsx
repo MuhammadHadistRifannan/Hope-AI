@@ -371,6 +371,23 @@ export default function Landing() {
         ))}
       </section>
 
+      {/* --- CARA PANDANG --- */}
+      <section className="py-20 px-4" aria-labelledby="judul-cara-pandang">
+        <div className="max-w-5xl mx-auto rounded-[2.5rem] bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 text-white p-10 md:p-16">
+          <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium mb-6">
+            <Star className="w-4 h-4 text-yellow-300" aria-hidden="true" /> Cara kami memandang
+          </p>
+          <h2 id="judul-cara-pandang" className="text-3xl md:text-5xl font-bold leading-tight mb-6">
+            Hambatan ada di sistem, bukan di dirimu.
+          </h2>
+          <p className="text-lg md:text-xl text-blue-50 leading-relaxed max-w-3xl">
+            Materi yang hanya bisa dilihat, didengar, atau dibaca dengan satu cara membuat sebagian
+            siswa tertinggal. Hope.Ai menyesuaikan diri dengan caramu belajar: lewat suara, teks,
+            bahasa sederhana, atau isyarat.
+          </p>
+        </div>
+      </section>
+
       {/* --- CTA SECTION --- */}
       <section className="py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/5 -z-10" />
@@ -388,8 +405,8 @@ export default function Landing() {
               Mulai Perjalanan Anda.
             </h2>
             <p className="text-white/80 text-lg md:text-xl mb-10 max-w-2xl mx-auto relative z-10">
-              Bergabunglah dengan ribuan siswa lainnya. Tanpa biaya tersembunyi,
-              hanya pendidikan murni yang dapat diakses.
+              Gratis, tanpa iklan, dan bisa dipakai dengan suara, keyboard, atau layar
+              sentuh.
             </p>
 
             <motion.div

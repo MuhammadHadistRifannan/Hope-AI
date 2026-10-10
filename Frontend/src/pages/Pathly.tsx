@@ -37,6 +37,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
 import { requestVoiceInput, useVoiceCommands } from "@/lib/voiceCommands";
+import { visualCue } from "@/lib/cues";
 
 // --- DATA LEVEL (PATHLY) - 10 LEVEL LENGKAP ---
 // Modul, materi, dan soal Pathly dibaca dari database (learning_modules, quiz_questions).
@@ -140,7 +141,7 @@ const loadImage = (src: string): Promise<HTMLImageElement> => {
 
 export default function Pathly() {
   const { toast } = useToast();
-  const { volume, autoPlayAudio } = useSettings();
+  const { volume, autoPlayAudio, needs } = useSettings();
 
   const [mainMode, setMainMode] = useState<"menu" | "path" | "arena">("menu");
 
@@ -694,6 +695,7 @@ export default function Pathly() {
           : `${feedback} Kuis selesai. Nilaimu ${finalScore} dari ${total}.`
       );
     }
+    visualCue(isCorrect ? "Benar!" : "Kurang tepat", isCorrect ? "success" : "error");
     if (isCorrect) {
       setPathScore((prev) => prev + 1);
       toast({
@@ -832,6 +834,7 @@ export default function Pathly() {
               setMemIsPlaying(false);
               confetti();
               playTone(600, 0.2);
+              visualCue("Semua pasangan ditemukan!", "success");
             }
             return newCount;
           });
@@ -898,6 +901,7 @@ export default function Pathly() {
     if (selected === mathQuestion.answer) {
       setMathScore((prev) => prev + 10);
       playTone(800, 0.1);
+      visualCue("Benar!", "success");
       toast({
         title: "Benar! 👍",
         duration: 500,
@@ -906,6 +910,7 @@ export default function Pathly() {
       generateMathQuestion();
     } else {
       playTone(200, 0.3);
+      visualCue("Salah", "error");
       toast({ title: "Salah! 😅", duration: 500, variant: "destructive" });
       setMathTimeLeft((prev) => Math.max(0, prev - 3));
     }
@@ -1190,14 +1195,16 @@ export default function Pathly() {
                     <Button variant="outline" size="sm" onClick={readQuestion}>
                       <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Bacakan Soal
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={requestVoiceInput}
-                      aria-label="Jawab dengan suara. Katakan A, B, C, atau D."
-                    >
-                      <Mic className="w-4 h-4 mr-2" aria-hidden="true" /> Jawab dengan Suara
-                    </Button>
+                    {!needs.includes("wicara") && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={requestVoiceInput}
+                        aria-label="Jawab dengan suara. Katakan A, B, C, atau D."
+                      >
+                        <Mic className="w-4 h-4 mr-2" aria-hidden="true" /> Jawab dengan Suara
+                      </Button>
+                    )}
                   </div>
                   <div className="grid gap-4" role="group" aria-label="Pilihan jawaban">
                     {activeModule.quiz[qIndex].options.map(

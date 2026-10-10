@@ -22,6 +22,8 @@ import { loadSignModel, predict, type Prediction, type SignModel } from "@/lib/s
 import { Stabilizer, type StabilizerState } from "@/lib/sign/stabilizer";
 import { speak, stopSpeech } from "@/lib/speech";
 import SignCredit from "@/components/SignCredit";
+import SignDictionary from "@/components/SignDictionary";
+import { useSearchParams } from "react-router-dom";
 
 const MODEL_URL = "/models/sibi-abjad.json";
 const MIN_CONFIDENCE = 0.7;
@@ -72,7 +74,15 @@ export default function SignLanguage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stabilizer = useRef(new Stabilizer({ minConfidence: MIN_CONFIDENCE, holdMs: 700, releaseMs: 350 }));
 
-  const [mode, setMode] = useState("latihan");
+  // ?tab=kamus membuka langsung tab Kamus (dipakai tautan dari Flexa dan perintah suara)
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  const [mode, setMode] = useState(() =>
+    ["latihan", "eja", "kamus", "rekam"].includes(tabFromUrl ?? "") ? tabFromUrl! : "latihan"
+  );
+  useEffect(() => {
+    if (tabFromUrl && ["latihan", "eja", "kamus", "rekam"].includes(tabFromUrl)) setMode(tabFromUrl);
+  }, [tabFromUrl]);
   const [cameraOn, setCameraOn] = useState(false);
   const [model, setModel] = useState<SignModel | null>(null);
   const [modelChecked, setModelChecked] = useState(false);
@@ -196,11 +206,22 @@ export default function SignLanguage() {
     say(`Eja kata ${word.toLowerCase()}. Huruf pertama, ${word[0]}.`);
   };
 
+  // Dari kamus: latihan satu huruf atau angka tertentu
+  const practiceSign = (sign: string) => {
+    clearTimeout(nextWordTimer.current);
+    setCelebration(null);
+    setWrongHint("");
+    stabilizer.current.reset();
+    setMode("latihan");
+    setPractice({ word: sign, index: 0 });
+    say(`Peragakan ${sign}.`);
+  };
+
   const finishWord = (word: string) => {
     const praise = pick(PRAISES);
     setSolvedCount((count) => count + 1);
     setCelebration({ word, praise });
-    say(`${word[word.length - 1]}. ${word.toLowerCase()}! ${praise}`);
+    say(word.length === 1 ? `${word}! ${praise}` : `${word[word.length - 1]}. ${word.toLowerCase()}! ${praise}`);
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
     nextWordTimer.current = setTimeout(nextWord, NEXT_WORD_DELAY_MS);
   };
@@ -318,8 +339,8 @@ export default function SignLanguage() {
         <div className="mb-6 md:mb-8">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 gradient-text">Isyarat</h1>
           <p className="text-muted-foreground text-base md:text-lg">
-            Berlatih mengeja dengan abjad jari SIBI di depan kamera. Untuk melihat contoh isyarat,
-            buka Kamus Isyarat di Flexa.
+            Lihat contoh abjad dan angka SIBI di tab Kamus, lalu tirukan di depan kamera. Kamera
+            mengenali huruf yang kamu peragakan dan membacakannya.
           </p>
         </div>
 
@@ -424,13 +445,14 @@ export default function SignLanguage() {
           {/* Mode */}
           <Card className="p-3 md:p-6">
             <Tabs value={mode} onValueChange={changeMode}>
-              <TabsList className="mb-6">
+              <TabsList className="mb-6 h-auto flex-wrap">
                 <TabsTrigger value="latihan">Latihan</TabsTrigger>
                 <TabsTrigger value="eja">Eja ke Suara</TabsTrigger>
+                <TabsTrigger value="kamus">Kamus</TabsTrigger>
                 {isStaff && <TabsTrigger value="rekam">Rekam Data</TabsTrigger>}
               </TabsList>
 
-              {modelMissing && mode !== "rekam" && (
+              {modelMissing && mode !== "rekam" && mode !== "kamus" && (
                 <div className="p-4 rounded-lg bg-muted" role="status">
                   <p className="font-medium mb-1">Pengenal isyarat belum tersedia</p>
                   <p className="text-sm text-muted-foreground">
@@ -455,7 +477,9 @@ export default function SignLanguage() {
 
                 {model && practice && (
                   <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-3">Eja kata ini</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {practice.word.length === 1 ? "Peragakan isyarat ini" : "Eja kata ini"}
+                    </p>
                     <div className="flex flex-wrap justify-center gap-2 mb-4" aria-label={`Kata ${practice.word}`}>
                       {[...practice.word].map((letter, i) => {
                         const done = i < practice.index;
@@ -548,6 +572,14 @@ export default function SignLanguage() {
                     </div>
                   </div>
                 )}
+              </TabsContent>
+
+              <TabsContent value="kamus">
+                <SignDictionary
+                  practicable={new Set(model?.labels ?? [])}
+                  onPractice={practiceSign}
+                  onSpeak={(text) => speak(text, { volume, rate: speakingRate, aiVoice })}
+                />
               </TabsContent>
 
               {isStaff && (

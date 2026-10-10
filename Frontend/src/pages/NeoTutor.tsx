@@ -79,7 +79,7 @@ export default function NeoTutor() {
   ];
 
   // --- SETTINGS INTEGRATION ---
-  const { volume, speakingRate, autoPlayAudio, aiVoice } = useSettings();
+  const { volume, speakingRate, autoPlayAudio, aiVoice, needs } = useSettings();
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   // --- FUNGSI AUDIO (TEXT TO SPEECH) ---
@@ -455,7 +455,8 @@ export default function NeoTutor() {
               }}
               className="flex gap-2"
             >
-              {/* TOMBOL MICROPHONE (BARU) */}
+              {/* Mikrofon disembunyikan bagi pengguna yang lebih nyaman mengetik */}
+              {!needs.includes("wicara") && (
               <Button
                 type="button"
                 variant="outline"
@@ -468,6 +469,7 @@ export default function NeoTutor() {
               >
                 {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </Button>
+              )}
 
               <Input
                 value={input}

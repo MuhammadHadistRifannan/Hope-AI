@@ -43,7 +43,7 @@ type Props = {
 };
 
 export default function DocumentQuiz({ title, text, onClose }: Props) {
-  const { volume, speakingRate, autoPlayAudio } = useSettings();
+  const { volume, speakingRate, autoPlayAudio, needs } = useSettings();
 
   const [pool, setPool] = useState<Question[]>([]);
   const [status, setStatus] = useState<"loading" | "error" | "playing" | "done">("loading");
@@ -268,6 +268,7 @@ export default function DocumentQuiz({ title, text, onClose }: Props) {
           >
             <Volume2 className="w-5 h-5" aria-hidden="true" />
           </Button>
+          {!needs.includes("wicara") && (
           <Button
             variant="ghost"
             size="icon"
@@ -277,6 +278,7 @@ export default function DocumentQuiz({ title, text, onClose }: Props) {
           >
             <Mic className="w-5 h-5" aria-hidden="true" />
           </Button>
+          )}
         </div>
       </div>
 

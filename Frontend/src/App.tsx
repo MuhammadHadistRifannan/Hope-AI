@@ -11,7 +11,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
-import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 import EyeRead from "./pages/EyeRead";
 import NeoTutor from "./pages/NeoTutor";
 import Flexa from "./pages/Flexa";
@@ -26,7 +26,9 @@ import SignLanguage from "./pages/SignLanguage";
 import NotFound from "./pages/NotFound";
 
 // IMPORT SETTINGS PROVIDER (Pastikan file ini sudah dibuat di src/context/SettingsContext.tsx)
-import { SettingsProvider } from "./context/SettingsContext";
+import { SettingsProvider, useSettings } from "./context/SettingsContext";
+import AccessibilityAnnouncer from "./components/AccessibilityAnnouncer";
+import { MotionConfig } from "framer-motion";
 
 const queryClient = new QueryClient();
 
@@ -66,7 +68,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       {/* WRAP APLIKASI DENGAN SETTINGS PROVIDER */}
       <SettingsProvider>
+        <MotionSettings>
         <TooltipProvider>
+          <AccessibilityAnnouncer />
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -80,7 +84,7 @@ function App() {
               {/* Protected Routes (Dibungkus Layout) */}
               <Route
                 path="/"
-                element={session ? <Layout><Home /></Layout> : <Navigate to="/landing" />}
+                element={session ? <Layout><Dashboard /></Layout> : <Navigate to="/landing" />}
               />
               <Route
                 path="/eyeread"
@@ -135,8 +139,19 @@ function App() {
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+        </MotionSettings>
       </SettingsProvider>
     </QueryClientProvider>
+  );
+}
+
+// Animasi framer-motion ikut pengaturan Kurangi Gerakan (dan pengaturan sistem operasi)
+function MotionSettings({ children }: { children: React.ReactNode }) {
+  const { effectiveReduceMotion, screenReaderMode } = useSettings();
+  return (
+    <MotionConfig reducedMotion={effectiveReduceMotion || screenReaderMode ? "always" : "never"}>
+      {children}
+    </MotionConfig>
   );
 }
 

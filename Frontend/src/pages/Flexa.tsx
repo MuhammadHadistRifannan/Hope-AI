@@ -37,7 +37,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/context/SettingsContext";
-import SignCredit from "@/components/SignCredit"; // Import Settings Context
 
 // Info tampilan tiap tingkat. Isi materi (tabel materials) dan kamus isyarat
 // (tabel sign_items) dibaca dari database.
@@ -64,16 +63,8 @@ const learningPath = {
 };
 
 type LevelKey = keyof typeof learningPath;
-type SignCategory = "abjad" | "angka";
 // documentId terisi bila bab ini adalah dokumen milik pengguna (unggahan atau hasil pindai)
 type Chapter = { id: string; title: string; content: string; documentId?: string };
-type SignItem = {
-  id: string;
-  title: string;
-  desc: string;
-  img: string;
-  video: string;
-};
 type SavedDocument = {
   id: string;
   title: string;
@@ -87,27 +78,18 @@ export default function Flexa() {
 
   // State Navigasi
   const [currentView, setCurrentView] = useState<
-    "levels" | "chapters" | "detail" | "sign-menu" | "sign-detail"
+    "levels" | "chapters" | "detail"
   >("levels");
 
   // State Data
   const [selectedLevel, setSelectedLevel] = useState<LevelKey | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
-  const [selectedSignCategory, setSelectedSignCategory] =
-    useState<SignCategory>("abjad");
-  const [selectedSignItem, setSelectedSignItem] = useState<SignItem | null>(
-    null
-  );
 
   // Data dari database
   const [chaptersByLevel, setChaptersByLevel] = useState<Record<LevelKey, Chapter[]>>({
     mudah: [],
     menengah: [],
     sulit: [],
-  });
-  const [signLanguageData, setSignLanguageData] = useState<Record<SignCategory, SignItem[]>>({
-    abjad: [],
-    angka: [],
   });
   const [documents, setDocuments] = useState<SavedDocument[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
@@ -129,7 +111,6 @@ export default function Flexa() {
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeTab, setActiveTab] = useState("text");
-  const [signMediaTab, setSignMediaTab] = useState("image");
 
   // Settings
   const { volume, speakingRate, autoPlayAudio, aiVoice, needs } = useSettings();
@@ -159,20 +140,14 @@ export default function Flexa() {
 
   useEffect(() => {
     const loadContent = async () => {
-      const [materialsRes, signsRes] = await Promise.all([
-        supabase
-          .from("materials")
-          .select("slug, level, title, content")
-          .eq("is_published", true)
-          .order("sort_order"),
-        supabase
-          .from("sign_items")
-          .select("slug, category, title, description, image_url, video_url")
-          .order("sort_order"),
-      ]);
+      const materialsRes = await supabase
+        .from("materials")
+        .select("slug, level, title, content")
+        .eq("is_published", true)
+        .order("sort_order");
 
-      if (materialsRes.error || signsRes.error) {
-        console.error("Gagal memuat materi:", materialsRes.error || signsRes.error);
+      if (materialsRes.error) {
+        console.error("Gagal memuat materi:", materialsRes.error);
         toast({
           variant: "destructive",
           title: "Gagal memuat materi",
@@ -191,17 +166,6 @@ export default function Flexa() {
       }
       setChaptersByLevel(chapters);
 
-      const signs: Record<SignCategory, SignItem[]> = { abjad: [], angka: [] };
-      for (const row of signsRes.data) {
-        signs[row.category as SignCategory]?.push({
-          id: row.slug,
-          title: row.title,
-          desc: row.description,
-          img: row.image_url ?? "",
-          video: row.video_url ?? "",
-        });
-      }
-      setSignLanguageData(signs);
     };
 
     loadContent();
@@ -264,36 +228,12 @@ export default function Flexa() {
     setActiveTab(needs.includes("kognitif") ? "simple" : "text");
   };
 
-  const handleSignItemSelect = (item: SignItem) => {
-    setSelectedSignItem(item);
-    setCurrentView("sign-detail");
-    setSignMediaTab("image");
-  };
-
-  const handleNextSignItem = () => {
-    if (!selectedSignItem) return;
-    const currentIndex = signLanguageData[selectedSignCategory].findIndex(
-      (item) => item.id === selectedSignItem.id
-    );
-    const nextIndex = currentIndex + 1;
-    if (nextIndex < signLanguageData[selectedSignCategory].length) {
-      setSelectedSignItem(signLanguageData[selectedSignCategory][nextIndex]);
-    } else {
-      toast({
-        title: "Selesai!",
-        description: "Anda telah mencapai akhir kategori ini.",
-      });
-    }
-  };
-
   const goBack = () => {
     stopSpeaking();
     if (currentView === "detail") {
       if (selectedChapter?.id === "custom-upload") setCurrentView("levels");
       else setCurrentView("chapters");
     } else if (currentView === "chapters") setCurrentView("levels");
-    else if (currentView === "sign-menu") setCurrentView("levels");
-    else if (currentView === "sign-detail") setCurrentView("sign-menu");
   };
 
   const sanitizeText = (raw: string) => {
@@ -549,7 +489,7 @@ export default function Flexa() {
           <motion.div whileHover={{ scale: 1.02 }} className="group">
             <Card
               className="relative p-8 border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-background cursor-pointer h-full overflow-hidden hover:border-primary transition-all shadow-sm hover:shadow-md"
-              {...clickable(() => setCurrentView("sign-menu"))}
+              {...clickable(() => navigate("/isyarat?tab=kamus"))}
             >
               <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <Languages className="w-40 h-40 text-primary" />
@@ -561,16 +501,16 @@ export default function Flexa() {
                       <HandMetal className="w-8 h-8" />
                     </div>
                     <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                      Kamus Digital Isyarat
+                      Kamus Isyarat SIBI
                     </h3>
                   </div>
                   <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                    Pelajari abjad dan angka SIBI dengan gambar dan video dari kamus resmi.
-                    Tingkatkan komunikasi inklusifmu.
+                    Lihat contoh abjad dan angka SIBI, lalu langsung tirukan di depan kamera.
+                    Kamus dan latihannya ada di menu Isyarat.
                   </p>
                 </div>
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white shadow-primary/20 shadow-lg">
-                  Buka Kamus
+                  Buka Kamus di Isyarat
                 </Button>
               </div>
             </Card>
@@ -664,260 +604,6 @@ export default function Flexa() {
 
   // ==================================================================================
   // RENDER: MENU BAHASA ISYARAT
-  // ==================================================================================
-  if (currentView === "sign-menu") {
-    return (
-      <div className="min-h-screen p-3 md:p-8 max-w-5xl mx-auto">
-        <Button variant="ghost" onClick={goBack} className="mb-6 ">
-          <ArrowLeft className="mr-2 h-5 w-5" /> Kembali ke Dashboard
-        </Button>
-
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold mb-3 text-blue-950 dark:text-blue-50">
-            Kamus Isyarat Digital
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-lg">
-            Eksplorasi gerakan isyarat berdasarkan kategori.
-          </p>
-          <SignCredit className="mt-3" />
-        </div>
-
-        <Tabs
-          value={selectedSignCategory}
-          onValueChange={(v) => setSelectedSignCategory(v as SignCategory)}
-          className="w-full mb-8"
-        >
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-12 bg-blue-50 dark:bg-blue-950/50 p-1 rounded-full">
-            <TabsTrigger
-              value="abjad"
-              className="rounded-full text-base data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
-            >
-              Abjad (A-Z)
-            </TabsTrigger>
-            <TabsTrigger
-              value="angka"
-              className="rounded-full text-base data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
-            >
-              Angka (0-9)
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={selectedSignCategory} className="mt-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {signLanguageData[selectedSignCategory].map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Card
-                    className="group cursor-pointer hover:shadow-xl transition-all border border-slate-200 hover:border-primary overflow-hidden bg-white dark:bg-slate-900 rounded-xl"
-                    {...clickable(() => handleSignItemSelect(item), `Isyarat ${item.title}`)}
-                  >
-                    <div className="aspect-square bg-slate-100 relative overflow-hidden p-4">
-                      <img
-                        src={item.img}
-                        alt={item.title}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-sm"
-                      />
-                      <div className="absolute inset-0 bg-primary/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="bg-white text-primary px-4 py-2 rounded-full text-sm font-bold flex items-center shadow-lg">
-                          Lihat <ChevronRight className="w-4 h-4 ml-1" />
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4 text-center relative">
-                      <h3 className="font-bold text-xl text-slate-800 dark:text-slate-100">
-                        {item.title.replace("Huruf ", "").replace("Angka ", "")}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {item.title}
-                      </p>
-                      <div className="absolute bottom-0 left-0 w-full h-1 bg-primary transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
-
-  // ==================================================================================
-  // RENDER: DETAIL BAHASA ISYARAT
-  // ==================================================================================
-  if (currentView === "sign-detail" && selectedSignItem) {
-    return (
-      <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-600 via-blue-500 to-transparent -z-10" />
-        <div className="absolute top-20 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -z-10" />
-        <div className="absolute top-40 left-10 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl -z-10" />
-
-        <div className="max-w-6xl mx-auto p-3 md:p-12">
-          <div className="flex items-center justify-between mb-4 md:mb-8">
-            <Button variant="ghost" onClick={goBack}>
-              <ArrowLeft className="mr-2 h-5 w-5" /> Kembali ke Kamus
-            </Button>
-            <span className="bg-white/20 px-4 py-1 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">
-              Mode Belajar
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Card className="border-0 shadow-2xl bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden relative group">
-                  <div className="relative z-20 w-fit mx-auto mt-4 mb-3 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-md p-1 rounded-full shadow-lg border border-white/50 flex gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className={`rounded-full px-6 transition-all duration-300 ${
-                        signMediaTab === "image"
-                          ? "bg-white dark:bg-slate-700 shadow-sm text-primary font-bold"
-                          : "text-slate-500 hover:text-primary"
-                      }`}
-                      onClick={() => setSignMediaTab("image")}
-                    >
-                      <ImageIcon className="w-4 h-4 mr-2" /> Ilustrasi
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className={`rounded-full px-6 transition-all duration-300 ${
-                        signMediaTab === "video"
-                          ? "bg-white dark:bg-slate-700 shadow-sm text-primary font-bold"
-                          : "text-slate-500 hover:text-primary"
-                      }`}
-                      onClick={() => setSignMediaTab("video")}
-                    >
-                      <Video className="w-4 h-4 mr-2" /> Video
-                    </Button>
-                  </div>
-
-                  <div className="aspect-[4/3] md:aspect-video bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-2 md:p-8 relative">
-                    <AnimatePresence mode="wait">
-                      {signMediaTab === "image" ? (
-                        <motion.img
-                          key="img"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.9 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 200,
-                            damping: 25,
-                          }}
-                          src={selectedSignItem.img}
-                          alt={selectedSignItem.title}
-                          className="h-full w-full object-contain drop-shadow-2xl filter hover:brightness-105 transition-all duration-500"
-                        />
-                      ) : (
-                        <motion.div
-                          key="vid"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="w-full h-full bg-black rounded-2xl overflow-hidden shadow-inner ring-4 ring-slate-100 dark:ring-slate-800"
-                        >
-                          <video
-                            controls
-                            autoPlay
-                            loop
-                            playsInline
-                            className="w-full h-full object-contain"
-                          >
-                            <source
-                              src={selectedSignItem.video}
-                              type="video/mp4"
-                            />
-                          </video>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </Card>
-              </motion.div>
-            </div>
-
-            <div className="lg:col-span-4 space-y-6">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Card className="p-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border-0 shadow-xl rounded-3xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10" />
-                  <div className="relative z-10 text-center lg:text-left">
-                    <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-primary to-blue-300 leading-none mb-2">
-                      {selectedSignItem.title.split(" ")[1]}
-                    </h1>
-                    <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                      {selectedSignItem.title}
-                    </h2>
-                    <p className="text-primary font-medium flex items-center justify-center lg:justify-start gap-2 mt-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
-                      Sistem Isyarat Bahasa Indonesia (SIBI)
-                    </p>
-                    <SignCredit className="mt-4" />
-                  </div>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card className="p-6 border-l-8 border-primary bg-white dark:bg-slate-900 shadow-lg rounded-2xl">
-                  <div className="flex gap-4">
-                    <div className="mt-1">
-                      <div className="p-3 bg-blue-50 dark:bg-slate-800 rounded-2xl text-primary">
-                        <HandMetal className="w-6 h-6" />
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2 text-lg">
-                        Instruksi Gerakan
-                      </h3>
-                      <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                        {selectedSignItem.desc}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  variant="outline"
-                  className="h-12 rounded-xl border-2 hover:border-primary hover:text-primary transition-all"
-                  onClick={() => speakText(selectedSignItem.desc)}
-                >
-                  <PlayCircle className="w-5 h-5 mr-2" /> Ulangi
-                </Button>
-                <Button
-                  className="h-12 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30"
-                  onClick={handleNextSignItem}
-                >
-                  Lanjut <ChevronRight className="w-5 h-5 ml-2" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ==================================================================================
-  // RENDER: LIST MATERI (UMUM)
   // ==================================================================================
   if (currentView === "chapters" && selectedLevel) {
     const levelData = learningPath[selectedLevel];

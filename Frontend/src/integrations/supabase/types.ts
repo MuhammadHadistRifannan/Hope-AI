@@ -52,6 +52,12 @@ export type Database = {
           language: string
           dyslexia_font: boolean
           ai_voice: boolean
+          screen_reader_mode: boolean
+          reduce_motion: boolean | null
+          theme: string
+          captions: boolean
+          visual_notifications: boolean
+          needs_consent_at: string | null
           onboarded_at: string | null
           created_at: string
           updated_at: string
@@ -59,6 +65,12 @@ export type Database = {
         | "needs"
         | "dyslexia_font"
         | "ai_voice"
+        | "screen_reader_mode"
+        | "reduce_motion"
+        | "theme"
+        | "captions"
+        | "visual_notifications"
+        | "needs_consent_at"
         | "onboarded_at"
         | "large_text"
         | "high_contrast"
@@ -208,6 +220,18 @@ export type Database = {
       forum_post_likes: Table<
         { post_id: string; user_id: string; created_at: string },
         "created_at"
+      >
+      admin_audit_log: Table<
+        {
+          id: string
+          actor_id: string | null
+          action: string
+          target_type: string
+          target_id: string | null
+          details: Json
+          created_at: string
+        },
+        "id" | "actor_id" | "target_id" | "details" | "created_at"
       >
       notifications: Table<
         {

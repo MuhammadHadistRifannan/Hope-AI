@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
   Users, BookOpen, MessageSquare, BarChart3,
-  TrendingUp, Eye, Shield, Activity, Trash2, Ban, LineChart as LineChartIcon,
+  TrendingUp, Eye, Shield, Activity, Trash2, Ban, LineChart as LineChartIcon, ScrollText,
 } from "lucide-react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,10 @@ import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { useRoles } from "@/hooks/use-roles";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -69,6 +73,22 @@ const trendSeries = [
 
 const TREND_DAYS = 14;
 
+type AuditRow = { id: string; actor: string; action: string; target: string; details: string; createdAt: string };
+
+// Kalimat untuk tiap jenis aksi di log
+const auditLabel: Record<string, string> = {
+  role_granted: "mengangkat",
+  role_revoked: "mencabut peran",
+  user_blocked: "memblokir",
+  user_unblocked: "membuka blokir",
+  post_removed: "menghapus postingan milik",
+  comment_removed: "menghapus komentar milik",
+  module_published: "menerbitkan modul",
+  module_hidden: "menyembunyikan modul",
+};
+
+type ConfirmOptions = { title: string; description: string; confirmLabel: string };
+
 const roleLabel: Record<AppRole, string> = {
   student: "Siswa",
   teacher: "Guru",
@@ -88,6 +108,16 @@ export default function AdminDashboard() {
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [comments, setComments] = useState<PostRow[]>([]);
   const [trends, setTrends] = useState<TrendRow[]>([]);
+  const [auditLog, setAuditLog] = useState<AuditRow[]>([]);
+
+  // Konfirmasi sebelum aksi admin dijalankan, sebagai dialog yang bisa dibaca pembaca layar
+  const [confirming, setConfirming] = useState<(ConfirmOptions & { resolve: (ok: boolean) => void }) | null>(null);
+  const confirmAction = (options: ConfirmOptions) =>
+    new Promise<boolean>((resolve) => setConfirming({ ...options, resolve }));
+  const closeConfirm = (ok: boolean) => {
+    confirming?.resolve(ok);
+    setConfirming(null);
+  };
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -119,6 +149,12 @@ export default function AdminDashboard() {
           .limit(20),
         supabase.rpc("admin_trends", { _days: TREND_DAYS }),
       ]);
+
+      const auditRes = await supabase
+        .from("admin_audit_log")
+        .select("id, actor_id, action, target_type, target_id, details, created_at")
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       const failed = [statsRes, profilesRes, rolesRes, modulesRes, postsRes, accountsRes, commentsRes, trendsRes].find((res) => res.error);
       if (failed?.error) {
@@ -166,6 +202,25 @@ export default function AdminDashboard() {
           createdAt: p.created_at,
         }))
       );
+      const moduleNames = new Map((modulesRes.data ?? []).map((m) => [String(m.id), m.title]));
+      setAuditLog(
+        (auditRes.data ?? []).map((row) => {
+          const details = (row.details ?? {}) as Record<string, string>;
+          const role = details.role ? ` menjadi ${roleLabel[details.role as AppRole] ?? details.role}` : "";
+          return {
+            id: row.id,
+            actor: (row.actor_id && names.get(row.actor_id)) || "Sistem",
+            action: auditLabel[row.action] ?? row.action,
+            target:
+              row.target_type === "module"
+                ? details.title ?? moduleNames.get(row.target_id ?? "") ?? "modul"
+                : (names.get(row.target_id ?? "") ?? "pengguna") + (row.action === "role_granted" || row.action === "role_revoked" ? role : ""),
+            details: details.content ? `"${details.content}"` : "",
+            createdAt: row.created_at,
+          };
+        })
+      );
+
       setComments(
         (commentsRes.data ?? []).map((c) => ({
           id: c.id,
@@ -198,6 +253,12 @@ export default function AdminDashboard() {
 
   // Guru bisa menambah materi dan melihat kemajuan siswa
   const toggleTeacher = async (user: UserRow, makeTeacher: boolean) => {
+    const ok = await confirmAction(
+      makeTeacher
+        ? { title: `Jadikan ${user.name} guru?`, description: "Guru bisa menambah materi dan melihat kemajuan belajar siswa.", confirmLabel: "Jadikan Guru" }
+        : { title: `Cabut peran guru ${user.name}?`, description: "Pengguna ini tidak lagi bisa membuka Ruang Guru.", confirmLabel: "Cabut Peran" }
+    );
+    if (!ok) return;
     const { error } = makeTeacher
       ? await supabase.from("user_roles").insert({ user_id: user.id, role: "teacher" })
       : await supabase.from("user_roles").delete().eq("user_id", user.id).eq("role", "teacher");
@@ -217,7 +278,7 @@ export default function AdminDashboard() {
   };
 
   const deletePost = async (post: PostRow) => {
-    if (!window.confirm(`Hapus postingan dari ${post.author}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    if (!(await confirmAction({ title: `Hapus postingan dari ${post.author}?`, description: "Postingan beserta komentarnya dihapus dan tidak bisa dikembalikan.", confirmLabel: "Hapus" }))) return;
 
     const { error } = await supabase.from("forum_posts").delete().eq("id", post.id);
     if (error) {
@@ -229,7 +290,7 @@ export default function AdminDashboard() {
   };
 
   const deleteComment = async (comment: PostRow) => {
-    if (!window.confirm(`Hapus komentar dari ${comment.author}? Tindakan ini tidak bisa dibatalkan.`)) return;
+    if (!(await confirmAction({ title: `Hapus komentar dari ${comment.author}?`, description: "Komentar ini dihapus dan tidak bisa dikembalikan.", confirmLabel: "Hapus" }))) return;
 
     const { error } = await supabase.from("forum_comments").delete().eq("id", comment.id);
     if (error) {
@@ -242,7 +303,12 @@ export default function AdminDashboard() {
 
   // Akun yang diblokir tidak bisa masuk lagi; sesi yang masih berjalan berakhir paling lama satu jam
   const toggleBlocked = async (user: UserRow, block: boolean) => {
-    if (block && !window.confirm(`Blokir akun ${user.name}? Pengguna ini tidak akan bisa masuk sampai blokirnya dibuka.`)) return;
+    const ok = await confirmAction(
+      block
+        ? { title: `Blokir akun ${user.name}?`, description: "Pengguna ini tidak bisa masuk sampai blokirnya dibuka. Sesi yang sedang berjalan berakhir paling lama dalam satu jam.", confirmLabel: "Blokir" }
+        : { title: `Buka blokir ${user.name}?`, description: "Pengguna ini bisa masuk lagi seperti biasa.", confirmLabel: "Buka Blokir" }
+    );
+    if (!ok) return;
 
     const { error } = await supabase.rpc("admin_set_user_blocked", { _user_id: user.id, _blocked: block });
     if (error) {
@@ -334,7 +400,7 @@ export default function AdminDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto lg:w-auto lg:inline-flex">
             <TabsTrigger value="overview">
               <BarChart3 className="w-4 h-4 mr-2" aria-hidden="true" />
               Ringkasan
@@ -346,6 +412,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="content">
               <BookOpen className="w-4 h-4 mr-2" aria-hidden="true" />
               Konten
+            </TabsTrigger>
+            <TabsTrigger value="log">
+              <ScrollText className="w-4 h-4 mr-2" aria-hidden="true" />
+              Log Aktivitas
             </TabsTrigger>
           </TabsList>
 
@@ -624,8 +694,48 @@ export default function AdminDashboard() {
               </Card>
             </div>
           </TabsContent>
+          <TabsContent value="log">
+            <Card className="p-4 md:p-6">
+              <h2 className="text-xl font-bold mb-1">Log Aktivitas Admin</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                50 aksi terakhir: mengangkat atau mencabut guru, memblokir akun, menghapus konten, dan
+                menerbitkan modul. Dicatat otomatis oleh database dan tidak bisa diubah dari aplikasi.
+              </p>
+              {auditLog.length === 0 ? (
+                <p className="text-muted-foreground">Belum ada aksi yang tercatat.</p>
+              ) : (
+                <ol className="divide-y">
+                  {auditLog.map((row) => (
+                    <li key={row.id} className="py-3">
+                      <p>
+                        <span className="font-medium">{row.actor}</span> {row.action}{" "}
+                        <span className="font-medium">{row.target}</span>
+                      </p>
+                      {row.details && <p className="text-sm text-muted-foreground line-clamp-1">{row.details}</p>}
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {new Date(row.createdAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </Card>
+          </TabsContent>
         </Tabs>
       </motion.div>
+
+      <AlertDialog open={confirming !== null} onOpenChange={(open) => !open && closeConfirm(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirming?.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirming?.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => closeConfirm(false)}>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={() => closeConfirm(true)}>{confirming?.confirmLabel}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

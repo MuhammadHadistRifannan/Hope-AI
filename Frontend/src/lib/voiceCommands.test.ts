@@ -33,6 +33,7 @@ describe("findDestination", () => {
   it("membedakan latihan isyarat dari Pathly", () => {
     expect(findDestination("buka latihan isyarat")?.path).toBe("/isyarat");
     expect(findDestination("buka latihan")?.path).toBe("/pathly");
+    expect(findDestination("buka kamus isyarat")?.path).toBe("/isyarat?tab=kamus");
   });
 
   it("tidak menganggap kalimat panjang biasa sebagai perintah pindah", () => {

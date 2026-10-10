@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
 import { useVoiceCommands } from "@/lib/voiceCommands";
+import HighlightedText from "@/components/HighlightedText";
 
 declare global {
   interface Window {
@@ -31,6 +32,8 @@ export default function EyeRead() {
     "audio" | "text" | "summary"
   >("text");
   const [isSpeaking, setIsSpeaking] = useState(false);
+  // Posisi baca untuk menyorot kata yang sedang diucapkan
+  const [readProgress, setReadProgress] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isTesseractLoaded, setIsTesseractLoaded] = useState(false);
@@ -459,13 +462,18 @@ export default function EyeRead() {
       rate: speakingRate,
       aiVoice,
       onStart: () => setIsSpeaking(true),
-      onEnd: () => setIsSpeaking(false),
+      onEnd: () => {
+        setIsSpeaking(false);
+        setReadProgress(null);
+      },
+      onProgress: text === scannedText ? setReadProgress : undefined,
     });
   };
 
   const stopSpeaking = () => {
     stopSpeech();
     setIsSpeaking(false);
+    setReadProgress(null);
   };
 
   // Logic Summary Sederhana Asli
@@ -698,9 +706,7 @@ export default function EyeRead() {
                 >
                   {scannedText ? (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p className="text-lg leading-relaxed whitespace-pre-wrap">
-                        {scannedText}
-                      </p>
+                      <HighlightedText text={scannedText} progress={readProgress} className="text-lg leading-relaxed" />
                     </div>
                   ) : (
                     <div className="h-full flex items-center justify-center text-muted-foreground text-center p-8">
@@ -750,6 +756,10 @@ export default function EyeRead() {
                           >
                             Hentikan Audio
                           </Button>
+                        </div>
+                        {/* Teks ikut tampil dengan kata yang sedang dibacakan tersorot */}
+                        <div className="mt-6 max-h-56 overflow-y-auto rounded-lg bg-background p-3 text-left border">
+                          <HighlightedText text={scannedText} progress={readProgress} className="leading-relaxed" />
                         </div>
                       </>
                     ) : (

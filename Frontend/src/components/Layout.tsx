@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom"; 
 import { supabase } from "@/integrations/supabase/client"; 
 import { 
@@ -37,10 +37,26 @@ const bottomCenter = navigation[2];
 const bottomRight = [navigation[3]];
 const bottomHrefs = [...bottomLeft, bottomCenter, ...bottomRight].map((item) => item.href);
 
+// Halaman pertama setelah aplikasi dibuka tidak memindahkan fokus
+let hasOpenedPage = false;
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate(); 
+
+  // Setiap pindah halaman: kembali ke atas, dan fokus pindah ke konten utama agar
+  // pengguna keyboard dan pembaca layar langsung berada di halaman baru.
+  // (Layout dipasang ulang untuk tiap halaman, jadi efek ini jalan sekali per halaman.)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (!hasOpenedPage) {
+      hasOpenedPage = true;
+      return;
+    }
+    document.getElementById("konten-utama")?.focus({ preventScroll: true });
+  }, [location.pathname]);
   const { toast } = useToast();
   const { isAdmin, isStaff } = useRoles();
 

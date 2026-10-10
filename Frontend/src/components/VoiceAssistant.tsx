@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Mic, MicOff } from "lucide-react";
+import { Keyboard, Mic, MicOff, X } from "lucide-react";
 import { useSettings } from "@/context/SettingsContext";
-import { speak, stopSpeech } from "@/lib/speech";
+import { isSpeaking, speak, stopSpeech } from "@/lib/speech";
 import {
   destinationForPath,
   dispatchVoiceCommand,
@@ -25,11 +25,20 @@ const rateSteps = ["slow", "normal", "fast"];
 export default function VoiceAssistant() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { volume, speakingRate, aiVoice, autoPlayAudio, textSize, updateSetting } = useSettings();
+  const { volume, speakingRate, aiVoice, autoPlayAudio, textSize, updateSetting, needs } = useSettings();
+  // Pengguna yang lebih nyaman mengetik tidak diberi tombol mikrofon (Alt+M tetap bisa dipakai)
+  const showButton = !needs.includes("wicara");
   const [isListening, setIsListening] = useState(false);
   const [status, setStatus] = useState("");
   const recognitionRef = useRef<any>(null);
   const lastSaid = useRef("");
+  // Mode dengar terus: setelah satu perintah selesai, mikrofon menyala lagi sendiri
+  const [continuous, setContinuous] = useState(false);
+  const continuousRef = useRef(false);
+  continuousRef.current = continuous;
+  // Kotak perintah ketik, untuk browser tanpa pengenalan suara
+  const [typing, setTyping] = useState(false);
+  const [typed, setTyped] = useState("");
   const movedByVoice = useRef(false);
 
   // Tanggapan singkat memakai suara perangkat supaya terdengar seketika
@@ -37,7 +46,7 @@ export default function VoiceAssistant() {
     (text: string) => {
       setStatus(text);
       lastSaid.current = text;
-      speak(text, { volume, rate: speakingRate, aiVoice: false });
+      speak(text, { volume, rate: speakingRate, aiVoice: false, feedback: true });
     },
     [volume, speakingRate]
   );
@@ -86,6 +95,17 @@ export default function VoiceAssistant() {
     (transcript: string) => {
       const command = normalizeCommand(transcript);
       if (!command) return;
+
+      if (/^(berhenti|stop|selesai|matikan) (mendengar|mendengarkan|dengar|mikrofon)/.test(command)) {
+        setContinuous(false);
+        say("Mode dengar terus dimatikan.");
+        return;
+      }
+      if (/^(mode )?(dengar|dengarkan) terus|^terus dengarkan/.test(command)) {
+        setContinuous(true);
+        say("Mode dengar terus menyala. Ucapkan perintah kapan saja. Katakan berhenti mendengar untuk mematikannya.");
+        return;
+      }
 
       if (/^(berhenti|stop|diam|hentikan|cukup)\b/.test(command)) {
         stopSpeech();
@@ -168,7 +188,7 @@ export default function VoiceAssistant() {
         updateSetting("speakingRate", next);
         lastSaid.current = slower ? "Suara dipelankan" : "Suara dipercepat";
         setStatus(lastSaid.current);
-        speak(lastSaid.current, { volume, rate: next, aiVoice: false });
+        speak(lastSaid.current, { volume, rate: next, aiVoice: false, feedback: true });
         return;
       }
 
@@ -216,26 +236,29 @@ export default function VoiceAssistant() {
     [navigate, readPage, say, press, pageName, location.pathname, speakingRate, textSize, updateSetting, volume]
   );
 
-  const startListening = useCallback(() => {
+  const restartTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const startListening = useCallback((automatic = false) => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
-      say("Browser ini belum mendukung perintah suara. Gunakan Google Chrome, Microsoft Edge, atau Safari.");
-      return;
-    }
-    // Browser hanya mengizinkan mikrofon di alamat https (atau localhost)
-    if (!window.isSecureContext) {
-      setStatus("Perintah suara hanya bisa dipakai lewat alamat https. Buka aplikasi dari alamat resminya.");
+    // Tanpa pengenalan suara (browser lama, atau alamat bukan https): tawarkan kotak ketik
+    if (!SpeechRecognition || !window.isSecureContext) {
+      setTyping(true);
+      setStatus(
+        !SpeechRecognition
+          ? "Browser ini belum mendukung perintah suara. Ketik perintahmu di kotak ini, atau pakai Chrome, Edge, atau Safari."
+          : "Perintah suara hanya bisa dipakai lewat alamat https. Untuk sementara, ketik perintahmu di kotak ini."
+      );
       return;
     }
 
     // Hentikan suara yang sedang diputar agar tidak ikut terdengar oleh mikrofon
-    stopSpeech();
+    if (!automatic) stopSpeech();
 
     // Safari di iPhone hanya mau bersuara bila pernah diminta langsung dari
     // sentuhan pengguna; ucapan kosong ini membuka izin itu untuk jawaban nanti.
-    if ("speechSynthesis" in window) {
+    if (!automatic && "speechSynthesis" in window) {
       const unlock = new SpeechSynthesisUtterance(" ");
       unlock.volume = 0;
       window.speechSynthesis.speak(unlock);
@@ -256,6 +279,10 @@ export default function VoiceAssistant() {
     const finish = () => {
       if (handled || !transcript.trim()) return;
       handled = true;
+      // Saringan gema: abaikan bila yang tertangkap adalah ucapan asisten sendiri
+      const heard = normalizeCommand(transcript);
+      const echo = normalizeCommand(lastSaid.current);
+      if (heard.length > 3 && echo.includes(heard)) return;
       handleCommand(transcript);
     };
     // Berhenti sendiri setelah jeda bicara, atau bila tidak ada suara sama sekali
@@ -280,7 +307,10 @@ export default function VoiceAssistant() {
     };
     recognition.onerror = (event: any) => {
       if (event.error === "aborted") return;
+      // Dalam mode dengar terus, diam bukan kesalahan: cukup mendengarkan lagi
+      if (event.error === "no-speech" && continuousRef.current) return;
       failed = true;
+      if (event.error !== "no-speech") setContinuous(false);
       const messages: Record<string, string> = {
         "not-allowed": "Izin mikrofon ditolak. Izinkan mikrofon untuk situs ini di pengaturan browser.",
         "service-not-allowed":
@@ -297,12 +327,25 @@ export default function VoiceAssistant() {
       setIsListening(false);
       recognitionRef.current = null;
       if (!handled && transcript.trim()) finish();
-      else if (!handled && !failed) setStatus("Tidak terdengar suara. Coba lagi.");
+      else if (!handled && !failed && !continuousRef.current) setStatus("Tidak terdengar suara. Coba lagi.");
+
+      // Mode dengar terus: tunggu sampai asisten selesai bicara, lalu dengarkan lagi
+      if (continuousRef.current && !failed) {
+        const resume = () => {
+          if (!continuousRef.current || recognitionRef.current) return;
+          if (isSpeaking()) {
+            restartTimer.current = setTimeout(resume, 300);
+            return;
+          }
+          latestStart.current(true);
+        };
+        restartTimer.current = setTimeout(resume, 400);
+      }
     };
 
     recognitionRef.current = recognition;
     setIsListening(true);
-    setStatus("Mendengarkan...");
+    setStatus(continuousRef.current ? "Mendengarkan terus..." : "Mendengarkan...");
     try {
       recognition.start();
       stopAfter(8000);
@@ -314,18 +357,42 @@ export default function VoiceAssistant() {
     }
   }, [handleCommand, say]);
 
+  const latestStart = useRef(startListening);
+  latestStart.current = startListening;
+
+  // Menyalakan mode dengar terus langsung memulai mendengarkan
+  useEffect(() => {
+    if (continuous && !recognitionRef.current) {
+      restartTimer.current = setTimeout(() => {
+        if (!isSpeaking() && !recognitionRef.current) latestStart.current(true);
+      }, 4500);
+    }
+    if (!continuous) clearTimeout(restartTimer.current);
+    return () => clearTimeout(restartTimer.current);
+  }, [continuous]);
+
   const toggle = useCallback(() => {
     if (recognitionRef.current) {
+      // Menekan tombol saat mendengarkan terus berarti mematikan mode itu
+      setContinuous(false);
       recognitionRef.current.stop();
       return;
     }
     startListening();
   }, [startListening]);
 
-  // Alt+M memulai atau menghentikan perintah suara dari halaman mana pun
+  const submitTyped = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!typed.trim()) return;
+    handleCommand(typed);
+    setTyped("");
+  };
+
+  // Alt+M atau Ctrl+M memulai atau menghentikan perintah suara dari halaman mana pun
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey && event.key.toLowerCase() === "m") {
+      // Alt+M atau Ctrl+M
+      if ((event.altKey || event.ctrlKey) && !event.metaKey && event.key.toLowerCase() === "m") {
         event.preventDefault();
         toggle();
       }
@@ -351,6 +418,46 @@ export default function VoiceAssistant() {
       >
         {status}
       </p>
+      {typing && (
+        <form onSubmit={submitTyped} className="flex items-center gap-1 rounded-xl bg-card border shadow-lg p-1.5" role="search" aria-label="Perintah ketik">
+          <label htmlFor="typed-command" className="sr-only">
+            Ketik perintah
+          </label>
+          <input
+            id="typed-command"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            onKeyDown={(e) => e.key === "Escape" && setTyping(false)}
+            placeholder="Contoh: buka flexa"
+            autoFocus
+            className="w-56 rounded-lg bg-background px-3 py-2 text-sm border focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <button type="submit" className="rounded-lg bg-primary text-primary-foreground px-3 py-2 text-sm font-medium">
+            Jalankan
+          </button>
+          <button type="button" onClick={() => setTyping(false)} aria-label="Tutup kotak perintah ketik" className="p-2 rounded-lg hover:bg-muted">
+            <X className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </form>
+      )}
+      {continuous && (
+        <p className="px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold shadow" aria-hidden="true">
+          Mode dengar terus
+        </p>
+      )}
+      {/* Pengguna yang lebih nyaman mengetik mendapat tombol perintah ketik */}
+      {!showButton && !typing && (
+        <button
+          type="button"
+          onClick={() => setTyping(true)}
+          aria-label="Ketik perintah, misalnya buka flexa"
+          title="Ketik perintah"
+          className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl border-2 border-white/40 text-white bg-primary hover:bg-primary/90 focus:outline-none focus-visible:ring-4 focus-visible:ring-ring"
+        >
+          <Keyboard className="w-6 h-6" aria-hidden="true" />
+        </button>
+      )}
+      {showButton && (
       <button
         type="button"
         onClick={toggle}
@@ -358,9 +465,9 @@ export default function VoiceAssistant() {
         aria-label={
           isListening
             ? "Berhenti mendengarkan"
-            : "Perintah suara. Tekan lalu bicara, atau tekan Alt M. Katakan bantuan untuk daftar perintah."
+            : "Perintah suara. Tekan lalu bicara, atau tekan Alt M atau Ctrl M. Katakan bantuan untuk daftar perintah."
         }
-        title="Perintah suara (Alt+M)"
+        title="Perintah suara (Alt+M atau Ctrl+M)"
         className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl border-2 border-white/40 text-white transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-ring ${
           isListening ? "bg-red-600 animate-pulse" : "bg-primary hover:bg-primary/90"
         }`}
@@ -371,6 +478,7 @@ export default function VoiceAssistant() {
           <Mic className="w-6 h-6" aria-hidden="true" />
         )}
       </button>
+      )}
     </div>
   );
 }

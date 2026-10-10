@@ -908,3 +908,163 @@ REVOKE EXECUTE ON FUNCTION public.admin_set_user_blocked(UUID, BOOLEAN) FROM PUB
 GRANT EXECUTE ON FUNCTION public.admin_set_user_blocked(UUID, BOOLEAN) TO authenticated;
 REVOKE EXECUTE ON FUNCTION public.admin_trends(INT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_trends(INT) TO authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Pengaturan aksesibilitas versi 2 (review 8 Oktober)
+-- ---------------------------------------------------------------------------
+ALTER TABLE public.user_settings
+  ADD COLUMN IF NOT EXISTS screen_reader_mode BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS reduce_motion BOOLEAN,
+  ADD COLUMN IF NOT EXISTS theme TEXT NOT NULL DEFAULT 'light' CHECK (theme IN ('system', 'light', 'dark')),
+  ADD COLUMN IF NOT EXISTS captions BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS visual_notifications BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS needs_consent_at TIMESTAMP WITH TIME ZONE;
+
+COMMENT ON COLUMN public.user_settings.text_size IS 'Tambahan ukuran teks dalam persen: 0 = 100%, 100 = 200%';
+COMMENT ON COLUMN public.user_settings.reduce_motion IS 'NULL = ikuti pengaturan sistem operasi';
+COMMENT ON COLUMN public.user_settings.needs_consent_at IS 'Waktu pengguna menyetujui penyimpanan data kebutuhan; NULL = data kebutuhan tidak disimpan di akun';
+
+-- Skala lama 0..100 dengan 50 = ukuran normal menjadi tambahan persen 0..100
+UPDATE public.user_settings SET text_size = GREATEST(0, (text_size - 50) * 2);
+ALTER TABLE public.user_settings ALTER COLUMN text_size SET DEFAULT 0;
+
+-- Kebutuhan baru: lebih nyaman mengetik daripada berbicara
+ALTER TABLE public.user_settings DROP CONSTRAINT user_settings_needs_check;
+ALTER TABLE public.user_settings ADD CONSTRAINT user_settings_needs_check
+  CHECK (needs <@ ARRAY['netra', 'low_vision', 'tuli', 'disleksia', 'kognitif', 'motorik', 'wicara']);
+
+UPDATE public.user_settings SET needs_consent_at = onboarded_at
+WHERE needs_consent_at IS NULL AND onboarded_at IS NOT NULL AND cardinality(needs) > 0;
+
+-- ---------------------------------------------------------------------------
+-- Audit log admin: siapa melakukan apa, kapan. Ditulis hanya oleh trigger dan
+-- fungsi di database, dibaca hanya oleh admin.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.admin_audit_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  target_type TEXT NOT NULL,
+  target_id TEXT,
+  details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS admin_audit_log_created_at_idx ON public.admin_audit_log (created_at DESC);
+
+ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can read the audit log"
+ON public.admin_audit_log FOR SELECT TO authenticated
+USING (private.has_role((SELECT auth.uid()), 'admin'));
+
+GRANT SELECT ON public.admin_audit_log TO authenticated;
+
+CREATE OR REPLACE FUNCTION private.write_audit(_action TEXT, _target_type TEXT, _target_id TEXT, _details JSONB)
+RETURNS VOID
+LANGUAGE sql
+SECURITY DEFINER SET search_path = ''
+AS $$
+  INSERT INTO public.admin_audit_log (actor_id, action, target_type, target_id, details)
+  VALUES (auth.uid(), _action, _target_type, _target_id, COALESCE(_details, '{}'::jsonb));
+$$;
+
+CREATE OR REPLACE FUNCTION private.audit_user_roles()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' AND NEW.role <> 'student' THEN
+    PERFORM private.write_audit('role_granted', 'user', NEW.user_id::text, jsonb_build_object('role', NEW.role));
+  ELSIF TG_OP = 'DELETE' AND OLD.role <> 'student' THEN
+    PERFORM private.write_audit('role_revoked', 'user', OLD.user_id::text, jsonb_build_object('role', OLD.role));
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+CREATE TRIGGER audit_user_roles
+AFTER INSERT OR DELETE ON public.user_roles
+FOR EACH ROW EXECUTE FUNCTION private.audit_user_roles();
+
+CREATE OR REPLACE FUNCTION private.audit_forum_removal()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF auth.uid() IS NOT NULL AND auth.uid() <> OLD.author_id THEN
+    PERFORM private.write_audit(
+      CASE WHEN TG_TABLE_NAME = 'forum_posts' THEN 'post_removed' ELSE 'comment_removed' END,
+      'user',
+      OLD.author_id::text,
+      jsonb_build_object('content', left(OLD.content, 200))
+    );
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+CREATE TRIGGER audit_forum_posts_removal
+AFTER DELETE ON public.forum_posts
+FOR EACH ROW EXECUTE FUNCTION private.audit_forum_removal();
+
+CREATE TRIGGER audit_forum_comments_removal
+AFTER DELETE ON public.forum_comments
+FOR EACH ROW EXECUTE FUNCTION private.audit_forum_removal();
+
+CREATE OR REPLACE FUNCTION private.audit_module_publish()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF NEW.is_published IS DISTINCT FROM OLD.is_published THEN
+    PERFORM private.write_audit(
+      CASE WHEN NEW.is_published THEN 'module_published' ELSE 'module_hidden' END,
+      'module',
+      NEW.id::text,
+      jsonb_build_object('title', NEW.title)
+    );
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+CREATE TRIGGER audit_module_publish
+AFTER UPDATE ON public.learning_modules
+FOR EACH ROW EXECUTE FUNCTION private.audit_module_publish();
+
+-- admin_set_user_blocked di atas diganti versi yang juga mencatat ke log
+CREATE OR REPLACE FUNCTION public.admin_set_user_blocked(_user_id UUID, _blocked BOOLEAN)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF NOT private.has_role(auth.uid(), 'admin') THEN
+    RAISE EXCEPTION 'Hanya admin yang boleh memblokir akun' USING ERRCODE = '42501';
+  END IF;
+  IF _user_id = auth.uid() THEN
+    RAISE EXCEPTION 'Anda tidak bisa memblokir akun sendiri' USING ERRCODE = '42501';
+  END IF;
+  IF private.has_role(_user_id, 'admin') THEN
+    RAISE EXCEPTION 'Akun admin tidak bisa diblokir' USING ERRCODE = '42501';
+  END IF;
+
+  UPDATE auth.users
+  SET banned_until = CASE WHEN _blocked THEN now() + interval '100 years' ELSE NULL END
+  WHERE id = _user_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Pengguna tidak ditemukan' USING ERRCODE = 'P0002';
+  END IF;
+
+  PERFORM private.write_audit(CASE WHEN _blocked THEN 'user_blocked' ELSE 'user_unblocked' END, 'user', _user_id::text, '{}'::jsonb);
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION private.write_audit(TEXT, TEXT, TEXT, JSONB) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.audit_user_roles() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.audit_forum_removal() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION private.audit_module_publish() FROM PUBLIC, anon, authenticated;

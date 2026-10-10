@@ -22,6 +22,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { API_URL, authHeaders } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useRoles } from "@/hooks/use-roles";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckCircle2, AlertTriangle } from "lucide-react";
+import { checkMaterial, visualReferences } from "@/lib/materialChecks";
 
 type Material = {
   id: string;
@@ -40,6 +43,21 @@ type Student = {
   modulesCompleted: number;
   quizCount: number;
   averageScore: number | null;
+  lastSeen: string | null; // kegiatan terakhir: kuis atau pembaruan belajar
+};
+
+// Alasan seorang siswa perlu perhatian; diurutkan dari yang paling mendesak
+const attentionReasons = (student: Student) => {
+  const reasons: string[] = [];
+  const daysAway = student.lastSeen
+    ? Math.floor((Date.now() - new Date(student.lastSeen).getTime()) / (24 * 3600 * 1000))
+    : null;
+  if (student.averageScore !== null && student.averageScore < 60) {
+    reasons.push(`Rata-rata nilai kuis ${student.averageScore}%`);
+  }
+  if (daysAway === null) reasons.push("Belum pernah mengerjakan kuis");
+  else if (daysAway >= 7) reasons.push(`Tidak aktif ${daysAway} hari`);
+  return reasons;
 };
 
 const levelLabel: Record<string, string> = {
@@ -68,6 +86,9 @@ export default function TeacherRoom() {
   const [level, setLevel] = useState("mudah");
   const [content, setContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  // Konfirmasi aksesibilitas oleh guru sebelum materi diterbitkan
+  const [confirmVisuals, setConfirmVisuals] = useState(false);
+  const [confirmColors, setConfirmColors] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -100,8 +121,8 @@ export default function TeacherRoom() {
         .select("id, full_name, xp, streak, last_active_date")
         .order("full_name"),
       supabase.from("module_progress").select("user_id, status"),
-      supabase.from("quiz_attempts").select("user_id, score, total"),
-      supabase.from("document_quiz_attempts").select("user_id, score, total"),
+      supabase.from("quiz_attempts").select("user_id, score, total, created_at"),
+      supabase.from("document_quiz_attempts").select("user_id, score, total, created_at"),
       supabase.from("learning_modules").select("id").eq("is_published", true),
     ]);
 
@@ -133,6 +154,11 @@ export default function TeacherRoom() {
             ).length,
             quizCount: own.length,
             averageScore: possible > 0 ? Math.round((scored / possible) * 100) : null,
+            lastSeen:
+              [profile.last_active_date, ...own.map((attempt) => attempt.created_at)]
+                .filter((date): date is string => !!date)
+                .sort()
+                .pop() ?? null,
           };
         })
     );
@@ -176,9 +202,20 @@ export default function TeacherRoom() {
     }
   };
 
+  const checks = checkMaterial(title, content);
+  const references = visualReferences(content);
+  // Wajib: judul, konfirmasi warna, dan konfirmasi gambar bila materi menyebut gambar.
+  // Paragraf, kalimat, dan huruf kapital hanya saran.
+  const readyToPublish =
+    !!title.trim() &&
+    !!content.trim() &&
+    checks.find((check) => check.id === "title")!.ok &&
+    confirmColors &&
+    (references.length === 0 || confirmVisuals);
+
   const saveMaterial = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!userId || !title.trim() || !content.trim()) return;
+    if (!userId || !title.trim() || !content.trim() || !readyToPublish) return;
 
     setIsSaving(true);
     const sameLevel = materials.filter((material) => material.level === level).length;
@@ -201,6 +238,8 @@ export default function TeacherRoom() {
     toast({ title: "Materi ditambahkan", description: `Siswa bisa membukanya di Flexa, ${levelLabel[level]}.` });
     setTitle("");
     setContent("");
+    setConfirmVisuals(false);
+    setConfirmColors(false);
     loadMaterials();
   };
 
@@ -241,13 +280,23 @@ export default function TeacherRoom() {
     return <Navigate to="/" replace />;
   }
 
+  // Nilai rendah didahulukan, lalu yang paling lama tidak aktif
+  const needsAttention = students
+    .map((student) => ({ student, reasons: attentionReasons(student) }))
+    .filter((item) => item.reasons.length > 0)
+    .sort(
+      (a, b) =>
+        (a.student.averageScore ?? 101) - (b.student.averageScore ?? 101) ||
+        (a.student.lastSeen ?? "").localeCompare(b.student.lastSeen ?? "")
+    );
+
   const filteredStudents = students.filter((student) =>
     student.name.toLowerCase().includes(search.trim().toLowerCase())
   );
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
   const activeThisWeek = students.filter(
-    (student) => student.lastActive && new Date(student.lastActive) >= weekAgo
+    (student) => student.lastSeen && new Date(student.lastSeen) >= weekAgo
   ).length;
   const withScores = students.filter((student) => student.averageScore !== null);
   const classAverage =
@@ -278,6 +327,40 @@ export default function TeacherRoom() {
             </Card>
           ))}
         </div>
+
+        {/* Siswa yang perlu perhatian, paling atas agar langsung terlihat */}
+        <Card className="p-4 md:p-6 mb-6" aria-labelledby="judul-perhatian">
+          <h2 id="judul-perhatian" className="text-xl font-bold mb-1">
+            Siswa yang Perlu Perhatian
+          </h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Nilai kuis rata-rata di bawah 60%, belum pernah mengerjakan kuis, atau tidak aktif 7 hari atau lebih.
+          </p>
+          {needsAttention.length === 0 ? (
+            <p>Semua siswa sedang berjalan baik.</p>
+          ) : (
+            <ul className="divide-y">
+              {needsAttention.slice(0, 8).map(({ student, reasons }) => (
+                <li key={student.id} className="py-3 flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium">{student.name}</span>
+                  <span className="flex flex-wrap gap-2">
+                    {reasons.map((reason) => (
+                      <span
+                        key={reason}
+                        className="text-sm rounded-full bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100 px-3 py-1"
+                      >
+                        {reason}
+                      </span>
+                    ))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {needsAttention.length > 8 && (
+            <p className="text-sm text-muted-foreground mt-2">Dan {needsAttention.length - 8} siswa lainnya di tab Siswa.</p>
+          )}
+        </Card>
 
         <Tabs defaultValue="students" className="space-y-6">
           <TabsList>
@@ -327,7 +410,7 @@ export default function TeacherRoom() {
                         <TableCell>{student.averageScore === null ? "-" : `${student.averageScore}%`}</TableCell>
                         <TableCell>{student.xp}</TableCell>
                         <TableCell>{student.streak} hari</TableCell>
-                        <TableCell>{student.lastActive ? formatDate(student.lastActive) : "Belum pernah"}</TableCell>
+                        <TableCell>{student.lastSeen ? formatDate(student.lastSeen) : "Belum pernah"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -409,9 +492,66 @@ export default function TeacherRoom() {
                       mengerjakan kuis yang dibuat otomatis dari isinya.
                     </p>
                   </div>
-                  <Button type="submit" disabled={isSaving || !title.trim() || !content.trim()}>
+                  {/* Checklist aksesibilitas: otomatis dan konfirmasi guru */}
+                  <fieldset className="rounded-xl border p-4 space-y-3" aria-describedby="checklist-help">
+                    <legend className="px-1 font-semibold">Checklist aksesibilitas</legend>
+                    <p id="checklist-help" className="text-sm text-muted-foreground">
+                      Materi dibaca siswa dengan cara berbeda: didengar, dibaca dengan huruf besar, atau
+                      disederhanakan. Periksa hal berikut sebelum menerbitkan.
+                    </p>
+                    <ul className="space-y-2">
+                      {checks.map((check) => (
+                        <li key={check.id} className="flex items-start gap-2 text-sm">
+                          {check.ok ? (
+                            <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
+                          ) : (
+                            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" aria-hidden="true" />
+                          )}
+                          <span>
+                            <span className="sr-only">{check.ok ? "Lolos: " : "Perlu diperbaiki: "}</span>
+                            {check.label}
+                            {!check.ok && check.advice && (
+                              <span className="block text-muted-foreground">{check.advice}</span>
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {references.length > 0 && (
+                      <div className="flex items-start gap-3 pt-2 border-t">
+                        <Checkbox
+                          id="confirm-visuals"
+                          checked={confirmVisuals}
+                          onCheckedChange={(checked) => setConfirmVisuals(checked === true)}
+                          className="mt-0.5"
+                        />
+                        <Label htmlFor="confirm-visuals" className="font-normal leading-snug">
+                          Materi ini menyebut {references.join(", ")}. Isinya sudah saya jelaskan dengan
+                          kata-kata, sehingga bisa dipahami tanpa melihatnya (wajib).
+                        </Label>
+                      </div>
+                    )}
+                    <div className="flex items-start gap-3 pt-2 border-t">
+                      <Checkbox
+                        id="confirm-colors"
+                        checked={confirmColors}
+                        onCheckedChange={(checked) => setConfirmColors(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <Label htmlFor="confirm-colors" className="font-normal leading-snug">
+                        Informasi penting tidak hanya disampaikan lewat warna, letak, atau bentuk (wajib).
+                      </Label>
+                    </div>
+                  </fieldset>
+
+                  <Button type="submit" disabled={isSaving || !readyToPublish}>
                     {isSaving ? "Menyimpan..." : "Simpan dan Terbitkan"}
                   </Button>
+                  {!readyToPublish && title.trim() && content.trim() && (
+                    <p className="text-sm text-muted-foreground">
+                      Centang konfirmasi di checklist untuk menerbitkan.
+                    </p>
+                  )}
                 </form>
               </Card>
 

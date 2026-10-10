@@ -38,24 +38,24 @@ Sebuah butir baru ditandai selesai setelah lolos pemeriksaan di kolom "Selesai b
 
 | # | Butir | Selesai bila | Status |
 |---|---|---|---|
-| B1.1 | Pertanyaan onboarding berbasis kebutuhan, bukan label disabilitas | Pilihan berbunyi seperti "lebih mudah mendengar daripada melihat layar", "berkomunikasi dengan bahasa isyarat", "kesulitan membaca teks padat", "lebih nyaman mengetik daripada berbicara"; boleh memilih lebih dari satu; bisa diubah di Pengaturan | Belum |
-| B1.2 | Onboarding bisa diselesaikan tanpa melihat layar | Layar pertama langsung berbicara; bisa dilanjutkan dengan Spasi atau suara | Belum |
-| B1.3 | Persetujuan penyimpanan data kebutuhan (UU PDP 27/2022) | Ada persetujuan eksplisit sebelum data kebutuhan disimpan; tertulis siapa yang bisa melihatnya | Belum |
-| B1.4 | Beranda setelah login menjadi dashboard | Urutan: sapaan "Halo, [Nama]" dan bar aksesibilitas cepat → "Lanjutkan Belajar" → kartu fitur (termasuk Isyarat) → ringkasan mingguan Pathly → aktivitas EchoForum | Belum |
-| B1.5 | Varian dashboard per kebutuhan | Tunanetra: linier, heading semantik, mikrofon paling menonjol. Tunarungu: Isyarat di atas, notifikasi visual. Disleksia: font disleksia, baris 60–70 karakter, tanpa kapital semua atau miring. Tunawicara: mikrofon disembunyikan, input teks dan pilihan cepat | Belum |
-| B1.6 | Landing page publik memuat hero, kutipan, dan footer lengkap | Kutipan "Setiap Keterbatasan Adalah Peluang Baru" diganti dengan pesan bahwa hambatan ada di sistem dan aplikasilah yang menyesuaikan diri | Belum |
-| B1.7 | Sidebar dan dashboard berbeda per peran | Siswa tidak melihat menu guru atau admin; guru melihat "Siswa yang perlu perhatian" paling atas di Ruang Guru | Belum |
-| B1.8 | Isyarat dan Kamus Isyarat dibedakan dengan jelas | Nama dan deskripsi menjelaskan bahwa Isyarat untuk berlatih dengan kamera, Kamus untuk melihat contoh | Belum |
+| B1.1 | Pertanyaan onboarding berbasis kebutuhan, bukan label disabilitas | Pilihan berbunyi seperti "lebih mudah mendengar daripada melihat layar", "berkomunikasi dengan bahasa isyarat", "kesulitan membaca teks padat", "lebih nyaman mengetik daripada berbicara"; boleh memilih lebih dari satu; bisa diubah di Pengaturan | **Selesai**: 7 pertanyaan kebutuhan, termasuk "lebih nyaman mengetik"; bisa diubah dan diulang dari Pengaturan |
+| B1.2 | Onboarding bisa diselesaikan tanpa melihat layar | Layar pertama langsung berbicara; bisa dilanjutkan dengan Spasi atau suara | **Selesai**: tiap langkah dibacakan; dijawab dengan Y/T, tombol, atau suara ("ya", "tidak", "ulangi"). Dicek di Chrome hanya dengan keyboard |
+| B1.3 | Persetujuan penyimpanan data kebutuhan (UU PDP 27/2022) | Ada persetujuan eksplisit sebelum data kebutuhan disimpan; tertulis siapa yang bisa melihatnya | **Selesai**: tanpa persetujuan, kebutuhan hanya di perangkat; teks menyebut siapa yang bisa melihat dan bahwa suara diproses Google atau Apple |
+| B1.4 | Beranda setelah login menjadi dashboard | Urutan: sapaan "Halo, [Nama]" dan bar aksesibilitas cepat → "Lanjutkan Belajar" → kartu fitur (termasuk Isyarat) → ringkasan mingguan Pathly → aktivitas EchoForum | **Selesai**, dicek di browser dengan data nyata |
+| B1.5 | Varian dashboard per kebutuhan | Tunanetra: linier, heading semantik, mikrofon paling menonjol. Tunarungu: Isyarat di atas, notifikasi visual. Disleksia: font disleksia, baris 60–70 karakter, tanpa kapital semua atau miring. Tunawicara: mikrofon disembunyikan, input teks dan pilihan cepat | **Selesai**: tata letak satu kolom dan tombol perintah suara besar (fokus pertama) untuk tunanetra dan Mode Pembaca Layar; Isyarat di urutan pertama untuk tunarungu; teks dibatasi `max-w-prose` untuk disleksia; semua tombol mikrofon disembunyikan untuk "lebih nyaman mengetik" |
+| B1.6 | Landing page publik memuat hero, kutipan, dan footer lengkap | Kutipan "Setiap Keterbatasan Adalah Peluang Baru" diganti dengan pesan bahwa hambatan ada di sistem dan aplikasilah yang menyesuaikan diri | **Selesai**: hero, kutipan baru, dan footer ada di landing page; Beranda lama dihapus |
+| B1.7 | Sidebar dan dashboard berbeda per peran | Siswa tidak melihat menu guru atau admin; guru melihat "Siswa yang perlu perhatian" paling atas di Ruang Guru | **Selesai**: menu guru dan admin sudah hanya tampil sesuai peran; Ruang Guru menampilkan siswa dengan nilai di bawah 60%, belum pernah kuis, atau tidak aktif 7 hari |
+| B1.8 | Isyarat dan Kamus Isyarat dibedakan dengan jelas | Nama dan deskripsi menjelaskan bahwa Isyarat untuk berlatih dengan kamera, Kamus untuk melihat contoh | **Selesai**: kamus pindah menjadi tab di Isyarat, dengan tombol "Latih Huruf Ini"; kartu di Flexa menjadi pintasan |
 
 ### B2. Navigasi suara versi matang
 
 | # | Butir | Selesai bila | Status |
 |---|---|---|---|
-| B2.1 | Pilihan "Saya sudah memakai pembaca layar" | Saat aktif, suara internal mati dan umpan balik hanya lewat `aria-live`, sehingga tidak bertumpuk dengan VoiceOver, TalkBack, atau NVDA | Belum |
-| B2.2 | Pintasan keyboard mikrofon | Ctrl+M (selain Alt+M) memulai perintah suara; untuk profil tunanetra, mikrofon menjadi elemen fokus pertama | Belum |
-| B2.3 | Mode dengar terus | Setelah diaktifkan, perintah berikutnya bisa diucapkan tanpa menekan tombol, dan suara asisten sendiri tidak ikut tertangkap | Belum |
-| B2.4 | Cadangan bila browser tidak mendukung pengenalan suara | Tombol mikrofon menjelaskan alasannya dan menawarkan kotak perintah ketik | Belum |
-| B2.5 | Diuji di Safari iPhone dan iPad | Perintah utama berjalan di kedua perangkat | Belum |
+| B2.1 | Pilihan "Saya sudah memakai pembaca layar" | Saat aktif, suara internal mati dan umpan balik hanya lewat `aria-live`, sehingga tidak bertumpuk dengan VoiceOver, TalkBack, atau NVDA | **Selesai**: tanggapan asisten suara tidak disuarakan dan dikirim lewat `aria-live` |
+| B2.2 | Pintasan keyboard mikrofon | Ctrl+M (selain Alt+M) memulai perintah suara; untuk profil tunanetra, mikrofon menjadi elemen fokus pertama | **Selesai** di kode: Ctrl+M dan Alt+M; tombol perintah suara besar mendapat fokus pertama di Beranda untuk profil tunanetra. Perlu dicoba dengan mikrofon sungguhan |
+| B2.3 | Mode dengar terus | Setelah diaktifkan, perintah berikutnya bisa diucapkan tanpa menekan tombol, dan suara asisten sendiri tidak ikut tertangkap | **Terpasang**: ucapkan "dengar terus" untuk menyalakan dan "berhenti mendengar" untuk mematikan; mikrofon baru menyala lagi setelah asisten selesai bicara, dan ucapan yang sama dengan kalimat asisten diabaikan. Perlu diuji di perangkat nyata |
+| B2.4 | Cadangan bila browser tidak mendukung pengenalan suara | Tombol mikrofon menjelaskan alasannya dan menawarkan kotak perintah ketik | **Selesai**; pengguna "lebih nyaman mengetik" mendapat tombol perintah ketik sebagai ganti mikrofon |
+| B2.5 | Diuji di Safari iPhone dan iPad | Perintah utama berjalan di kedua perangkat | Dikerjakan tim (butuh perangkat) |
 
 Sudah ada dan tetap dipertahankan: perintah "bantuan" sesuai halaman, saran saat perintah tidak dikenali, menekan tombol dengan menyebut namanya.
 
@@ -63,20 +63,20 @@ Sudah ada dan tetap dipertahankan: perintah "bantuan" sesuai halaman, saran saat
 
 | # | Butir | Selesai bila | Status |
 |---|---|---|---|
-| B3.1 | Bar aksesibilitas cepat di dashboard | A−/A+, Kontras, Font Disleksia, dan Suara bisa diubah tanpa membuka Pengaturan, dan tersimpan ke akun | Belum |
-| B3.2 | Mengikuti pengaturan sistem operasi | `prefers-reduced-motion`, `prefers-contrast`, dan `prefers-color-scheme` dipakai sebagai nilai awal | Belum |
-| B3.3 | Ukuran teks satu slider | "Mode Teks Besar" dan slider lama digabung menjadi satu slider 100–200% dengan pratinjau | Belum |
-| B3.4 | "Dukungan Pembaca Layar" diganti "Mode Pembaca Layar" | Label ARIA selalu aktif; mode ini mengurangi dekorasi dan animasi serta menyederhanakan tata letak | Belum |
-| B3.5 | Pengaturan baru | Kurangi Gerakan, Caption, Notifikasi Visual, Kecepatan Suara | Belum |
+| B3.1 | Bar aksesibilitas cepat di dashboard | A−/A+, Kontras, Font Disleksia, dan Suara bisa diubah tanpa membuka Pengaturan, dan tersimpan ke akun | **Selesai** |
+| B3.2 | Mengikuti pengaturan sistem operasi | `prefers-reduced-motion`, `prefers-contrast`, dan `prefers-color-scheme` dipakai sebagai nilai awal | **Selesai**: Kurangi Gerakan dan Tema punya pilihan "Ikuti perangkat"; kontras tinggi menyala otomatis bila sistem memintanya. Tema bawaan tetap Terang sampai tampilan gelap diperiksa |
+| B3.3 | Ukuran teks satu slider | "Mode Teks Besar" dan slider lama digabung menjadi satu slider 100–200% dengan pratinjau | **Selesai** |
+| B3.4 | "Dukungan Pembaca Layar" diganti "Mode Pembaca Layar" | Label ARIA selalu aktif; mode ini mengurangi dekorasi dan animasi serta menyederhanakan tata letak | **Selesai**, digabung dengan B2.1 menjadi satu sakelar "Saya memakai pembaca layar" |
+| B3.5 | Pengaturan baru | Kurangi Gerakan, Caption, Notifikasi Visual, Kecepatan Suara | **Selesai**: caption menampilkan semua ucapan aplikasi; notifikasi visual mengganti bunyi benar/salah dengan kedipan layar |
 
 ## Tahap C: fitur tambahan bila waktu cukup (sebelum 21 Oktober)
 
 | # | Butir | Selesai bila | Status |
 |---|---|---|---|
-| C1 | Checklist aksesibilitas saat guru mengunggah materi | Materi tidak bisa diterbitkan sebelum gambar punya teks alternatif dan video punya caption | Belum |
+| C1 | Checklist aksesibilitas saat guru mengunggah materi | Materi tidak bisa diterbitkan sebelum gambar punya teks alternatif dan video punya caption | **Selesai**, disesuaikan: materi guru berupa teks, jadi checklist memeriksa judul, panjang paragraf dan kalimat, huruf kapital semua, dan rujukan ke gambar/tabel/video. Terbit hanya setelah guru mengonfirmasi rujukan visual sudah dijelaskan dengan kata-kata dan informasi tidak hanya lewat warna |
 | C2 | Isyarat: model SIBI terpasang, mode eja kata, tampilan keyakinan | Lihat bagian Isyarat di bawah | **Terpasang**, menunggu uji dengan tangan sungguhan |
-| C3 | EyeRead: sorot kata saat dibacakan | Kata yang sedang diucapkan tersorot dan ikut bergulir | Belum |
-| C4 | Audit log admin | Setiap blokir, buka blokir, angkat atau cabut guru, dan hapus konten tercatat dengan pelaku dan waktunya; aksi ini selalu meminta konfirmasi | Belum |
+| C3 | EyeRead: sorot kata saat dibacakan | Kata yang sedang diucapkan tersorot dan ikut bergulir | **Terpasang** di tab Teks dan Audio EyeRead. Dengan suara AI posisinya diperkirakan dari waktu audio; dengan suara perangkat dipakai posisi kata asli bila browser mengirimnya. Perlu dicoba dengan hasil pindai sungguhan |
+| C4 | Audit log admin | Setiap blokir, buka blokir, angkat atau cabut guru, dan hapus konten tercatat dengan pelaku dan waktunya; aksi ini selalu meminta konfirmasi | **Selesai**: dicatat oleh trigger database (tidak bisa diubah dari aplikasi), tab Log Aktivitas di Dashboard Admin, dan dialog konfirmasi untuk angkat/cabut guru, blokir/buka blokir, dan hapus konten |
 
 ## Isyarat (SIBI)
 
