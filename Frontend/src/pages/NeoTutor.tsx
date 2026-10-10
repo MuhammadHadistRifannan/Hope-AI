@@ -462,7 +462,7 @@ export default function NeoTutor() {
                 size="icon"
                 onClick={startListening}
                 className={isListening ? "bg-red-100 text-red-600 border-red-200" : ""}
-                title="Input Suara (Voice Note)"
+                title="Bicara untuk bertanya"
                 aria-label={isListening ? "Hentikan input suara" : "Mulai input suara"}
                 aria-pressed={isListening}
               >

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BookOpen, Mail, Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Github } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -20,7 +20,7 @@ export default function Footer() {
               </div>
               <div>
                 <h3 className="text-xl font-cherry text-white tracking-tight">Hope.Ai</h3>
-                <p className="text-[10px] text-blue-200 font-medium uppercase tracking-wider">AI Untuk Pendidikan Inklusif</p>
+                <p className="text-xs text-blue-200 font-medium">AI untuk Pendidikan Inklusif</p>
               </div>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
@@ -80,70 +80,38 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                  Panduan Pengguna
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                  Kebijakan Privasi
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">
-                  Syarat & Ketentuan
+                <a
+                  href="https://github.com/MuhammadHadistRifannan/Hope-AI#readme"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Panduan Pengguna<span className="sr-only"> (membuka tab baru)</span>
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* 4. KONTAK & SOSMED */}
+          {/* 4. PROYEK */}
           <div>
-            <h4 className="font-semibold text-white mb-6">Hubungi Kami</h4>
-            <div className="flex flex-col gap-4">
-              <a 
-                href="mailto:halo@hope-ai.edu" 
-                className="flex items-center gap-3 text-sm text-slate-400 hover:text-white transition-colors bg-slate-800/50 p-3 rounded-lg border border-slate-800 hover:border-slate-700"
-              >
-                <Mail className="w-4 h-4 text-blue-500" />
-                halo@hope-ai.edu
-              </a>
-
-              <div className="pt-2">
-                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">Social Media</p>
-                <div className="flex gap-3">
-                  <SocialLink href="#" icon={<Facebook className="w-4 h-4" />} />
-                  <SocialLink href="#" icon={<Twitter className="w-4 h-4" />} />
-                  <SocialLink href="#" icon={<Instagram className="w-4 h-4" />} />
-                  <SocialLink href="#" icon={<Youtube className="w-4 h-4" />} />
-                </div>
-              </div>
-            </div>
+            <h4 className="font-semibold text-white mb-6">Proyek</h4>
+            <a
+              href="https://github.com/MuhammadHadistRifannan/Hope-AI"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 text-sm text-slate-300 hover:text-white transition-colors bg-slate-800/50 p-3 rounded-lg border border-slate-700 hover:border-slate-500"
+            >
+              <Github className="w-4 h-4" aria-hidden="true" />
+              Kode sumber di GitHub<span className="sr-only"> (membuka tab baru)</span>
+            </a>
           </div>
         </div>
 
         {/* COPYRIGHT */}
-        <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>&copy; {new Date().getFullYear()} Hope.Ai Inc. Mewujudkan Pendidikan Tanpa Batas.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-slate-300 transition-colors">Privacy</a>
-            <a href="#" className="hover:text-slate-300 transition-colors">Terms</a>
-            <a href="#" className="hover:text-slate-300 transition-colors">Sitemap</a>
-          </div>
+        <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+          <p>&copy; {new Date().getFullYear()} Tim Hope.Ai. Dibuat untuk UINIC 8.0.</p>
         </div>
       </div>
     </footer>
-  );
-}
-
-// Komponen Kecil untuk Social Link
-function SocialLink({ href, icon }: { href: string; icon: React.ReactNode }) {
-  return (
-    <a 
-      href={href} 
-      className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm hover:shadow-blue-500/25 hover:-translate-y-1"
-    >
-      {icon}
-    </a>
   );
 }

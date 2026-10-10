@@ -1,29 +1,30 @@
-// Mengubah 21 titik tangan dari MediaPipe menjadi vektor ciri yang tidak
-// bergantung pada posisi tangan di layar, jaraknya dari kamera, atau tangan
-// kiri/kanan. Halaman Isyarat memakai fungsi ini baik saat merekam data latih
-// maupun saat mengenali, sehingga model selalu melihat bentuk ciri yang sama.
+// Mengubah 21 titik tangan dari MediaPipe menjadi 63 angka masukan model.
+// Harus identik dengan fungsi normalize() di ml/sibi/sibi_training.ipynb:
+//   1. koordinat piksel: x * lebar, y * tinggi, z * lebar
+//   2. titik 0 (pergelangan) menjadi pusat
+//   3. dibagi jarak titik 0 ke titik 9 di bidang xy
+// Tanpa normalisasi rotasi dan tanpa pencerminan (model dilatih dengan
+// augmentasi tangan kiri dan kanan).
 
 export type Point = { x: number; y: number; z: number };
 
 export const LANDMARK_COUNT = 21;
-export const FEATURE_SIZE = LANDMARK_COUNT * 3;
+export const FEATURE_SIZE = 63;
 
-export const toFeatures = (landmarks: Point[], handedness: string): number[] | null => {
-  if (landmarks.length !== LANDMARK_COUNT) return null;
+// Titik MediaPipe bernilai 0..1 terhadap ukuran gambar; model memakai piksel
+export const toPixels = (landmarks: Point[], width: number, height: number): Point[] =>
+  landmarks.map((p) => ({ x: p.x * width, y: p.y * height, z: p.z * width }));
 
-  const wrist = landmarks[0];
-  // Tangan kiri dicerminkan supaya tampak seperti tangan kanan
-  const mirror = handedness === "Left" ? -1 : 1;
+export const normalizeLandmarks = (pixels: Point[]): number[] | null => {
+  if (pixels.length !== LANDMARK_COUNT) return null;
 
-  const relative = landmarks.map((p) => ({
-    x: (p.x - wrist.x) * mirror,
-    y: p.y - wrist.y,
-    z: p.z - wrist.z,
-  }));
+  const origin = pixels[0];
+  const centered = pixels.map((p) => ({ x: p.x - origin.x, y: p.y - origin.y, z: p.z - origin.z }));
+  let scale = Math.hypot(centered[9].x, centered[9].y);
+  if (scale < 1e-6) scale = 1;
 
-  // Skala: jarak terjauh dari pergelangan, supaya ukuran tangan tidak berpengaruh
-  const scale = Math.max(...relative.map((p) => Math.hypot(p.x, p.y, p.z)));
-  if (!Number.isFinite(scale) || scale < 1e-6) return null;
-
-  return relative.flatMap((p) => [p.x / scale, p.y / scale, p.z / scale]);
+  return centered.flatMap((p) => [p.x / scale, p.y / scale, p.z / scale]);
 };
+
+export const toFeatures = (landmarks: Point[], width: number, height: number) =>
+  normalizeLandmarks(toPixels(landmarks, width, height));

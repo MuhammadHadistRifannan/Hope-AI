@@ -273,6 +273,7 @@ export default function DocumentQuiz({ title, text, onClose }: Props) {
             size="icon"
             onClick={requestVoiceInput}
             aria-label="Jawab dengan suara. Katakan A, B, C, atau D, lalu lanjut."
+            title="Jawab dengan suara"
           >
             <Mic className="w-5 h-5" aria-hidden="true" />
           </Button>

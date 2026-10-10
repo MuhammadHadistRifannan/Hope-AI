@@ -23,6 +23,7 @@ const cardCss = `
 }
 
 .card {
+  position: relative;
   height: 100%;
   min-height: 320px;
   border-radius: 50px;
@@ -45,9 +46,11 @@ const cardCss = `
   transition: all 0.5s ease-in-out;
 }
 
+/* Teks selalu di depan lingkaran dekorasi (lingkaran paling atas di 120px) */
 .content {
-  padding: 100px 40px 0px 30px;
-  transform: translate3d(0, 0, 26px);
+  position: relative;
+  padding: 100px 40px 70px 30px;
+  transform: translate3d(0, 0, 130px);
 }
 
 .content .title {
@@ -74,7 +77,7 @@ const cardCss = `
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  transform: translate3d(0, 0, 26px);
+  transform: translate3d(0, 0, 130px);
 }
 
 .bottom .view-more {
@@ -90,20 +93,9 @@ const cardCss = `
   transform: translate3d(0, 0, 10px);
 }
 
-.bottom .view-more .view-more-button {
-  background: none;
-  border: none;
-  font-weight: bolder;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.bottom .view-more .svg {
-  fill: none;
-  stroke-width: 3px;
-  max-height: 15px;
-  margin-left: 8px;
+.bottom .view-more .view-more-label {
+  font-weight: 700;
+  font-size: 15px;
 }
 
 .logo {
@@ -141,20 +133,27 @@ const cardCss = `
 .parent:hover .card .logo .circle3 { transform: translate3d(0, 0, 80px); }
 .parent:hover .card .logo .circle4 { transform: translate3d(0, 0, 100px); }
 .parent:hover .card .logo .circle5 { transform: translate3d(0, 0, 120px); }
+
+.parent:focus-within .card { outline: 3px solid #1d4ed8; outline-offset: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card, .glass, .logo .circle, .bottom .view-more { transition: none; }
+  .parent:hover .card { transform: none; }
+}
 `;
 
 // --- 3D CARD COMPONENT ---
 const ThreeDCard = ({ feature }: { feature: any }) => {
   return (
     <div className={`parent group w-full ${feature.colSpan}`}>
-      <Link to={feature.href} className="block h-full">
+      <Link to={feature.href} className="block h-full rounded-[50px] focus:outline-none">
         {/* Card Background dynamically applied from props */}
         <div className={`card bg-gradient-to-br ${feature.bgGradient}`}>
           
-          <div className="glass"></div>
+          <div className="glass" aria-hidden="true"></div>
 
           {/* Logo Section */}
-          <div className="logo">
+          <div className="logo" aria-hidden="true">
             <span className="circle circle1"></span>
             <span className="circle circle2"></span>
             <span className="circle circle3"></span>
@@ -173,17 +172,10 @@ const ThreeDCard = ({ feature }: { feature: any }) => {
           {/* Bottom Section */}
           <div className="bottom">
             <div className="view-more">
-              <button className={`view-more-button ${feature.textColor}`}>View more</button>
-              <svg 
-                className={`svg ${feature.iconColor.replace('text-', 'stroke-')}`} 
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                stroke="currentColor"
-              >
-                <path d="m6 9 6 6 6-6"></path>
-              </svg>
+              <span className={`view-more-label flex items-center gap-2 ${feature.textColor}`}>
+                Buka {feature.name}
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </span>
             </div>
           </div>
         </div>
@@ -196,35 +188,35 @@ const ThreeDCard = ({ feature }: { feature: any }) => {
 const features = [
   {
     name: "EyeRead",
-    description: "OCR canggih untuk mengubah teks fisik menjadi suara digital seketika.",
+    description: "Arahkan kamera ke buku atau papan tulis, lalu dengarkan isinya.",
     icon: Camera,
     href: "/eyeread",
     colSpan: "md:col-span-8",
     bgGradient: "from-[#ccfbf1] to-[#2dd4bf]", // Tealish green like reference
-    textColor: "text-[#0f766e]", // Dark teal text
-    descColor: "text-[#115e59]",
-    iconColor: "text-[#0f766e]",
+    textColor: "text-[#042f2e]",
+    descColor: "text-[#042f2e]",
+    iconColor: "text-[#042f2e]",
   },
   {
     name: "NeoTutor",
-    description: "Mentor AI pribadi 24/7 yang siap menjawab pertanyaanmu.",
+    description: "Tutor AI yang siap menjawab pertanyaanmu kapan saja.",
     icon: MessageSquare,
     href: "/neotutor",
     colSpan: "md:col-span-4",
     bgGradient: "from-[#e0e7ff] to-[#818cf8]", // Indigo
-    textColor: "text-[#3730a3]",
-    descColor: "text-[#312e81]",
-    iconColor: "text-[#3730a3]",
+    textColor: "text-[#1e1b4b]",
+    descColor: "text-[#1e1b4b]",
+    iconColor: "text-[#1e1b4b]",
   },
   {
     name: "Flexa",
-    description: "Materi adaptif & Kamus Isyarat inklusif.",
+    description: "Materi yang bisa dibaca, didengar, disederhanakan, dan kamus isyarat SIBI.",
     icon: BookOpen,
     href: "/flexa",
     colSpan: "md:col-span-4",
     bgGradient: "from-[#dcfce7] to-[#4ade80]", // Green
     textColor: "text-[#14532d]",
-    descColor: "text-[#166534]",
+    descColor: "text-[#14532d]",
     iconColor: "text-[#14532d]",
   },
   {
@@ -234,9 +226,9 @@ const features = [
     href: "/pathly",
     colSpan: "md:col-span-4",
     bgGradient: "from-[#ffedd5] to-[#fb923c]", // Orange
-    textColor: "text-[#7c2d12]",
-    descColor: "text-[#9a3412]",
-    iconColor: "text-[#7c2d12]",
+    textColor: "text-[#431407]",
+    descColor: "text-[#431407]",
+    iconColor: "text-[#431407]",
   },
   {
     name: "EchoForum",
@@ -245,9 +237,9 @@ const features = [
     href: "/forum",
     colSpan: "md:col-span-4",
     bgGradient: "from-[#fae8ff] to-[#e879f9]", // Fuchsia
-    textColor: "text-[#701a75]",
-    descColor: "text-[#86198f]",
-    iconColor: "text-[#701a75]",
+    textColor: "text-[#4a044e]",
+    descColor: "text-[#4a044e]",
+    iconColor: "text-[#4a044e]",
   },
 ];
 
@@ -461,37 +453,23 @@ export default function Home() {
           <div className="relative z-10 p-12 md:p-20 grid md:grid-cols-2 gap-8 items-center">
             <div className="text-white space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/10 text-sm font-medium text-white/90 w-fit">
-                <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" />
-                <span>Kutipan Hari Ini</span>
+                <Star className="w-4 h-4 text-yellow-300 fill-yellow-300" aria-hidden="true" />
+                <span>Cara Kami Memandang</span>
               </div>
 
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                "Setiap Keterbatasan Adalah{" "}
+                Hambatan Ada di Sistem,{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">
-                  Peluang Baru
+                  Bukan di Dirimu
                 </span>
-                "
               </h2>
 
               <p className="text-lg text-blue-100/90 leading-relaxed max-w-lg">
-                Jangan biarkan hambatan fisik membatasi mimpimu. Di Hope.Ai,
-                kami percaya bahwa pendidikan adalah hak semua orang, dan
-                teknologi ada untuk meruntuhkan dinding penghalang itu.
+                Materi yang hanya bisa dilihat, didengar, atau dibaca dengan satu cara
+                membuat sebagian siswa tertinggal. Hope.Ai menyesuaikan diri dengan
+                caramu belajar: lewat suara, teks, bahasa sederhana, atau isyarat.
               </p>
 
-              <div className="pt-4 flex items-center gap-4">
-                <div className="flex -space-x-4">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-full border-2 border-purple-900 bg-white/20 backdrop-blur-sm"
-                    />
-                  ))}
-                </div>
-                <p className="text-sm font-medium text-white/80">
-                  Bergabung dengan 10,000+ Pelajar Lainnya
-                </p>
-              </div>
             </div>
 
             {/* Ilustrasi Dekoratif Kanan */}

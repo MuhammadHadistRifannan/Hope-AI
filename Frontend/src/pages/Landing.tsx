@@ -11,76 +11,76 @@ const features = [
     name: "EyeRead",
     tagline: "Ubah Teks Fisik Jadi Digital",
     description:
-      "Teknologi OCR canggih yang membaca buku, dokumen, dan papan tulis secara instan. Membantu teman netra 'melihat' dunia melalui suara.",
+      "Arahkan kamera ke buku, dokumen, atau papan tulis. EyeRead membaca tulisannya dan membacakannya dengan suara, lalu bisa diringkas atau dijadikan kuis.",
     href: "/eyeread",
     gif: "/gif/animasi-landing1.gif",
     // Analisis: Teal/Emerald theme (based on Home.tsx config for EyeRead)
     color: "green",
     gradient: "from-emerald-500/20 to-teal-500/20",
     checkpoints: [
-      "Scan instan presisi tinggi",
-      "Output suara natural",
-      "Mode kontras tinggi",
+      "Pindai dengan kamera atau unggah berkas",
+      "Dibacakan dengan suara",
+      "Bisa dikendalikan dengan perintah suara",
     ],
   },
   {
     name: "NeoTutor",
-    tagline: "Mentor AI Pribadi 24/7",
+    tagline: "Tutor AI yang Siap Kapan Saja",
     description:
-      "Belajar tidak pernah sendirian. NeoTutor siap menjawab pertanyaan sulit, menjelaskan konsep rumit, dan menemani proses belajarmu kapan saja.",
+      "Tanyakan apa saja dengan mengetik atau berbicara. NeoTutor mengingat percakapanmu dan bisa membahas materi atau dokumen yang sedang kamu pelajari.",
     href: "/neotutor",
     gif: "/gif/animasi-landing2.gif",
     // Analisis: Purple/Indigo theme
     color: "blue",
     gradient: "from-sky-400/40 to-cyan-400/40",
     checkpoints: [
-      "Penjelasan adaptif",
-      "Dukungan bahasa isyarat",
-      "Ramah & sabar",
+      "Bertanya dengan suara atau teks",
+      "Mengingat percakapan sebelumnya",
+      "Membahas dokumen milikmu",
     ],
   },
   {
     name: "Flexa",
     tagline: "Materi Belajar Adaptif",
     description:
-      "Satu materi, berbagai format. Flexa mengubah teks pelajaran menjadi ringkasan, audio, atau visual yang ramah disleksia sesuai kebutuhanmu.",
+      "Satu materi, berbagai cara belajar. Flexa menyajikan materi sebagai bacaan, audio, ringkasan, atau versi bahasa sederhana, dilengkapi kamus isyarat SIBI.",
     href: "/flexa",
     gif: "/gif/animasi-landing3.gif",
     // Analisis: Green theme
     color: "yellow",
     gradient: "from-green-500/20 to-emerald-500/20",
     checkpoints: [
-      "Simplifikasi teks otomatis",
-      "Konversi Text-to-Speech",
-      "Font ramah disleksia",
+      "Versi bahasa sederhana",
+      "Materi dibacakan dengan suara",
+      "Huruf ramah disleksia",
     ],
   },
   {
     name: "Pathly",
     tagline: "Peta Belajar Terarah",
     description:
-      "Bingung mulai dari mana? Pathly membuatkan kurikulum khusus berdasarkan minat dan bakatmu. Langkah demi langkah menuju kesuksesan.",
+      "Bingung mulai dari mana? Pathly menyusun materi menjadi peta belajar. Selesaikan kuis di tiap level untuk membuka level berikutnya, sambil mengumpulkan XP.",
     href: "/pathly",
     gif: "/gif/animasi-landing4.gif",
     // Analisis: Orange/Amber theme
     color: "red",
     gradient: "from-orange-500/20 to-amber-500/20",
-    checkpoints: ["Roadmap personal", "Tracking progress", "Rekomendasi karir"],
+    checkpoints: ["Peta belajar bertahap", "Kemajuan tercatat di profil", "Kuis bisa dijawab dengan suara"],
   },
   {
     name: "EchoForum",
     tagline: "Komunitas Tanpa Sekat",
     description:
-      "Ruang aman untuk berdiskusi, berbagi cerita, dan saling menguatkan. Temukan teman seperjuangan dalam lingkungan yang inklusif.",
+      "Ruang untuk bertanya dan berdiskusi dengan teman belajar. Setiap postingan dan komentar bisa dibacakan dengan suara.",
     href: "/forum",
     gif: "/gif/animasi-landing5.gif",
     // Analisis: Indigo/Fuchsia theme
     color: "blue",
     gradient: "from-sky-400/40 to-cyan-400/40",
     checkpoints: [
-      "Diskusi moderasi AI",
-      "Grup minat khusus",
-      "Event komunitas",
+      "Postingan bisa dibacakan",
+      "Notifikasi saat ada balasan",
+      "Dimoderasi admin",
     ],
   },
 ];

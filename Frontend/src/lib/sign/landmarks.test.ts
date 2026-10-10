@@ -1,62 +1,65 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { FEATURE_SIZE, toFeatures, type Point } from "./landmarks";
+import { normalizeLandmarks, toFeatures, toPixels, type Point } from "./landmarks";
 import { predict, type SignModel } from "./classifier";
 
-const hand = (dx = 0, dy = 0, scale = 1): Point[] =>
+const hand = (offsetX = 0, offsetY = 0, size = 1): Point[] =>
   Array.from({ length: 21 }, (_, i) => ({
-    x: dx + scale * (0.01 * i + 0.002 * (i % 4)),
-    y: dy - scale * 0.012 * i,
-    z: scale * 0.001 * (i % 5),
+    x: offsetX + size * Math.cos(i) * (i % 5 + 1),
+    y: offsetY + size * (i + 1),
+    z: size * (i % 3) * 0.1,
   }));
 
-describe("toFeatures", () => {
-  it("menghasilkan 63 nilai dengan pergelangan di titik nol", () => {
-    const features = toFeatures(hand(0.3, 0.6), "Right")!;
-    expect(features).toHaveLength(FEATURE_SIZE);
+describe("normalizeLandmarks", () => {
+  it("menjadikan pergelangan pusat dan jarak titik 0-9 bernilai 1", () => {
+    const features = normalizeLandmarks(hand(5, 7, 3))!;
     expect(features.slice(0, 3)).toEqual([0, 0, 0]);
+    expect(Math.hypot(features[27], features[28])).toBeCloseTo(1, 6);
   });
 
-  it("tidak terpengaruh posisi tangan di layar maupun jaraknya dari kamera", () => {
-    const a = toFeatures(hand(0.1, 0.2, 1), "Right")!;
-    const b = toFeatures(hand(0.7, 0.8, 2.5), "Right")!;
+  it("tidak berubah oleh posisi dan ukuran tangan di layar", () => {
+    const a = normalizeLandmarks(hand(0, 0, 1))!;
+    const b = normalizeLandmarks(hand(40, -12, 2.5))!;
     a.forEach((value, i) => expect(b[i]).toBeCloseTo(value, 6));
   });
 
-  it("mencerminkan tangan kiri sehingga sama dengan tangan kanan", () => {
-    const right = hand(0.5, 0.5);
-    const left = right.map((p) => ({ ...p, x: 1 - p.x }));
-    const a = toFeatures(right, "Right")!;
-    const b = toFeatures(left, "Left")!;
-    a.forEach((value, i) => expect(b[i]).toBeCloseTo(value, 6));
+  it("menolak jumlah titik yang salah", () => {
+    expect(normalizeLandmarks(hand().slice(0, 20))).toBeNull();
   });
 
-  it("menolak masukan yang tidak lengkap atau tangan berukuran nol", () => {
-    expect(toFeatures(hand().slice(0, 10), "Right")).toBeNull();
-    expect(toFeatures(Array.from({ length: 21 }, () => ({ x: 1, y: 1, z: 0 })), "Right")).toBeNull();
+  it("mengubah koordinat 0..1 menjadi piksel seperti notebook", () => {
+    const [p] = toPixels([{ x: 0.5, y: 0.25, z: -0.1 }], 640, 480);
+    expect(p).toEqual({ x: 320, y: 120, z: -64 });
+    expect(toFeatures(hand(), 640, 480)).toHaveLength(63);
   });
 });
 
-describe("predict", () => {
-  // Model dua kelas dengan dua ciri: kelas ditentukan oleh ciri yang lebih besar
-  const model: SignModel = {
-    labels: ["A", "B"],
-    mean: [0, 0],
-    std: [1, 1],
-    layers: [
-      { weights: [[1, 0], [0, 1]], bias: [0, 0] },
-      { weights: [[4, -4], [-4, 4]], bias: [0, 0] },
-    ],
-  };
+// Memastikan normalisasi dan inferensi di browser sama dengan notebook:
+// model hasil Colab dijalankan pada landmark yang dipakai melatihnya.
+describe("model SIBI", () => {
+  const root = resolve(__dirname, "../../../..");
+  const model: SignModel = JSON.parse(readFileSync(resolve(root, "models/sibi-abjad.json"), "utf8"));
+  const [header, ...lines] = readFileSync(resolve(root, "models/landmarks_from_images.csv"), "utf8")
+    .trim()
+    .split("\n");
+  const columns = header.split(",");
+  const firstX = columns.indexOf("x0");
 
-  it("memilih kelas dengan skor tertinggi dan keyakinan antara 0 dan 1", () => {
-    expect(predict(model, [2, 0]).label).toBe("A");
-    expect(predict(model, [0, 2]).label).toBe("B");
-    const { confidence } = predict(model, [2, 0]);
-    expect(confidence).toBeGreaterThan(0.99);
-    expect(confidence).toBeLessThanOrEqual(1);
-  });
-
-  it("kurang yakin saat masukan berada di tengah-tengah", () => {
-    expect(predict(model, [1, 1]).confidence).toBeCloseTo(0.5, 5);
+  it("mengenali landmark data latih dengan akurasi seperti di notebook", () => {
+    // Satu dari tiap 5 baris, agar tes tetap cepat
+    const sample = lines.filter((_, i) => i % 5 === 0);
+    let correct = 0;
+    for (const line of sample) {
+      const cells = line.split(",");
+      const values = cells.slice(firstX, firstX + 63).map(Number);
+      const points = Array.from({ length: 21 }, (_, i) => ({
+        x: values[i * 3],
+        y: values[i * 3 + 1],
+        z: values[i * 3 + 2],
+      }));
+      if (predict(model, normalizeLandmarks(points)!).label === cells[0]) correct++;
+    }
+    expect(correct / sample.length).toBeGreaterThan(0.93);
   });
 });

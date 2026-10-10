@@ -110,7 +110,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </a>
 
       {/* Sidebar: hanya di tablet dan desktop */}
-      <aside className="hidden md:flex w-20 lg:w-64 bg-gradient-to-b from-primary via-primary to-secondary text-primary-foreground fixed h-screen flex-col border-r border-white/10 shadow-2xl z-40 transition-all duration-300">
+      <aside className="hidden md:flex w-20 lg:w-64 bg-gradient-to-b from-primary to-[#1e3a8a] text-primary-foreground fixed h-screen flex-col border-r border-white/10 shadow-2xl z-40 transition-all duration-300">
         {/* Logo Section */}
         <div className="p-4 lg:p-6 border-b border-white/10">
           <Link to="/" aria-label="Hope.Ai, ke Beranda" className="flex items-center gap-3 group">
@@ -133,7 +133,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Main Navigation */}
         <nav aria-label="Menu utama" className="flex-1 p-3 lg:p-4 overflow-y-auto space-y-6">
           <div className="space-y-1.5">
-            <p className="px-4 text-xs font-semibold text-primary-foreground/50 uppercase tracking-wider hidden lg:block mb-2">
+            <p className="px-4 text-xs font-semibold text-primary-foreground/80 uppercase tracking-wider hidden lg:block mb-2">
               Menu Utama
             </p>
             {navigation.map((item) => {
@@ -168,7 +168,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Secondary Navigation */}
           <div className="pt-4 border-t border-white/10">
-            <p className="px-4 text-xs font-semibold text-primary-foreground/50 uppercase tracking-wider hidden lg:block mb-2">
+            <p className="px-4 text-xs font-semibold text-primary-foreground/80 uppercase tracking-wider hidden lg:block mb-2">
               Lainnya
             </p>
             <div className="space-y-1.5">

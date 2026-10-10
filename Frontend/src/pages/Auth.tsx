@@ -131,7 +131,7 @@ export default function Auth() {
             >
               <img 
                 src={penguinGif} 
-                alt="Hope AI Mascot" 
+                alt="" 
                 className="w-80 h-80 object-contain drop-shadow-2xl"
               />
             </motion.div>
@@ -156,7 +156,7 @@ export default function Auth() {
             </h1>
             
             <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-              Bergabunglah dengan ribuan siswa lainnya dan rasakan pengalaman belajar yang adaptif dan inklusif bersama Hope AI.
+              Belajar dengan cara yang paling cocok untukmu: lewat suara, teks, bahasa sederhana, atau isyarat, bersama Hope.Ai.
             </p>
           </div>
         </motion.div>

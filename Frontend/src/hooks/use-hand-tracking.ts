@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
 import type { Point } from "@/lib/sign/landmarks";
 
-export type HandFrame = { landmarks: Point[]; handedness: string } | null;
+// width dan height: ukuran asli gambar kamera, dipakai untuk koordinat piksel
+export type HandFrame = { landmarks: Point[]; handedness: string; width: number; height: number } | null;
 
 type Status = "idle" | "loading" | "ready" | "error";
 
@@ -65,6 +66,8 @@ export function useHandTracking(
                 ? {
                     landmarks,
                     handedness: result.handedness?.[0]?.[0]?.categoryName ?? "Right",
+                    width: video.videoWidth,
+                    height: video.videoHeight,
                   }
                 : null,
               now

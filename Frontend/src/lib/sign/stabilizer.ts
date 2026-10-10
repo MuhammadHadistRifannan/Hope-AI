@@ -11,7 +11,7 @@ export type StabilizerOptions = {
 };
 
 export const defaultStabilizerOptions: StabilizerOptions = {
-  minConfidence: 0.8,
+  minConfidence: 0.7,
   holdMs: 700,
   releaseMs: 350,
 };
