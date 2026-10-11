@@ -306,3 +306,144 @@ All colors MUST be HSL.
 .visual-cue {
   animation: visual-cue 0.45s ease-in-out 2;
 }
+
+/* Landing page: teks putih bergaris tepi gelap, terbaca di atas latar apa pun tanpa kotak */
+.pixel-text {
+  color: #fff;
+  text-shadow:
+    2px 0 #0a1a4f, -2px 0 #0a1a4f, 0 2px #0a1a4f, 0 -2px #0a1a4f,
+    2px 2px #0a1a4f, -2px -2px #0a1a4f, 2px -2px #0a1a4f, -2px 2px #0a1a4f,
+    4px 5px 0 rgba(10, 26, 79, 0.55);
+}
+.pixel-text-lg {
+  color: #fff;
+  text-shadow:
+    3px 0 #0a1a4f, -3px 0 #0a1a4f, 0 3px #0a1a4f, 0 -3px #0a1a4f,
+    3px 3px #0a1a4f, -3px -3px #0a1a4f, 3px -3px #0a1a4f, -3px 3px #0a1a4f,
+    7px 8px 0 rgba(10, 26, 79, 0.55);
+}
+/* Pita kaki halaman: biru malam hampir pekat dengan tepi atas bertingkat ala pixel */
+.pixel-footer {
+  margin-top: auto;
+  background-color: rgba(10, 26, 79, 0.9);
+  border-top: 4px solid #0a1a4f;
+  box-shadow: 0 -4px 0 rgba(255, 255, 255, 0.35), 0 -8px 0 rgba(10, 26, 79, 0.9);
+}
+
+/* Tombol pixel art: sudut bertingkat, sisi terang di atas-kiri, gelap di bawah-kanan,
+   dan corak titik-titik seperti ubin game. Warna diatur lewat --pb-*. */
+.pixel-button {
+  --px: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--px) solid #0a1a4f;
+  background-color: var(--pb-base);
+  background-image:
+    linear-gradient(45deg, var(--pb-dot) 25%, transparent 25%, transparent 75%, var(--pb-dot) 75%),
+    linear-gradient(45deg, var(--pb-dot) 25%, transparent 25%, transparent 75%, var(--pb-dot) 75%);
+  background-size: calc(var(--px) * 2) calc(var(--px) * 2);
+  background-position: 0 0, var(--px) var(--px);
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--pb-light),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--pb-dark),
+    inset 0 calc(var(--px) * -2) 0 var(--pb-dark);
+  clip-path: polygon(
+    0 calc(var(--px) * 2), var(--px) calc(var(--px) * 2), var(--px) var(--px), calc(var(--px) * 2) var(--px), calc(var(--px) * 2) 0,
+    calc(100% - var(--px) * 2) 0, calc(100% - var(--px) * 2) var(--px), calc(100% - var(--px)) var(--px), calc(100% - var(--px)) calc(var(--px) * 2), 100% calc(var(--px) * 2),
+    100% calc(100% - var(--px) * 2), calc(100% - var(--px)) calc(100% - var(--px) * 2), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px) * 2) calc(100% - var(--px)), calc(100% - var(--px) * 2) 100%,
+    calc(var(--px) * 2) 100%, calc(var(--px) * 2) calc(100% - var(--px)), var(--px) calc(100% - var(--px)), var(--px) calc(100% - var(--px) * 2), 0 calc(100% - var(--px) * 2)
+  );
+  image-rendering: pixelated;
+  /* Ukuran dasar: tombol kecil di navigasi */
+  min-height: 2.75rem;
+  padding: 0.5rem 0.9rem;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+}
+.pixel-button-md {
+  padding: 1rem 1.4rem;
+  font-size: 12px;
+}
+.pixel-button-lg {
+  --px: 6px;
+  padding: 1.75rem 1.5rem;
+}
+@media (min-width: 768px) {
+  .pixel-button {
+    padding: 0.9rem 1.6rem;
+    font-size: 14px;
+  }
+  .pixel-button-md {
+    padding: 1.1rem 1.8rem;
+  }
+  .pixel-button-lg {
+    --px: 8px;
+    padding: 2.25rem 2rem;
+  }
+}
+.pixel-button-blue {
+  --pb-base: #2f6fe4;
+  --pb-dot: #2a63d0;
+  --pb-light: #7fb2ff;
+  --pb-dark: #1b3f9c;
+}
+.pixel-button-green {
+  --pb-base: #22a84f;
+  --pb-dot: #1e9746;
+  --pb-light: #7be495;
+  --pb-dark: #13703a;
+}
+.pixel-button:hover {
+  filter: brightness(1.12);
+}
+.pixel-button:active {
+  box-shadow:
+    inset var(--px) var(--px) 0 var(--pb-dark),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 var(--pb-light);
+}
+/* Garis fokus digambar di tepi tombol, karena bentuk bertingkat memotong garis luar */
+.pixel-button:focus-visible {
+  outline: none;
+  border-color: #fcd34d;
+  box-shadow: inset 0 0 0 var(--px) #0a1a4f, inset 0 0 0 calc(var(--px) * 2) #ffffff;
+}
+
+/* Ombak berjalan huruf demi huruf: huruf yang mendapat giliran naik dan membesar,
+   lalu turun pelan saat huruf berikutnya naik. Huruf lain diam. */
+.wave-letter {
+  display: inline-block;
+  transform-origin: 50% 85%;
+  transition: transform 0.32s ease-out;
+}
+.wave-letter-up {
+  transform: translateY(-0.24em) scale(1.38);
+  transition-duration: 0.14s;
+}
+@keyframes cta-bounce {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-10px) rotate(1.5deg); }
+}
+.cta-bounce {
+  animation: cta-bounce 2.4s ease-in-out infinite;
+}
+
+/* Cadangan sebelum JavaScript jalan: ikuti permintaan sistem untuk mengurangi gerakan */
+@media (prefers-reduced-motion: reduce) {
+  .wave-letter {
+    transform: none;
+    transition: none;
+  }
+  .cta-bounce {
+    animation: none;
+  }
+}
+
+/* Sentuhan: tanpa jeda ketuk ganda dan tanpa kilatan abu-abu bawaan browser */
+a,
+button,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

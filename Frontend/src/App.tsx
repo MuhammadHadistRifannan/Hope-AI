@@ -3,7 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from "react-router-dom";
+import { nextPath } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import Layout from "./components/Layout";
@@ -31,6 +32,12 @@ import AccessibilityAnnouncer from "./components/AccessibilityAnnouncer";
 import { MotionConfig } from "framer-motion";
 
 const queryClient = new QueryClient();
+
+// Sudah masuk: lanjut ke halaman yang diminta lewat ?next=, atau ke Beranda
+function AfterLogin() {
+  const [searchParams] = useSearchParams();
+  return <Navigate to={nextPath(searchParams.get("next"))} replace />;
+}
 
 function App() {
   const [showLoading, setShowLoading] = useState(true);
@@ -76,8 +83,9 @@ function App() {
           <BrowserRouter>
             <Routes>
               {/* Public Routes */}
-              <Route path="/landing" element={session ? <Navigate to="/" /> : <Landing />} />
-              <Route path="/auth" element={session ? <Navigate to="/" /> : <Auth />} />
+              {/* Landing page bisa dibuka siapa saja; pengguna yang sudah masuk mendapat tombol ke Beranda */}
+              <Route path="/landing" element={<Landing isLoggedIn={!!session} />} />
+              <Route path="/auth" element={session ? <AfterLogin /> : <Auth />} />
               {/* Tautan dari email atur ulang password; pengguna datang dalam keadaan sudah masuk sementara */}
               <Route path="/reset-password" element={<ResetPassword hasSession={!!session} />} />
               

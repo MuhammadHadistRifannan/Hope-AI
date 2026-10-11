@@ -78,6 +78,12 @@ Sudah ada dan tetap dipertahankan: perintah "bantuan" sesuai halaman, saran saat
 | C3 | EyeRead: sorot kata saat dibacakan | Kata yang sedang diucapkan tersorot dan ikut bergulir | **Terpasang** di tab Teks dan Audio EyeRead. Dengan suara AI posisinya diperkirakan dari waktu audio; dengan suara perangkat dipakai posisi kata asli bila browser mengirimnya. Perlu dicoba dengan hasil pindai sungguhan |
 | C4 | Audit log admin | Setiap blokir, buka blokir, angkat atau cabut guru, dan hapus konten tercatat dengan pelaku dan waktunya; aksi ini selalu meminta konfirmasi | **Selesai**: dicatat oleh trigger database (tidak bisa diubah dari aplikasi), tab Log Aktivitas di Dashboard Admin, dan dialog konfirmasi untuk angkat/cabut guru, blokir/buka blokir, dan hapus konten |
 
+## Landing page parallax (tambahan 10 Oktober)
+
+| Butir | Selesai bila | Status |
+|---|---|---|
+| Landing page parallax bergaya endless runner | Latar dari delapan adegan summer menempel di layar dan bergeser ke samping saat digulir; logo dan tombol Masuk (biru) dan Daftar (hijau) bergaya pixel art menempel di atas; tiap menu hanya berisi nama, satu kalimat, dan tombol coba; ilustrasi tiap menu digambar dengan kode (`LandingArt.tsx`), bukan GIF; penutup berupa satu ajakan besar "Daftar Gratis"; teks tanpa kotak dengan huruf Press Start 2P. Bilah kemajuan, tombol ganti huruf, dan tombol hentikan animasi dihapus; animasi tetap berhenti otomatis bila Kurangi Gerakan aktif. Revisi dari review desain: semua tombol memakai satu komponen pixel (hijau = tindakan utama, biru = sekunder), tombol "Coba" membuka fiturnya langsung (yang belum masuk mendaftar dulu lalu diteruskan lewat `?next=`), ilustrasi punya teks alternatif, link kaki halaman diperbesar. Isi tiap menu ditahan di layar dan meluncur masuk/keluar dari samping (bukan naik dari bawah); tombol "Jelajahi fitur" dan link kaki halaman menggulir beranimasi. Revisi 11 Okt: maskot penguin buatan kode dan judul beranimasi ombak per huruf di pembuka; tiap menu berisi kalimat pemikat + satu kalimat deskripsi sesuai fitur nyata; tata letak menu khusus ponsel (isi muat satu layar); kaki halaman berupa pita gelap dengan kelompok Fitur/Proyek dan ikon pixel | **Selesai**, dicek lewat tangkapan layar otomatis di ukuran desktop dan ponsel; kehalusan gerakan perlu dicek langsung. Aset latar di `Frontend/public/parallax`; hanya landing page yang berubah |
+
 ## Isyarat (SIBI)
 
 Cakupan: abjad jari dan angka SIBI. J dan Z (isyarat bergerak) dikecualikan dulu; BISINDO masuk roadmap. Video tidak pernah keluar dari perangkat.

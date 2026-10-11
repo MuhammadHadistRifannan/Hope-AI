@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { nextPath } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +16,8 @@ export default function Auth() {
 
   // Cek apakah ada parameter ?mode=signup di URL
   const initialMode = searchParams.get("mode") === "signup";
+  // Halaman yang dituju setelah masuk, misalnya dari tombol "Coba EyeRead" di landing page
+  const next = nextPath(searchParams.get("next"));
 
   // Jika mode=signup, maka isLogin = false (artinya mode daftar)
   const [isLogin, setIsLogin] = useState(!initialMode);
@@ -66,7 +69,7 @@ export default function Auth() {
           title: "Selamat datang kembali!",
           description: "Anda berhasil masuk.",
         });
-        navigate("/");
+        navigate(next);
       } else {
         const { error } = await supabase.auth.signUp({
           email: formData.email,
@@ -75,7 +78,7 @@ export default function Auth() {
             data: {
               full_name: formData.fullName,
             },
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}${next}`,
           },
         });
 

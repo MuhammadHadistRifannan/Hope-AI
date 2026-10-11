@@ -18,6 +18,10 @@ export default {
         airfool: ['Airfool', 'sans-serif'], 
         cherry: ['"Cherry Bomb One"', 'system-ui'],
         magic: ['"Magic Red"', 'cursive', 'sans-serif'],
+        // Huruf serif untuk judul bagian di landing page
+        editorial: ['Fraunces', 'Georgia', 'serif'],
+        // Huruf pixel untuk landing page
+        pixel: ['"Press Start 2P"', 'ui-monospace', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
