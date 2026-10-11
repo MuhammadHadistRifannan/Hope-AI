@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Ilustrasi pixel art untuk tiap menu di landing page, digambar dengan kode
 // (persegi-persegi SVG) dan dianimasikan dengan pergantian bingkai sederhana.
@@ -193,7 +193,7 @@ function EchoForumArt({ animated, className }: Props) {
 }
 
 // Maskot Hope.Ai: penguin biru-putih, digambar per piksel. Tiap huruf satu warna.
-const MASCOT_COLORS: Record<string, string> = {
+export const MASCOT_COLORS: Record<string, string> = {
   K: "#16203f",
   B: "#3f66ad",
   L: "#cfdcf2",
@@ -204,7 +204,7 @@ const MASCOT_COLORS: Record<string, string> = {
   O: "#f7b731",
   Y: "#e08a1e",
 };
-const MASCOT = [
+export const MASCOT = [
   "........KKKKKK........",
   "......KKBBBBBBKK......",
   "....KKBBBBBBBBBBKK....",
@@ -232,19 +232,24 @@ const MASCOT = [
   "..KKKKK........KKKKK..",
 ];
 // Sirip terangkat sedikit, untuk gerakan mengepak
-const MASCOT_FLAP: Record<number, string> = {
+export const MASCOT_FLAP: Record<number, string> = {
   15: "KBBBBLWWWWWWWWWWLBBBBK",
   16: "KBKKBLWWWWWWWWWWLBKKBK",
   17: "KK.KBWWWWWWWWWWWWBK.KK",
   18: "...KBWWWWWWWWWWWWBK...",
 };
 
-export function HopeMascot({ animated, className }: Props) {
+export function HopeMascot({
+  animated,
+  className,
+  // false: maskot hanya hiasan dan berdiri di atas sesuatu, jadi tidak diberi nama dan tidak naik-turun
+  standalone = true,
+}: Props & { standalone?: boolean }) {
   const frame = useFrame(animated, 12, 220);
   const blink = frame === 7;
   const flap = frame === 2 || frame === 4;
   // Naik satu piksel tiap beberapa bingkai, seperti bernapas
-  const lift = animated && frame % 6 < 3 ? 1 : 0;
+  const lift = animated && standalone && frame % 6 < 3 ? 1 : 0;
 
   const boxes: Box[] = [];
   MASCOT.forEach((line, y) => {
@@ -262,7 +267,11 @@ export function HopeMascot({ animated, className }: Props) {
   });
 
   return (
-    <svg role="img" aria-label="Maskot Hope.Ai, penguin biru dan putih" viewBox="0 0 22 26" shapeRendering="crispEdges" className={className}>
+    <svg
+      role={standalone ? "img" : undefined}
+      aria-label={standalone ? "Maskot Hope.Ai, penguin biru dan putih" : undefined}
+      aria-hidden={standalone ? undefined : true}
+      viewBox="0 0 22 26" shapeRendering="crispEdges" className={className}>
       {boxes.map(([x, y, w, h, fill], i) => (
         <rect key={i} x={x} y={y} width={w + 0.02} height={h + 0.02} fill={fill} />
       ))}
@@ -293,6 +302,201 @@ export function FeatureIcon({ name, className }: { name: string; className?: str
   );
 }
 
+// Pesawat dilihat dari depan: sayap di kiri-kanan, kokpit di tengah, sirip ekor di atas.
+// N = garis tepi, W = badan, B = kaca kokpit, A = ujung sirip.
+const PLANE = [
+  "............A............",
+  "............N............",
+  "...........NWN...........",
+  "..........NWBWN..........",
+  "NNNNNNNNNNWBBBWNNNNNNNNNN",
+  "NWWWWWWWWWWWWWWWWWWWWWWWN",
+  "NNNNNNNNNNWWWWWNNNNNNNNNN",
+  ".....NWN..NWWWN..NWN.....",
+  ".....NNN...NNN...NNN.....",
+];
+const PLANE_COLORS: Record<string, string> = { N: NAVY, W: WHITE, B: SKY, A: AMBER };
+
+// Pesawat terbang ke arah penonton: muncul sebagai titik kecil di kejauhan, meliuk
+// dan berguling sambil mendekat, lalu menjadi sangat besar dan lewat di atas kita.
+// Asapnya tertinggal di sepanjang lintasan dan memudar pelan-pelan.
+const SMOKE_MS = 2400;
+const PASS = 0.84; // mulai dari sini pesawat naik melewati atas layar
+
+// Dua pesawat dengan irama masing-masing, supaya langit tidak pernah lama kosong
+// tetapi juga tidak ramai. Yang kedua berangkat belakangan, terbang lebih tinggi,
+// meliuk ke arah sebaliknya, dan keluar agak ke kiri.
+type Route = {
+  flightMs: number;
+  pauseMs: number;
+  delayMs: number; // jeda sebelum penerbangan pertama
+  side: 1 | -1; // arah liukan pertama
+  level: number; // tinggi terbang, sebagai bagian dari tinggi langit
+  roll: readonly [number, number]; // kapan berguling satu putaran penuh
+  drift: number; // geser ke samping saat lewat di atas penonton
+};
+const ROUTES: Route[] = [
+  { flightMs: 11000, pauseMs: 12000, delayMs: 0, side: 1, level: 0.36, roll: [0.34, 0.6], drift: 0 },
+  { flightMs: 12500, pauseMs: 14500, delayMs: 11500, side: -1, level: 0.26, roll: [0.22, 0.44], drift: -0.45 },
+];
+
+function flight(route: Route, t: number, width: number, height: number) {
+  // Jarak ke penonton: lama terlihat kecil, lalu membesar dengan cepat
+  const distance = 0.7 + 59 * Math.pow(1 - t, 2);
+  const span = (width * 2.2) / distance;
+  const phase = t * Math.PI * 2.5;
+  // Meliuk ke kiri dan kanan; makin dekat, liukannya makin sempit
+  let x = width / 2 + route.side * Math.sin(phase) * width * 0.3 * (1 - 0.6 * t);
+  let y = height * route.level + Math.sin(phase * 2) * height * 0.07;
+  // Miring ke arah belokan
+  let roll = -route.side * Math.cos(phase) * 0.45;
+  if (t > route.roll[0] && t < route.roll[1]) {
+    const angle = ((t - route.roll[0]) / (route.roll[1] - route.roll[0])) * Math.PI * 2;
+    const radius = height * 0.13;
+    x += route.side * Math.sin(angle) * radius;
+    y -= (1 - Math.cos(angle)) * radius;
+    roll += route.side * angle;
+  }
+  if (t > PASS) {
+    const out = (t - PASS) / (1 - PASS);
+    y -= out * out * height * 1.5;
+    x += out * out * width * route.drift;
+    roll *= 1 - out;
+  }
+  return { x, y, span, roll };
+}
+
+export function SkyPlane({ className }: { className?: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+
+    // Gambar pesawat sekali saja, lalu ditempel berulang-ulang dengan ukuran berbeda
+    const CELL = 4;
+    const sprite = document.createElement("canvas");
+    sprite.width = PLANE[0].length * CELL;
+    sprite.height = PLANE.length * CELL;
+    const brush = sprite.getContext("2d");
+    if (!brush) return;
+    PLANE.forEach((row, y) => {
+      Array.from(row).forEach((cell, x) => {
+        if (cell === ".") return;
+        brush.fillStyle = PLANE_COLORS[cell];
+        brush.fillRect(x * CELL, y * CELL, CELL, CELL);
+      });
+    });
+
+    let width = 0;
+    let height = 0;
+    const resize = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
+
+    // Animasi berhenti selama langitnya tidak terlihat
+    let visible = true;
+    const watcher = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting));
+    watcher.observe(canvas);
+
+    const smoke: { x: number; y: number; size: number; born: number }[] = [];
+    const started = performance.now();
+    const lastPuff = ROUTES.map(() => 0);
+    let frame = 0;
+
+    const draw = (now: number) => {
+      frame = requestAnimationFrame(draw);
+      if (!visible) return;
+      context.clearRect(0, 0, width, height);
+
+      const planes = ROUTES.map((route, i) => {
+        const elapsed = now - started - route.delayMs;
+        if (elapsed < 0) return null;
+        const t = (elapsed % (route.flightMs + route.pauseMs)) / route.flightMs;
+        if (t > 1) return null;
+        const plane = flight(route, t, width, height);
+        if (t < 0.9 && now - lastPuff[i] > 40) {
+          lastPuff[i] = now;
+          smoke.push({ x: plane.x, y: plane.y, size: Math.min(22, Math.max(2, plane.span * 0.09)), born: now });
+        }
+        return { ...plane, t };
+      }).filter((plane) => plane !== null);
+
+      // Selagi jauh pesawat ada di belakang teks; saat ada yang sudah dekat ia lewat di depan semuanya
+      canvas.style.zIndex = planes.some((plane) => plane.t > 0.7) ? "30" : "0";
+
+      // Asap tidak selalu masuk berurutan (dua pesawat), jadi yang kedaluwarsa disaring
+      for (let i = smoke.length - 1; i >= 0; i--) if (now - smoke[i].born > SMOKE_MS) smoke.splice(i, 1);
+      for (const puff of smoke) {
+        const age = (now - puff.born) / SMOKE_MS;
+        const size = puff.size * (1 + age * 0.8);
+        context.fillStyle = `rgba(255, 255, 255, ${0.85 * (1 - age)})`;
+        // Dibulatkan ke piksel utuh supaya tetap berkesan pixel art
+        context.fillRect(Math.round(puff.x - size / 2), Math.round(puff.y - size / 2 + age * 8), Math.ceil(size), Math.ceil(size));
+      }
+
+      // Yang lebih jauh digambar dulu, supaya yang dekat berada di depannya
+      planes.sort((a, b) => a.span - b.span);
+      for (const plane of planes) {
+        const scale = plane.span / sprite.width;
+        context.save();
+        context.imageSmoothingEnabled = false;
+        context.translate(plane.x, plane.y);
+        context.rotate(plane.roll);
+        context.drawImage(sprite, (-sprite.width * scale) / 2, (-sprite.height * scale) / 2, sprite.width * scale, sprite.height * scale);
+        context.restore();
+      }
+    };
+    frame = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      watcher.disconnect();
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} aria-hidden="true" className={className} />;
+}
+
+// Hope Arcade: pelari kecil melompati batu dan mengambil bintang
+function ArcadeArt({ animated, className }: Props) {
+  const frame = useFrame(animated, 8, 180);
+  // Lintasan lompat: naik lalu turun
+  const lift = [0, 3, 6, 8, 8, 6, 3, 0][frame];
+  const rockX = 26 - frame * 3;
+  const y = 12 - lift;
+  const boxes: Box[] = [
+    // tanah
+    [0, 21, 32, 1, NAVY],
+    [0, 22, 32, 2, GREEN],
+    // batu yang datang
+    ...framed(rockX, 17, 4, 4, "#9aa3b5"),
+    // bintang
+    [24, 5, 1, 3, AMBER],
+    [23, 6, 3, 1, AMBER],
+    [15, 2, 1, 3, AMBER],
+    [14, 3, 3, 1, AMBER],
+    // pelari: badan, perut, paruh, kaki
+    ...framed(6, y, 6, 8, BLUE),
+    [8, y + 2, 3, 5, WHITE],
+    [9, y + 1, 1, 1, NAVY],
+    [11, y + 3, 2, 1, AMBER],
+    [frame % 2 ? 6 : 7, y + 8, 2, 1, AMBER],
+    [frame % 2 ? 10 : 9, y + 8, 2, 1, AMBER],
+  ];
+  return <Canvas boxes={boxes} label="Penguin kecil berlari, melompati batu, dan mengambil bintang" className={className} />;
+}
+
 type Props = { animated: boolean; className?: string };
 
 export const landingArt: Record<string, (props: Props) => JSX.Element> = {
@@ -302,4 +506,5 @@ export const landingArt: Record<string, (props: Props) => JSX.Element> = {
   pathly: PathlyArt,
   isyarat: IsyaratArt,
   echoforum: EchoForumArt,
+  arcade: ArcadeArt,
 };

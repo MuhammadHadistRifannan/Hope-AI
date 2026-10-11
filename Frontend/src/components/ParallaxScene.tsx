@@ -137,7 +137,7 @@ export default function RunnerStage({ scenes, progress, animated }: Props) {
     <div ref={stageRef} aria-hidden="true" className="absolute inset-0 overflow-hidden bg-[#7cc4e8]">
       {scenes.map((scene, i) => (
         <Scene
-          key={scene.folder}
+          key={i}
           scene={scene}
           index={i}
           total={scenes.length}
