@@ -4,7 +4,7 @@ import { Bot, Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight, Loader2 } fro
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { nextPath } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -286,6 +286,19 @@ export default function Auth() {
                     </span>
                   )}
                 </Button>
+                {!isLogin && !isForgot && (
+                  <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+                    Dengan mendaftar, kamu menyetujui{" "}
+                    <Link to="/ketentuan" className="underline underline-offset-2 hover:text-primary">
+                      Ketentuan Penggunaan
+                    </Link>{" "}
+                    dan{" "}
+                    <Link to="/privasi" className="underline underline-offset-2 hover:text-primary">
+                      Kebijakan Privasi
+                    </Link>
+                    .
+                  </p>
+                )}
               </form>
 
               <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">

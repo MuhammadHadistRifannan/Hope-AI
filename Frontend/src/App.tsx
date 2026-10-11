@@ -25,6 +25,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import TeacherRoom from "./pages/TeacherRoom";
 import SignLanguage from "./pages/SignLanguage";
 import NotFound from "./pages/NotFound";
+import Info from "./pages/Info";
 
 // IMPORT SETTINGS PROVIDER (Pastikan file ini sudah dibuat di src/context/SettingsContext.tsx)
 import { SettingsProvider, useSettings } from "./context/SettingsContext";
@@ -86,6 +87,11 @@ function App() {
               {/* Landing page bisa dibuka siapa saja; pengguna yang sudah masuk mendapat tombol ke Beranda */}
               <Route path="/landing" element={<Landing isLoggedIn={!!session} />} />
               <Route path="/auth" element={session ? <AfterLogin /> : <Auth />} />
+              {/* Halaman informasi, bisa dibuka tanpa masuk */}
+              <Route path="/privasi" element={<Info slug="privasi" />} />
+              <Route path="/ketentuan" element={<Info slug="ketentuan" />} />
+              <Route path="/aksesibilitas" element={<Info slug="aksesibilitas" />} />
+              <Route path="/kredit" element={<Info slug="kredit" />} />
               {/* Tautan dari email atur ulang password; pengguna datang dalam keadaan sudah masuk sementara */}
               <Route path="/reset-password" element={<ResetPassword hasSession={!!session} />} />
               

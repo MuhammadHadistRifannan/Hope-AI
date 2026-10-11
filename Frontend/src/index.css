@@ -270,9 +270,24 @@ All colors MUST be HSL.
   word-spacing: 0.14em;
 }
 
-.dyslexia-font p,
-.dyslexia-font li {
+.dyslexia-font p:not([data-landing] *),
+.dyslexia-font li:not([data-landing] *) {
   line-height: 1.8;
+}
+
+/* Landing page selalu memakai huruf pixel, walaupun Huruf Ramah Disleksia aktif.
+   Setelan itu tetap berlaku di semua halaman di dalam aplikasi. */
+.dyslexia-font body [data-landing],
+.dyslexia-font body [data-landing] * {
+  font-family: "Press Start 2P", ui-monospace, monospace !important;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+.dyslexia-font body [data-landing] .pixel-body,
+.dyslexia-font body [data-landing] .pixel-body-plain {
+  font-family: "Pixelify Sans", "Press Start 2P", ui-monospace, monospace !important;
+  word-spacing: 0.3em;
+  letter-spacing: 0.03em;
 }
 
 /* Kurangi Gerakan: dipasang saat pengguna atau sistem operasinya meminta */
@@ -315,6 +330,28 @@ All colors MUST be HSL.
     2px 2px #0a1a4f, -2px -2px #0a1a4f, 2px -2px #0a1a4f, -2px 2px #0a1a4f,
     4px 5px 0 rgba(10, 26, 79, 0.55);
 }
+/* Kalimat penjelas di landing page: huruf pixel yang lebih ramping dan mudah dibaca,
+   dengan garis tepi lebih tipis. Judul dan tombol tetap Press Start 2P. */
+.pixel-body {
+  font-family: "Pixelify Sans", "Press Start 2P", ui-monospace, monospace;
+  font-weight: 500;
+  /* Spasi bawaan huruf ini sempit; dilebarkan supaya kata tidak terlihat menyambung */
+  word-spacing: 0.3em;
+  letter-spacing: 0.03em;
+  color: #fff;
+  text-shadow:
+    1.5px 0 #0a1a4f, -1.5px 0 #0a1a4f, 0 1.5px #0a1a4f, 0 -1.5px #0a1a4f,
+    1.5px 1.5px #0a1a4f, -1.5px -1.5px #0a1a4f, 1.5px -1.5px #0a1a4f, -1.5px 1.5px #0a1a4f,
+    3px 3px 0 rgba(10, 26, 79, 0.5);
+}
+/* Huruf yang sama tanpa garis tepi, untuk teks di atas latar pekat (kaki halaman) */
+.pixel-body-plain {
+  font-family: "Pixelify Sans", "Press Start 2P", ui-monospace, monospace;
+  font-weight: 500;
+  /* Spasi bawaan huruf ini sempit; dilebarkan supaya kata tidak terlihat menyambung */
+  word-spacing: 0.3em;
+  letter-spacing: 0.03em;
+}
 .pixel-text-lg {
   color: #fff;
   text-shadow:
@@ -322,6 +359,19 @@ All colors MUST be HSL.
     3px 3px #0a1a4f, -3px -3px #0a1a4f, 3px -3px #0a1a4f, -3px 3px #0a1a4f,
     7px 8px 0 rgba(10, 26, 79, 0.55);
 }
+/* Lembar isi halaman informasi: biru malam hampir pekat dengan sudut bertingkat ala pixel */
+.pixel-sheet {
+  --px: 6px;
+  background-color: rgba(10, 26, 79, 0.92);
+  box-shadow: inset 0 0 0 var(--px) rgba(255, 255, 255, 0.3);
+  clip-path: polygon(
+    0 calc(var(--px) * 2), var(--px) calc(var(--px) * 2), var(--px) var(--px), calc(var(--px) * 2) var(--px), calc(var(--px) * 2) 0,
+    calc(100% - var(--px) * 2) 0, calc(100% - var(--px) * 2) var(--px), calc(100% - var(--px)) var(--px), calc(100% - var(--px)) calc(var(--px) * 2), 100% calc(var(--px) * 2),
+    100% calc(100% - var(--px) * 2), calc(100% - var(--px)) calc(100% - var(--px) * 2), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px) * 2) calc(100% - var(--px)), calc(100% - var(--px) * 2) 100%,
+    calc(var(--px) * 2) 100%, calc(var(--px) * 2) calc(100% - var(--px)), var(--px) calc(100% - var(--px)), var(--px) calc(100% - var(--px) * 2), 0 calc(100% - var(--px) * 2)
+  );
+}
+
 /* Pita kaki halaman: biru malam hampir pekat dengan tepi atas bertingkat ala pixel */
 .pixel-footer {
   margin-top: auto;
