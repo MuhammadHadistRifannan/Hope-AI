@@ -380,6 +380,20 @@ All colors MUST be HSL.
   box-shadow: 0 -4px 0 rgba(255, 255, 255, 0.35), 0 -8px 0 rgba(10, 26, 79, 0.9);
 }
 
+/* Latar pemandangan selalu setinggi layar terbesar. Di Safari iPhone, bilah alamat
+   mengecil saat halaman digulir sehingga layar bertambah tinggi; dengan tinggi layar
+   terkecil (svh) akan tersisa pita kosong di bawah. Baris pertama adalah cadangan
+   untuk browser yang belum mengenal satuan lvh. */
+.scene-stage {
+  height: 100vh;
+  height: 100lvh;
+}
+/* Isi halaman ditarik ke atas sejauh tinggi latar, supaya menumpuk di depannya */
+.scene-pull {
+  margin-top: -100vh;
+  margin-top: -100lvh;
+}
+
 /* Tombol pixel art: sudut bertingkat, sisi terang di atas-kiri, gelap di bawah-kanan,
    dan corak titik-titik seperti ubin game. Warna diatur lewat --pb-*. */
 .pixel-button {

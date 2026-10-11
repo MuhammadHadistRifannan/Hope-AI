@@ -569,11 +569,11 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
       {/* --- PERJALANAN --- */}
       <div ref={journeyRef} className="relative">
         {/* Latar menempel di layar dan bergeser ke samping selama halaman digulir */}
-        <div className="sticky top-0 h-[100svh] overflow-hidden">
+        <div className="scene-stage sticky top-0 overflow-hidden">
           <RunnerStage scenes={scenes} progress={scrollYProgress} animated={animated} />
         </div>
 
-        <main className="relative -mt-[100svh] overflow-x-clip">
+        <main className="scene-pull relative overflow-x-clip">
           {/* Pembuka */}
           <header className="relative min-h-[110svh] flex flex-col items-center px-5 pt-36 md:pt-48 text-center">
             {/* Pesawat terbang mendekat dari kejauhan lalu lewat di atas penonton, meninggalkan jejak asap */}

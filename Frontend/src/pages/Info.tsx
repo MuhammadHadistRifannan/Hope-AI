@@ -338,7 +338,7 @@ export default function Info({ slug }: { slug: InfoSlug }) {
   return (
     <div className="relative min-h-screen bg-[#7cc4e8]">
       {/* Pemandangan pixel yang sama dengan landing page, diam di belakang isi */}
-      <div aria-hidden="true" className="fixed inset-0 overflow-hidden">
+      <div aria-hidden="true" className="scene-stage fixed inset-x-0 top-0 overflow-hidden">
         {Array.from({ length: scene.layers }, (_, i) => (
           <img
             key={i}
