@@ -80,44 +80,8 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
 
   return (
     <div>
-      <p className="text-sm text-muted-foreground mb-4">
-        Lihat contoh isyarat tiap huruf dan angka. Kamera tetap menyala, jadi kamu bisa langsung
-        menirukannya.
-      </p>
-
-      <div className="inline-flex gap-1.5 mb-4" role="group" aria-label="Kategori kamus">
-        {categories.map((item) => (
-          <Button
-            key={item.id}
-            size="sm"
-            variant={category === item.id ? "default" : "outline"}
-            className={`px-btn min-h-10 px-5 ${category === item.id ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
-            aria-pressed={category === item.id}
-            onClick={() => switchCategory(item.id)}
-          >
-            {item.label}
-          </Button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 sm:grid-cols-9 gap-1 mb-5" role="group" aria-label={`Daftar ${category}`}>
-        {shown.map((entry) => (
-          <Button
-            key={entry.slug}
-            size="sm"
-            variant={selected?.slug === entry.slug ? "default" : "outline"}
-            aria-pressed={selected?.slug === entry.slug}
-            aria-label={entry.title}
-            className={`px-btn rounded-none border-2 border-foreground min-h-10 px-0 font-bold ${selected?.slug === entry.slug ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
-            onClick={() => choose(entry)}
-          >
-            {entry.slug}
-          </Button>
-        ))}
-      </div>
-
       {selected && (
-        <section aria-labelledby="kamus-judul" className="px-well p-3 md:p-4">
+        <section aria-labelledby="kamus-judul" className="px-well p-3 md:p-4 mb-5">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <h2 id="kamus-judul" className="px-title text-sm">
               {selected.title}
@@ -209,6 +173,41 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
           <SignCredit className="mt-3" />
         </section>
       )}
+
+      {/* Pilihan huruf dan angka, di bawah contoh isyarat yang sedang dilihat */}
+      <div className="inline-flex gap-1.5 mb-4" role="group" aria-label="Kategori kamus">
+        {categories.map((item) => (
+          <Button
+            key={item.id}
+            size="sm"
+            variant={category === item.id ? "default" : "outline"}
+            className={`px-btn min-h-10 px-5 ${category === item.id ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+            aria-pressed={category === item.id}
+            onClick={() => switchCategory(item.id)}
+          >
+            {item.label}
+          </Button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 sm:grid-cols-9 gap-1 mb-5" role="group" aria-label={`Daftar ${category}`}>
+        {shown.map((entry) => (
+          <Button
+            key={entry.slug}
+            size="sm"
+            variant={selected?.slug === entry.slug ? "default" : "outline"}
+            aria-pressed={selected?.slug === entry.slug}
+            aria-label={entry.title}
+            className={`px-btn rounded-none border-2 border-foreground min-h-10 px-0 font-bold ${selected?.slug === entry.slug ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+            onClick={() => choose(entry)}
+          >
+            {entry.slug}
+          </Button>
+        ))}
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Pilih huruf atau angka untuk melihat contohnya. Kamera tetap menyala, jadi kamu bisa langsung menirukannya.
+      </p>
     </div>
   );
 }

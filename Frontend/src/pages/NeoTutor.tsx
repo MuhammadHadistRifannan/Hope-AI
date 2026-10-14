@@ -80,7 +80,7 @@ export default function NeoTutor() {
   ];
 
   // --- SETTINGS INTEGRATION ---
-  const { volume, speakingRate, autoPlayAudio, aiVoice, needs } = useSettings();
+  const { volume, speakingRate, autoPlayAudio, aiVoice, needs, effectiveReduceMotion } = useSettings();
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   // --- FUNGSI AUDIO (TEXT TO SPEECH) ---
@@ -227,6 +227,41 @@ export default function NeoTutor() {
 
   // --- LOGIKA ASLI: CONNECT TO BACKEND GEMINI ---
   // speakAnswer: jawaban selalu dibacakan, dipakai saat pertanyaan datang dari suara
+  // --- Jawaban mengalir: teks jawaban terbaru muncul sedikit demi sedikit ---
+  // Jawaban dari server datang utuh; di layar ia ditampilkan bertahap supaya terasa
+  // seperti sedang ditulis. Pembaca layar tetap menerima jawaban utuh sekali saja.
+  const [flowing, setFlowing] = useState<{ id: string; shown: number } | null>(null);
+  useEffect(() => {
+    if (!flowing) return;
+    const message = messages.find((item) => item.id === flowing.id);
+    if (!message) return;
+    const total = message.content.length;
+    if (effectiveReduceMotion || flowing.shown >= total) {
+      setFlowing(null);
+      return;
+    }
+    // Jawaban pendek pelan, jawaban panjang lebih cepat: selesai dalam 1,2 sampai 6 detik
+    const duration = Math.min(6000, Math.max(1200, total * 12));
+    const perTick = Math.max(2, Math.ceil(total / (duration / 30)));
+    const timer = setTimeout(() => setFlowing({ id: flowing.id, shown: Math.min(total, flowing.shown + perTick) }), 30);
+    return () => clearTimeout(timer);
+  }, [flowing, messages, effectiveReduceMotion]);
+
+  // --- Gulir otomatis ke pesan terbaru ---
+  const endRef = useRef<HTMLDivElement>(null);
+  const viewport = () => endRef.current?.closest<HTMLElement>("[data-radix-scroll-area-viewport]") ?? null;
+  // Pesan baru (dari pengguna maupun NeoTutor) dan tanda "sedang mengetik": selalu turun ke bawah
+  useEffect(() => {
+    const box = viewport();
+    if (box) box.scrollTo({ top: box.scrollHeight, behavior: effectiveReduceMotion ? "auto" : "smooth" });
+  }, [messages.length, isTyping, effectiveReduceMotion]);
+  // Selama jawaban mengalir: ikut turun, kecuali pengguna sedang menggulir ke atas untuk membaca
+  useEffect(() => {
+    const box = viewport();
+    if (!box || !flowing) return;
+    if (box.scrollHeight - box.scrollTop - box.clientHeight < 160) box.scrollTop = box.scrollHeight;
+  }, [flowing]);
+
   const sendMessage = async (text: string, speakAnswer = false) => {
     if (!text.trim()) return;
 
@@ -268,6 +303,7 @@ export default function NeoTutor() {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      setFlowing({ id: aiMessage.id, shown: 0 });
       if (autoPlayAudio || speakAnswer) speakText(aiMessage.content);
 
       // Percakapan baru mendapat sesi dari server pada pesan pertamanya
@@ -381,7 +417,17 @@ export default function NeoTutor() {
                       }`}
                     >
                       <p className="text-base leading-relaxed whitespace-pre-line">
-                        {message.content}
+                        {flowing?.id === message.id ? (
+                          <>
+                            <span className="sr-only">{message.content}</span>
+                            <span aria-hidden="true">
+                              {message.content.slice(0, flowing.shown)}
+                              <span className="ml-0.5 inline-block h-[1em] w-[0.45em] translate-y-[0.15em] animate-pulse bg-foreground/70" />
+                            </span>
+                          </>
+                        ) : (
+                          message.content
+                        )}
                       </p>
                     </div>
                     
@@ -419,6 +465,8 @@ export default function NeoTutor() {
                   </div>
                 </div>
               )}
+              {/* Penanda dasar percakapan, untuk gulir otomatis */}
+              <div ref={endRef} aria-hidden="true" />
             </div>
           </ScrollArea>
 
