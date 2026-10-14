@@ -5,6 +5,7 @@ import {
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { Card } from "@/components/ui/card";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -336,18 +337,17 @@ export default function SignLanguage() {
   return (
     <div className="min-h-screen p-2 md:p-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl mx-auto">
-        <div className="mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 gradient-text">Isyarat</h1>
-          <p className="text-muted-foreground text-base md:text-lg">
-            Lihat contoh abjad dan angka SIBI di tab Kamus, lalu tirukan di depan kamera. Kamera
-            mengenali huruf yang kamu peragakan dan membacakannya.
-          </p>
-        </div>
+        <PageHeader
+          title="Isyarat"
+          description="Lihat contoh abjad dan angka SIBI di tab Kamus, lalu tirukan di depan kamera. Kamera mengenali huruf yang kamu peragakan dan membacakannya."
+          art="isyarat"
+          lively={cameraOn}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Kamera dan hasil pengenalan */}
-          <Card className="p-3 md:p-6">
-            <div className="relative aspect-[3/4] sm:aspect-[4/3] rounded-xl overflow-hidden bg-black">
+          <Card className="px-card p-3 md:p-6">
+            <div className="relative aspect-[3/4] sm:aspect-[4/3] overflow-hidden bg-black border-[3px] border-foreground">
               {/* Ditampilkan seperti cermin agar gerakan terasa wajar */}
               <video
                 ref={videoRef}
@@ -371,12 +371,12 @@ export default function SignLanguage() {
 
               {/* Huruf yang terbaca, ditampilkan langsung di atas video */}
               {cameraOn && status === "ready" && model && mode !== "rekam" && (
-                <div className="absolute top-3 left-3 rounded-2xl bg-black/70 text-white px-4 py-3 min-w-[7.5rem]" aria-hidden="true">
+                <div className="absolute top-3 left-3 border-[3px] border-white/70 bg-[#0a1a4f]/85 text-white px-4 py-3 min-w-[7.5rem]" aria-hidden="true">
                   {!live.hasHand ? (
                     <p className="text-sm">Tangan belum terlihat</p>
                   ) : confident ? (
                     <>
-                      <p className="text-6xl font-black leading-none">{guess!.label}</p>
+                      <p className="px-title text-5xl leading-none">{guess!.label}</p>
                       <p className="text-sm mt-1">Yakin {Math.round(guess!.confidence * 100)}%</p>
                     </>
                   ) : (
@@ -390,29 +390,33 @@ export default function SignLanguage() {
                     </>
                   )}
                   {live.hasHand && (
-                    <div className="mt-2 h-1.5 rounded-full bg-white/25 overflow-hidden">
-                      <div className="h-full bg-green-400 transition-all" style={{ width: `${live.progress * 100}%` }} />
+                    <div className="mt-2 h-2 bg-white/25 overflow-hidden">
+                      <div className="h-full bg-amber-300 transition-all" style={{ width: `${live.progress * 100}%` }} />
                     </div>
                   )}
                 </div>
               )}
 
               {target && mode === "latihan" && cameraOn && (
-                <div className="absolute top-3 right-3 rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-center" aria-hidden="true">
-                  <p className="text-xs">Peragakan</p>
-                  <p className="text-5xl font-black leading-none">{target}</p>
+                <div className="absolute top-3 right-3 border-[3px] border-[#0a1a4f] bg-amber-300 text-[#0a1a4f] px-4 py-3 text-center" aria-hidden="true">
+                  <p className="text-xs font-bold">Peragakan</p>
+                  <p className="px-title text-4xl leading-none mt-1">{target}</p>
                 </div>
               )}
 
               {isRecording && (
-                <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-red-600 text-white text-sm font-medium">
+                <div className="absolute top-3 left-3 px-3 py-1 border-2 border-white bg-red-600 text-white text-sm font-bold">
                   Merekam {recordLabel}
                 </div>
               )}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Button onClick={() => setCameraOn((on) => !on)} variant={cameraOn ? "outline" : "default"}>
+              <Button
+                onClick={() => setCameraOn((on) => !on)}
+                variant={cameraOn ? "outline" : "default"}
+                className={cameraOn ? "px-btn" : "px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"}
+              >
                 {cameraOn ? (
                   <CameraOff className="w-4 h-4 mr-2" aria-hidden="true" />
                 ) : (
@@ -427,11 +431,11 @@ export default function SignLanguage() {
 
             {/* Versi teks dari hasil pengenalan, untuk pembaca layar */}
             <div className="mt-4 min-h-[2rem]" role="status" aria-live="polite">
-              {status === "loading" && <p>Menyiapkan kamera dan pelacak tangan...</p>}
+              {status === "loading" && <p>Menyiapkan kamera dan pelacak tangan…</p>}
               {status === "error" && <p className="text-destructive font-medium">{error}</p>}
               {status === "ready" && mode === "rekam" && (
                 <p className="font-medium">
-                  {isRecording ? "Tahan bentuk tangan dan gerakkan sedikit..." : "Siap merekam"}
+                  {isRecording ? "Tahan bentuk tangan dan gerakkan sedikit…" : "Siap merekam"}
                 </p>
               )}
               {status === "ready" && mode !== "rekam" && model && (
@@ -443,17 +447,17 @@ export default function SignLanguage() {
           </Card>
 
           {/* Mode */}
-          <Card className="p-3 md:p-6">
+          <Card className="px-card p-3 md:p-6">
             <Tabs value={mode} onValueChange={changeMode}>
-              <TabsList className="mb-6 h-auto flex-wrap">
-                <TabsTrigger value="latihan">Latihan</TabsTrigger>
-                <TabsTrigger value="eja">Eja ke Suara</TabsTrigger>
-                <TabsTrigger value="kamus">Kamus</TabsTrigger>
-                {isStaff && <TabsTrigger value="rekam">Rekam Data</TabsTrigger>}
+              <TabsList className="px-tabs mb-6 flex w-full flex-wrap justify-start">
+                <TabsTrigger value="latihan" className="px-tab flex-1">Latihan</TabsTrigger>
+                <TabsTrigger value="eja" className="px-tab flex-1">Eja ke Suara</TabsTrigger>
+                <TabsTrigger value="kamus" className="px-tab flex-1">Kamus</TabsTrigger>
+                {isStaff && <TabsTrigger value="rekam" className="px-tab flex-1">Rekam Data</TabsTrigger>}
               </TabsList>
 
               {modelMissing && mode !== "rekam" && mode !== "kamus" && (
-                <div className="p-4 rounded-lg bg-muted" role="status">
+                <div className="px-well p-4" role="status">
                   <p className="font-medium mb-1">Pengenal isyarat belum tersedia</p>
                   <p className="text-sm text-muted-foreground">
                     Model pengenal abjad SIBI belum terpasang. Fitur ini aktif setelah modelnya dipasang.
@@ -469,7 +473,7 @@ export default function SignLanguage() {
                       Akan muncul satu kata acak. Peragakan hurufnya satu per satu di depan kamera dan
                       tahan sebentar sampai terbaca. Huruf J dan Z belum dipakai karena isyaratnya bergerak.
                     </p>
-                    <Button size="lg" onClick={nextWord}>
+                    <Button size="lg" onClick={nextWord} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
                       <Play className="w-5 h-5 mr-2" aria-hidden="true" /> Mulai Berlatih
                     </Button>
                   </div>
@@ -487,12 +491,12 @@ export default function SignLanguage() {
                         return (
                           <span
                             key={i}
-                            className={`w-12 h-14 rounded-xl flex items-center justify-center text-3xl font-black border-2 ${
+                            className={`px-title w-12 h-14 flex items-center justify-center text-xl border-[3px] ${
                               done
-                                ? "bg-green-600 border-green-600 text-white"
+                                ? "bg-[#1a8f43] border-foreground text-white"
                                 : current
-                                ? "border-primary text-primary bg-primary/10"
-                                : "border-muted text-muted-foreground"
+                                ? "border-foreground bg-amber-300 text-[#0a1a4f]"
+                                : "border-foreground/30 text-muted-foreground"
                             }`}
                             aria-hidden="true"
                           >
@@ -519,7 +523,7 @@ export default function SignLanguage() {
                         <img
                           src={reference.image}
                           alt={`Contoh isyarat ${reference.title}: ${reference.description}`}
-                          className="w-36 h-36 object-contain mx-auto rounded-lg bg-white"
+                          className="w-36 h-36 object-contain mx-auto border-[3px] border-foreground bg-white"
                         />
                         <figcaption className="text-sm text-muted-foreground mt-2">{reference.description}</figcaption>
                       </figure>
@@ -527,10 +531,10 @@ export default function SignLanguage() {
                     {reference?.image && <SignCredit className="mt-2" />}
 
                     <div className="flex flex-wrap justify-center gap-2 mt-5">
-                      <Button variant="outline" onClick={() => say(`${practice.word.toLowerCase()}. ${[...practice.word].join(", ")}`)}>
+                      <Button className="px-btn" variant="outline" onClick={() => say(`${practice.word.toLowerCase()}. ${[...practice.word].join(", ")}`)}>
                         <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Dengarkan Kata
                       </Button>
-                      <Button variant="outline" onClick={nextWord}>
+                      <Button className="px-btn" variant="outline" onClick={nextWord}>
                         <SkipForward className="w-4 h-4 mr-2" aria-hidden="true" /> Ganti Kata
                       </Button>
                     </div>
@@ -547,26 +551,26 @@ export default function SignLanguage() {
                       Untuk huruf yang sama dua kali, turunkan tangan sejenak.
                     </p>
                     <div
-                      className="min-h-[6rem] p-4 rounded-lg border-2 text-3xl font-bold tracking-widest break-words mb-4"
+                      className="px-well px-title min-h-[6rem] p-4 text-xl break-words mb-4"
                       aria-live="polite"
                       aria-label="Hasil ejaan"
                     >
-                      {spelled || <span className="text-muted-foreground font-normal text-lg">Belum ada huruf</span>}
+                      {spelled || <span className="font-sans text-muted-foreground font-normal text-lg">Belum ada huruf</span>}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Button
+                      <Button className="px-btn"
                         onClick={() => speak(spelled.toLowerCase(), { volume, rate: speakingRate, aiVoice })}
                         disabled={!spelled.trim()}
                       >
                         <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Ucapkan
                       </Button>
-                      <Button variant="outline" onClick={() => setSpelled((text) => text + " ")}>
+                      <Button className="px-btn" variant="outline" onClick={() => setSpelled((text) => text + " ")}>
                         <Space className="w-4 h-4 mr-2" aria-hidden="true" /> Spasi
                       </Button>
-                      <Button variant="outline" onClick={() => setSpelled((text) => text.slice(0, -1))} disabled={!spelled}>
+                      <Button className="px-btn" variant="outline" onClick={() => setSpelled((text) => text.slice(0, -1))} disabled={!spelled}>
                         <Delete className="w-4 h-4 mr-2" aria-hidden="true" /> Hapus Huruf
                       </Button>
-                      <Button variant="outline" onClick={() => setSpelled("")} disabled={!spelled}>
+                      <Button className="px-btn" variant="outline" onClick={() => setSpelled("")} disabled={!spelled}>
                         <Eraser className="w-4 h-4 mr-2" aria-hidden="true" /> Bersihkan
                       </Button>
                     </div>
@@ -595,6 +599,7 @@ export default function SignLanguage() {
                       <Label htmlFor="signer-name">Nama peraga</Label>
                       <Input
                         id="signer-name"
+                        className="h-11 rounded-none border-[3px] border-foreground bg-card"
                         value={signer}
                         onChange={(e) => setSigner(e.target.value)}
                         placeholder="Contoh: peraga-1"
@@ -611,11 +616,11 @@ export default function SignLanguage() {
                             onClick={() => setRecordLabel(letter)}
                             aria-pressed={letter === recordLabel}
                             aria-label={`${letter}, ${recordedPerLabel[letter] ?? 0} sampel`}
-                            className="relative px-0"
+                            className="px-btn relative px-0"
                           >
                             {letter}
                             {recordedPerLabel[letter] ? (
-                              <span className="absolute -top-1 -right-1 text-[10px] leading-none px-1 py-0.5 rounded-full bg-green-600 text-white">
+                              <span className="absolute -top-1.5 -right-1.5 text-[10px] leading-none px-1 py-0.5 border border-foreground bg-[#1a8f43] text-white">
                                 {recordedPerLabel[letter]}
                               </span>
                             ) : null}
@@ -624,10 +629,10 @@ export default function SignLanguage() {
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Button onClick={startRecording} disabled={status !== "ready" || isRecording}>
-                        {isRecording ? "Merekam..." : `Rekam ${recordLabel}`}
+                      <Button className="px-btn" onClick={startRecording} disabled={status !== "ready" || isRecording}>
+                        {isRecording ? "Merekam…" : `Rekam ${recordLabel}`}
                       </Button>
-                      <Button variant="outline" onClick={downloadRows} disabled={rows.length === 0}>
+                      <Button className="px-btn" variant="outline" onClick={downloadRows} disabled={rows.length === 0}>
                         <Download className="w-4 h-4 mr-2" aria-hidden="true" /> Unduh CSV ({rows.length} sampel)
                       </Button>
                     </div>
@@ -644,19 +649,19 @@ export default function SignLanguage() {
 
       {/* Pujian setelah satu kata selesai dieja; lanjut otomatis ke kata berikutnya */}
       <Dialog open={celebration !== null} onOpenChange={(open) => !open && nextWord()}>
-        <DialogContent className="text-center">
+        <DialogContent className="text-center rounded-none border-[3px] border-foreground">
           <DialogHeader>
-            <DialogTitle className="text-3xl text-center">🎉 {celebration?.praise}</DialogTitle>
+            <DialogTitle className="px-title text-lg text-center">{celebration?.praise}</DialogTitle>
             <DialogDescription className="text-lg text-center">
               Kamu berhasil mengeja <strong className="text-foreground">{celebration?.word}</strong> dengan isyarat.
             </DialogDescription>
           </DialogHeader>
-          <p className="text-5xl font-black tracking-widest text-primary my-2" aria-hidden="true">
+          <p className="px-title text-3xl text-primary my-3" aria-hidden="true">
             {celebration?.word}
           </p>
           <p className="text-sm text-muted-foreground">Kata berikutnya muncul sebentar lagi.</p>
           <DialogFooter className="sm:justify-center">
-            <Button size="lg" onClick={nextWord}>
+            <Button size="lg" onClick={nextWord} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
               Kata Berikutnya <SkipForward className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </DialogFooter>

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -102,7 +103,7 @@ const FruitDisplay = ({
   const FruitIcon = fruitIcons[fruitIndex].icon;
   const fruitColor = fruitIcons[fruitIndex].color;
   return (
-    <div className="flex flex-wrap justify-center gap-1 bg-white/50 dark:bg-slate-800/50 p-3 rounded-2xl shadow-sm border-2 border-green-100 dark:border-green-900/30 min-w-[80px] min-h-[80px] items-center">
+    <div className="flex flex-wrap justify-center gap-1 bg-card p-3 border-[3px] border-foreground min-w-[80px] min-h-[80px] items-center">
       {count > 0 ? (
         Array.from({ length: count }).map((_, i) => (
           <motion.div
@@ -941,60 +942,40 @@ export default function Pathly() {
   }, [mathGameOver]);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-slate-50 dark:bg-slate-950 font-sans">
+    <div className="min-h-screen p-2 md:p-8">
       <div className="max-w-5xl mx-auto">
         {/* --- MAIN MENU (SELECTION) --- */}
         {mainMode === "menu" && (
-          <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-12">
-            <div className="text-center space-y-4">
-              <h1 className="text-5xl font-black text-slate-900 dark:text-white">
-                Pilih Petualanganmu
-              </h1>
-              <p className="text-xl text-slate-500 dark:text-slate-400">
-                Mau belajar serius atau bermain seru? Kamu yang tentukan!
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+          <div>
+            <PageHeader
+              title="Pathly"
+              description="Mau belajar bertahap atau bermain sambil mengasah otak? Kamu yang menentukan."
+              art="pathly"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-4xl">
               {/* CARD: AYO BELAJAR */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <Card
+                {...clickable(() => setMainMode("path"))}
+                className="px-card cursor-pointer p-6 min-h-56 flex flex-col items-center justify-center text-center"
               >
-                <Card
-                  {...clickable(() => setMainMode("path"))}
-                  className="cursor-pointer p-8 h-80 flex flex-col items-center justify-center text-center bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-2xl hover:shadow-blue-500/30 border-0 rounded-[3rem] relative overflow-hidden group"
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="bg-white/20 p-6 rounded-full mb-6 backdrop-blur-sm">
-                    <MapPin className="w-16 h-16" />
-                  </div>
-                  <h2 className="text-4xl font-bold mb-2">Ayo Belajar</h2>
-                  <p className="text-blue-100 text-lg">
-                    Ikuti peta materi dan kuis terstruktur.
-                  </p>
-                </Card>
-              </motion.div>
+                <div className="px-tile p-4 mb-5" aria-hidden="true">
+                  <MapPin className="w-10 h-10" />
+                </div>
+                <h2 className="px-title text-base mb-2">Ayo Belajar</h2>
+                <p className="text-muted-foreground text-lg">Ikuti peta materi dan kuis terstruktur.</p>
+              </Card>
 
               {/* CARD: AYO BERMAIN */}
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <Card
+                {...clickable(() => setMainMode("arena"))}
+                className="px-card cursor-pointer p-6 min-h-56 flex flex-col items-center justify-center text-center"
               >
-                <Card
-                  {...clickable(() => setMainMode("arena"))}
-                  className="cursor-pointer p-8 h-80 flex flex-col items-center justify-center text-center bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-2xl hover:shadow-purple-500/30 border-0 rounded-[3rem] relative overflow-hidden group"
-                >
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="bg-white/20 p-6 rounded-full mb-6 backdrop-blur-sm">
-                    <Gamepad2 className="w-16 h-16" />
-                  </div>
-                  <h2 className="text-4xl font-bold mb-2">Ayo Bermain</h2>
-                  <p className="text-purple-100 text-lg">
-                    Asah otak dengan mini-games seru.
-                  </p>
-                </Card>
-              </motion.div>
+                <div className="px-tile p-4 mb-5" aria-hidden="true">
+                  <Gamepad2 className="w-10 h-10" />
+                </div>
+                <h2 className="px-title text-base mb-2">Ayo Bermain</h2>
+                <p className="text-muted-foreground text-lg">Asah otak dengan mini-games seru.</p>
+              </Card>
             </div>
           </div>
         )}
@@ -1004,14 +985,14 @@ export default function Pathly() {
           <AnimatePresence mode="wait">
             {/* Back Button */}
             <div className="mb-6">
-              <Button
-                variant="ghost"
+              <Button className="px-btn"
+                variant="outline"
                 onClick={() => {
                   setMainMode("menu");
                   resetPath();
                 }}
               >
-                <ArrowRight className="rotate-180 mr-2" /> Kembali ke Menu
+                <ArrowRight className="rotate-180 mr-2" aria-hidden="true" /> Kembali ke Menu
               </Button>
             </div>
 
@@ -1043,8 +1024,8 @@ export default function Pathly() {
                     exit={{ opacity: 0 }}
                     className="max-w-xl mx-auto relative z-10 text-center"
                   >
-                    <h1 className="text-3xl font-bold mb-2">Peta Belajar</h1>
-                    <p className="text-slate-500 mb-12">
+                    <h1 className="px-title text-lg md:text-2xl mb-2">Peta Belajar</h1>
+                    <p className="text-muted-foreground mb-12">
                       Selesaikan setiap level untuk membuka materi baru.
                     </p>
 
@@ -1059,19 +1040,19 @@ export default function Pathly() {
                       >
                         <path
                           d={generatePathData(modulesState)}
-                          stroke="#cbd5e1"
-                          strokeWidth="3"
+                          stroke="currentColor"
+                          strokeWidth="5"
                           fill="none"
                           strokeDasharray="10, 12"
-                          strokeLinecap="round"
-                          className="dark:stroke-slate-700 transition-colors"
+                          strokeLinecap="butt"
+                          className="text-foreground/35"
                           vectorEffect="non-scaling-stroke"
                         />
                       </svg>
 
                       {isLoadingModules && (
                         <p className="text-center text-muted-foreground" role="status">
-                          Memuat peta belajar...
+                          Memuat peta belajar…
                         </p>
                       )}
 
@@ -1092,13 +1073,13 @@ export default function Pathly() {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleNodeClick(mod)}
                             className={`
-                              w-24 h-24 md:w-28 md:h-28 rounded-full flex flex-col items-center justify-center border-4 shadow-xl transition-all relative
+                              w-24 h-24 md:w-28 md:h-28 flex flex-col items-center justify-center border-4 border-foreground shadow-[5px_5px_0_hsl(var(--foreground)/0.3)] relative focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-amber-500
                               ${
                                 mod.status === "locked"
-                                  ? "bg-slate-200 border-slate-300 text-slate-400 grayscale"
+                                  ? "bg-slate-200 text-slate-500"
                                   : mod.status === "completed"
-                                  ? "bg-yellow-400 border-yellow-600 text-yellow-900 ring-4 ring-yellow-100"
-                                  : `${moduleColor(mod.color)} border-white text-white ring-4 ring-blue-200`
+                                  ? "bg-amber-300 text-[#0a1a4f]"
+                                  : `${moduleColor(mod.color)} text-white`
                               }
                             `}
                           >
@@ -1109,7 +1090,7 @@ export default function Pathly() {
                             ) : (
                               <Star className="w-10 h-10 fill-current animate-pulse" />
                             )}
-                            <div className="absolute -bottom-10 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 px-3 py-1.5 rounded-xl shadow-md text-xs font-bold whitespace-nowrap border border-slate-100 dark:border-slate-700 z-20">
+                            <div className="absolute -bottom-11 bg-card text-foreground px-3 py-1.5 text-sm font-bold whitespace-nowrap border-[3px] border-foreground z-20">
                               {mod.title}
                             </div>
                           </motion.button>
@@ -1129,39 +1110,40 @@ export default function Pathly() {
                 exit={{ x: -50, opacity: 0 }}
                 className="max-w-2xl mx-auto pt-4"
               >
-                <Card className="p-8 bg-white dark:bg-slate-900 border-t-8 border-t-blue-500 shadow-2xl rounded-3xl relative overflow-hidden">
+                <Card className="px-card p-5 md:p-8 relative">
                   <Button
                     variant="ghost"
-                    className="absolute top-4 left-4"
+                    className="px-btn absolute top-3 left-3 h-11 w-11 p-0"
+                    aria-label="Tutup materi, kembali ke peta"
                     onClick={() => setPathView("map")}
                   >
-                    <X />
+                    <X aria-hidden="true" />
                   </Button>
                   <div className="text-center space-y-6 mt-4">
                     <div
-                      className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center text-white ${moduleColor(activeModule.color)}`}
+                      className={`w-20 h-20 mx-auto border-[3px] border-foreground flex items-center justify-center text-white ${moduleColor(activeModule.color)}`}
                     >
                       <BookOpen className="w-10 h-10" />
                     </div>
-                    <h2 className="text-3xl font-bold">
+                    <h2 className="text-2xl md:text-3xl font-bold">
                       {activeModule.material.title}
                     </h2>
-                    <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <p className="text-lg text-foreground/85 leading-relaxed">
                       {activeModule.material.content}
                     </p>
-                    <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl font-bold border border-yellow-200">
-                      💡 Tips: {activeModule.material.summary}
+                    <div className="bg-amber-100 text-[#0a1a4f] p-4 font-bold border-[3px] border-foreground/40">
+                      Tips: {activeModule.material.summary}
                     </div>
                     <Button
                       size="lg"
-                      className="w-full h-14 text-lg rounded-xl mt-4"
+                      className="px-btn w-full h-14 text-lg mt-4 bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                       onClick={() => startQuiz(autoPlayAudio)}
                     >
-                      Mulai Kuis <ChevronRight className="ml-2" />
+                      Mulai Kuis <ChevronRight className="ml-2" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="outline"
-                      className="w-full"
+                      className="px-btn w-full"
                       onClick={() => readMaterial(activeModule)}
                     >
                       <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Bacakan Materi
@@ -1179,24 +1161,24 @@ export default function Pathly() {
                 animate={{ scale: 1, opacity: 1 }}
                 className="max-w-xl mx-auto pt-4"
               >
-                <Card className="p-8 bg-white dark:bg-slate-900 shadow-xl rounded-3xl border-2 border-slate-100">
+                <Card className="px-card p-5 md:p-8">
                   <div className="flex justify-between items-center mb-8">
-                    <span className="text-sm font-bold text-slate-400">
+                    <span className="px-title text-xs text-muted-foreground">
                       Soal {qIndex + 1} / {activeModule.quiz.length}
                     </span>
-                    <Button variant="ghost" size="sm" onClick={resetPath}>
+                    <Button className="px-btn" variant="ghost" size="sm" onClick={resetPath}>
                       Keluar
                     </Button>
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-bold text-center mb-4" aria-live="polite">
+                  <h2 className="text-xl md:text-2xl font-bold text-center mb-4 leading-snug" aria-live="polite">
                     {activeModule.quiz[qIndex].q}
                   </h2>
                   <div className="flex justify-center gap-2 mb-8">
-                    <Button variant="outline" size="sm" onClick={readQuestion}>
+                    <Button className="px-btn" variant="outline" size="sm" onClick={readQuestion}>
                       <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Bacakan Soal
                     </Button>
                     {!needs.includes("wicara") && (
-                      <Button
+                      <Button className="px-btn"
                         variant="outline"
                         size="sm"
                         onClick={requestVoiceInput}
@@ -1212,10 +1194,10 @@ export default function Pathly() {
                         <button
                           key={i}
                           onClick={() => handlePathAnswer(opt)}
-                          className="p-4 text-lg font-bold bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-500 rounded-xl transition-all text-left flex items-center gap-3"
+                          className="px-card p-4 text-lg font-bold text-left flex items-center gap-3"
                         >
                           <span
-                            className="w-8 h-8 flex-shrink-0 rounded-full bg-blue-600 text-white text-sm flex items-center justify-center"
+                            className="px-tile px-title w-9 h-9 flex-shrink-0 text-xs flex items-center justify-center"
                             aria-hidden="true"
                           >
                             {optionLetters[i]}
@@ -1243,20 +1225,17 @@ export default function Pathly() {
                 {/* Logika Pengecekan Tamat */}
                 {modulesState.every((m) => m.status === "completed") ? (
                   <>
-                    <div className="w-40 h-40 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-6 relative">
-                      <div className="absolute inset-0 rounded-full border-4 border-purple-200 dark:border-purple-800 animate-ping opacity-20"></div>
-                      <Crown className="w-20 h-20 text-purple-600 dark:text-purple-400 animate-bounce" />
+                    <div className="px-tile w-32 h-32 flex items-center justify-center mx-auto mb-6">
+                      <Crown className="w-16 h-16 animate-bounce" aria-hidden="true" />
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                      Selamat! Kamu Tamat!
-                    </h1>
-                    <p className="text-slate-600 dark:text-slate-300 mb-8 text-lg">
+                    <h1 className="px-title text-lg md:text-xl mb-3">Selamat! Kamu Tamat!</h1>
+                    <p className="text-muted-foreground mb-8 text-lg">
                       Luar biasa! Kamu telah menyelesaikan semua tantangan.
                     </p>
                     <div className="flex flex-col gap-3">
                       <Button
                         size="lg"
-                        className="w-full h-14 rounded-xl text-lg bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg shadow-purple-500/30"
+                        className="px-btn w-full h-14 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                         onClick={handleDownloadCertificate}
                       >
                         Unduh Sertifikat
@@ -1264,11 +1243,11 @@ export default function Pathly() {
                       <Button
                         variant="outline"
                         size="lg"
-                        className="w-full h-14 rounded-xl text-lg border-2"
+                        className="px-btn w-full h-14 text-lg"
                         onClick={() => {
                           resetPath();
                           toast({
-                            title: "Main Lagi 🔄",
+                            title: "Main Lagi",
                             description: "Semua level terbuka. Pilih level mana pun untuk diulang!",
                           });
                         }}
@@ -1279,18 +1258,16 @@ export default function Pathly() {
                   </>
                 ) : (
                   <>
-                    <div className="w-40 h-40 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Trophy className="w-20 h-20 text-yellow-500 animate-bounce" />
+                    <div className="px-tile w-32 h-32 flex items-center justify-center mx-auto mb-6">
+                      <Trophy className="w-16 h-16 animate-bounce" aria-hidden="true" />
                     </div>
-                    <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-2">
-                      Level Selesai!
-                    </h1>
-                    <p className="text-slate-500 mb-8">
+                    <h1 className="px-title text-lg md:text-xl mb-3">Level Selesai!</h1>
+                    <p className="text-muted-foreground mb-8 text-lg">
                       Kamu mendapatkan +100 XP
                     </p>
                     <Button
                       size="lg"
-                      className="w-full h-14 rounded-xl text-lg bg-yellow-500 hover:bg-yellow-600 text-white"
+                      className="px-btn w-full h-14 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                       onClick={resetPath}
                     >
                       Kembali ke Peta
@@ -1307,14 +1284,14 @@ export default function Pathly() {
           <div>
             {/* Back Button */}
             <div className="mb-6 flex justify-between items-center">
-              <Button variant="ghost" onClick={() => setMainMode("menu")}>
-                <ArrowRight className="rotate-180 mr-2" /> Kembali ke Menu
+              <Button className="px-btn" variant="outline" onClick={() => setMainMode("menu")}>
+                <ArrowRight className="rotate-180 mr-2" aria-hidden="true" /> Kembali ke Menu
               </Button>
             </div>
 
             {/* Header Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <Card className="p-4 flex items-center gap-3 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+              <Card className="px-card p-4 flex items-center gap-3">
                 <Flame className="w-8 h-8 text-orange-500 fill-orange-500 animate-pulse" />
                 <div>
                   <p className="text-xs text-muted-foreground font-bold uppercase">
@@ -1325,7 +1302,7 @@ export default function Pathly() {
                   </p>
                 </div>
               </Card>
-              <Card className="p-4 flex items-center gap-3 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+              <Card className="px-card p-4 flex items-center gap-3">
                 <Zap className="w-8 h-8 text-yellow-500 fill-yellow-500" />
                 <div>
                   <p className="text-xs text-muted-foreground font-bold uppercase">
@@ -1334,7 +1311,7 @@ export default function Pathly() {
                   <p className="text-xl font-bold text-blue-600">{xp}</p>
                 </div>
               </Card>
-              <Card className="p-4 flex items-center gap-3 border-purple-200 bg-purple-50 dark:bg-purple-900/20 md:col-span-2">
+              <Card className="px-card p-4 flex items-center gap-3 md:col-span-2">
                 <Trophy className="w-8 h-8 text-purple-500" />
                 <div>
                   <p className="text-xs text-muted-foreground font-bold uppercase">
@@ -1351,16 +1328,16 @@ export default function Pathly() {
               onValueChange={setActiveGameTab}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-2 h-14 bg-slate-100 dark:bg-slate-800 p-1 mb-6 rounded-2xl">
+              <TabsList className="px-tabs grid w-full grid-cols-2 mb-6">
                 <TabsTrigger
                   value="memory"
-                  className="rounded-xl text-lg font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md transition-all"
+                  className="px-tab text-base md:text-lg"
                 >
                   <Brain className="w-5 h-5 mr-2" /> Memory Match
                 </TabsTrigger>
                 <TabsTrigger
                   value="math"
-                  className="rounded-xl text-lg font-bold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md transition-all"
+                  className="px-tab text-base md:text-lg"
                 >
                   <Calculator className="w-5 h-5 mr-2" /> Math Whiz
                 </TabsTrigger>
@@ -1368,15 +1345,13 @@ export default function Pathly() {
 
               {/* GAME: MEMORY MATCH */}
               <TabsContent value="memory">
-                <Card className="p-6 min-h-[550px] relative overflow-hidden bg-gradient-to-b from-white to-blue-5 dark:from-slate-900 dark:to-slate-950 border-2 border-blue-100 dark:border-slate-800 shadow-xl rounded-3xl">
+                <Card className="px-card p-4 md:p-6 min-h-[550px] relative overflow-hidden">
                   {!memIsPlaying && !memGameOver && (
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-8 text-center">
-                      <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                        <Brain className="w-12 h-12 text-blue-600" />
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 p-8 text-center">
+                      <div className="px-tile w-20 h-20 flex items-center justify-center mb-6">
+                        <Brain className="w-10 h-10" aria-hidden="true" />
                       </div>
-                      <h1 className="text-4xl font-black mb-3 text-slate-800 dark:text-white">
-                        Memory Match
-                      </h1>
+                      <h1 className="px-title text-lg md:text-xl mb-3">Memory Match</h1>
                       <p className="text-slate-600 dark:text-slate-300 text-lg mb-8 max-w-md leading-relaxed">
                         Latih ingatanmu dengan mencocokkan pasangan kartu dengan
                         simbol dan teks yang sama sebelum waktu habis!
@@ -1384,14 +1359,14 @@ export default function Pathly() {
                       <Button
                         size="lg"
                         onClick={startMemoryGame}
-                        className="rounded-full px-12 h-16 text-xl shadow-xl shadow-blue-500/20 hover:scale-105 transition-transform bg-blue-600 hover:bg-blue-700"
+                        className="px-btn px-10 h-14 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                       >
                         Mulai Main
                       </Button>
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center mb-6 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                  <div className="px-well flex justify-between items-center mb-6 p-3">
                     <div className="flex items-center gap-3">
                       <Timer className="w-6 h-6 text-slate-500" />
                       <span
@@ -1402,7 +1377,7 @@ export default function Pathly() {
                         {memTimeLeft}s
                       </span>
                     </div>
-                    <div className="bg-blue-100 dark:bg-blue-900/30 px-4 py-2 rounded-xl text-blue-700 dark:text-blue-300 font-bold text-xl">
+                    <div className="px-tile px-title px-3 py-2 text-xs md:text-sm">
                       Score: {memScore}
                     </div>
                   </div>
@@ -1418,12 +1393,12 @@ export default function Pathly() {
                           () => handleCardClick(card),
                           card.isFlipped || card.isMatched ? `Kartu ${card.content}` : "Kartu tertutup"
                         )}
-                        className={`aspect-square cursor-pointer rounded-2xl flex items-center justify-center text-center p-2 text-sm md:text-xl font-bold shadow-sm border-2 select-none ${
+                        className={`aspect-square cursor-pointer flex items-center justify-center text-center p-2 text-sm md:text-xl font-bold border-[3px] border-foreground select-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-500 ${
                           card.isMatched
-                            ? "bg-green-100 border-green-400 text-green-600 opacity-50"
+                            ? "bg-green-100 text-green-700 opacity-60"
                             : card.isFlipped
-                            ? "bg-white border-blue-400 text-slate-800"
-                            : "bg-blue-500 text-white border-blue-700"
+                            ? "bg-white text-slate-800"
+                            : "bg-[#2f6fe4] text-white shadow-[3px_3px_0_hsl(var(--foreground)/0.3)]"
                         }`}
                       >
                         {card.isFlipped || card.isMatched ? (
@@ -1436,7 +1411,7 @@ export default function Pathly() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-3xl opacity-20">?</span>
+                          <span className="px-title text-xl opacity-60">?</span>
                         )}
                       </motion.div>
                     ))}
@@ -1447,9 +1422,9 @@ export default function Pathly() {
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-8 text-center"
+                        className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 p-8 text-center"
                       >
-                        <h2 className="text-4xl font-black mb-2">
+                        <h2 className="px-title text-lg md:text-xl mb-5">
                           {matchedCount === cardsData.length / 2
                             ? "Luar Biasa!"
                             : "Waktu Habis!"}
@@ -1457,7 +1432,7 @@ export default function Pathly() {
                         <Button
                           size="lg"
                           onClick={startMemoryGame}
-                          className="gap-2 rounded-full px-8 h-12 text-lg"
+                          className="px-btn gap-2 px-8 h-12 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                         >
                           <RefreshCcw className="w-5 h-5" /> Main Lagi
                         </Button>
@@ -1469,15 +1444,13 @@ export default function Pathly() {
 
               {/* GAME: MATH WHIZ */}
               <TabsContent value="math">
-                <Card className="p-6 min-h-[550px] relative overflow-hidden bg-gradient-to-b from-white to-green-50 dark:from-slate-900 dark:to-slate-950 border-2 border-green-100 dark:border-slate-800 shadow-xl rounded-3xl">
+                <Card className="px-card p-4 md:p-6 min-h-[550px] relative overflow-hidden">
                   {!mathIsPlaying && !mathGameOver && (
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-8 text-center">
-                      <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                        <Calculator className="w-12 h-12 text-green-600" />
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 p-8 text-center">
+                      <div className="px-tile w-20 h-20 flex items-center justify-center mb-6">
+                        <Calculator className="w-10 h-10" aria-hidden="true" />
                       </div>
-                      <h1 className="text-4xl font-black mb-3 text-slate-800 dark:text-white">
-                        Math Whiz
-                      </h1>
+                      <h1 className="px-title text-lg md:text-xl mb-3">Math Whiz</h1>
                       <p className="text-slate-600 dark:text-slate-300 text-lg mb-8 max-w-md leading-relaxed">
                         Asah kemampuan berhitungmu! Jumlahkan atau kurangkan
                         buah-buahan tersebut dan pilih jawaban yang benar.
@@ -1485,21 +1458,21 @@ export default function Pathly() {
                       <Button
                         size="lg"
                         onClick={startMathGame}
-                        className="rounded-full px-12 h-16 text-xl shadow-xl bg-green-600 hover:bg-green-700 text-white"
+                        className="px-btn px-10 h-14 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                       >
                         Mulai Berhitung
                       </Button>
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center mb-10 px-4 bg-white dark:bg-slate-800 p-3 rounded-2xl border border-green-50 dark:border-slate-700">
-                    <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-600 px-4 py-2 rounded-full">
+                  <div className="px-well flex justify-between items-center mb-8 p-3">
+                    <div className="flex items-center gap-2 text-red-600 px-2 py-1">
                       <Timer className="w-6 h-6" />
                       <span className="text-2xl font-mono font-bold">
                         {mathTimeLeft}s
                       </span>
                     </div>
-                    <div className="text-3xl font-black text-green-600 bg-green-50 dark:bg-green-900/20 px-6 py-2 rounded-full">
+                    <div className="px-tile px-title px-3 py-2 text-xs md:text-sm">
                       {mathScore} Pts
                     </div>
                   </div>
@@ -1509,13 +1482,13 @@ export default function Pathly() {
                       key={mathQuestion.num1 + mathQuestion.operator}
                       initial={{ scale: 0.9, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border-2 border-dashed border-green-200"
+                      className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 p-5 bg-muted/40 border-[3px] border-dashed border-foreground/40"
                     >
                       <FruitDisplay
                         count={mathQuestion.num1}
                         fruitIndex={mathQuestion.fruitIndex}
                       />
-                      <div className="text-5xl md:text-6xl font-black text-slate-400 bg-white w-16 h-16 flex items-center justify-center rounded-full shadow-sm border">
+                      <div className="text-4xl font-black text-foreground bg-card w-14 h-14 flex items-center justify-center border-[3px] border-foreground">
                         {mathQuestion.operator}
                       </div>
                       <FruitDisplay
@@ -1524,14 +1497,14 @@ export default function Pathly() {
                       />
                       <div className="flex items-center gap-4 md:gap-6">
                         <div className="text-5xl font-black">=</div>
-                        <div className="w-20 h-20 flex items-center justify-center bg-green-100 rounded-2xl border-4 border-green-200 text-5xl font-bold text-green-600 animate-pulse">
+                        <div className="px-tile w-20 h-20 flex items-center justify-center text-5xl font-bold animate-pulse">
                           ?
                         </div>
                       </div>
                     </motion.div>
                     <div className="flex justify-center mt-4">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() =>
                           speak(
@@ -1546,9 +1519,9 @@ export default function Pathly() {
                             }, sama dengan berapa?`
                           )
                         }
-                        className="text-slate-500 hover:text-green-600 gap-2"
+                        className="px-btn gap-2"
                       >
-                        <Volume2 className="w-5 h-5" /> Dengarkan Soal
+                        <Volume2 className="w-5 h-5" aria-hidden="true" /> Dengarkan Soal
                       </Button>
                     </div>
                   </div>
@@ -1557,9 +1530,8 @@ export default function Pathly() {
                     {mathOptions.map((opt, idx) => (
                       <motion.button
                         key={`${mathQuestion.num1}-${idx}`}
-                        whileHover={{ scale: 1.05, y: -2 }}
                         onClick={() => handleMathAnswer(opt)}
-                        className="h-28 rounded-3xl bg-white border-b-[6px] border-slate-200 hover:border-green-500 hover:bg-green-50 text-5xl font-black text-slate-700 shadow-lg transition-all flex items-center justify-center"
+                        className="px-card h-24 text-4xl font-black flex items-center justify-center"
                       >
                         {opt}
                       </motion.button>
@@ -1571,19 +1543,19 @@ export default function Pathly() {
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md p-8 text-center"
+                        className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 p-8 text-center"
                       >
-                        <h2 className="text-4xl font-black mb-2">Selesai!</h2>
+                        <h2 className="px-title text-lg md:text-xl mb-3">Selesai!</h2>
                         <p className="text-muted-foreground mb-4 text-lg">
                           Skor Akhir Kamu:
                         </p>
-                        <div className="text-7xl font-black text-green-600 mb-10">
+                        <div className="px-title text-4xl text-[#1a8f43] mb-10">
                           {mathScore}
                         </div>
                         <Button
                           size="lg"
                           onClick={startMathGame}
-                          className="gap-2 rounded-full px-10 h-14 text-xl bg-green-600 hover:bg-green-700"
+                          className="px-btn gap-2 px-10 h-14 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                         >
                           <RefreshCcw className="w-6 h-6" /> Coba Lagi
                         </Button>

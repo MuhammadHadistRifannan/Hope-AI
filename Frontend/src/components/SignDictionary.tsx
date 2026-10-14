@@ -73,7 +73,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
   if (loading) {
     return (
       <p className="text-muted-foreground" role="status">
-        Memuat kamus...
+        Memuat kamus…
       </p>
     );
   }
@@ -85,13 +85,13 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
         menirukannya.
       </p>
 
-      <div className="inline-flex rounded-full bg-muted p-1 mb-4" role="group" aria-label="Kategori kamus">
+      <div className="inline-flex gap-1.5 mb-4" role="group" aria-label="Kategori kamus">
         {categories.map((item) => (
           <Button
             key={item.id}
             size="sm"
-            variant={category === item.id ? "default" : "ghost"}
-            className="rounded-full px-5"
+            variant={category === item.id ? "default" : "outline"}
+            className={`px-btn min-h-10 px-5 ${category === item.id ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
             aria-pressed={category === item.id}
             onClick={() => switchCategory(item.id)}
           >
@@ -108,7 +108,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
             variant={selected?.slug === entry.slug ? "default" : "outline"}
             aria-pressed={selected?.slug === entry.slug}
             aria-label={entry.title}
-            className="px-0 font-bold"
+            className={`px-btn rounded-none border-2 border-foreground min-h-10 px-0 font-bold ${selected?.slug === entry.slug ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
             onClick={() => choose(entry)}
           >
             {entry.slug}
@@ -117,16 +117,16 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
       </div>
 
       {selected && (
-        <section aria-labelledby="kamus-judul" className="rounded-xl border p-3 md:p-4">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <h2 id="kamus-judul" className="text-xl font-bold">
+        <section aria-labelledby="kamus-judul" className="px-well p-3 md:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h2 id="kamus-judul" className="px-title text-sm">
               {selected.title}
             </h2>
-            <div className="inline-flex rounded-full bg-muted p-1" role="group" aria-label="Jenis contoh">
+            <div className="inline-flex gap-1.5" role="group" aria-label="Jenis contoh">
               <Button
                 size="sm"
-                variant={media === "image" ? "default" : "ghost"}
-                className="rounded-full"
+                variant={media === "image" ? "default" : "outline"}
+                className={`px-btn min-h-10 ${media === "image" ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
                 aria-pressed={media === "image"}
                 onClick={() => setMedia("image")}
               >
@@ -134,8 +134,8 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
               </Button>
               <Button
                 size="sm"
-                variant={media === "video" ? "default" : "ghost"}
-                className="rounded-full"
+                variant={media === "video" ? "default" : "outline"}
+                className={`px-btn min-h-10 ${media === "video" ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
                 aria-pressed={media === "video"}
                 onClick={() => setMedia("video")}
                 disabled={!selected.video}
@@ -145,7 +145,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
             </div>
           </div>
 
-          <div className="aspect-video rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
+          <div className="aspect-video border-[3px] border-foreground bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
             {media === "video" && selected.video ? (
               <video
                 key={selected.video}
@@ -173,14 +173,14 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
 
           <div className="flex flex-wrap gap-2 mt-4">
             {practicable.has(selected.slug) && (
-              <Button onClick={() => onPractice(selected.slug)}>
+              <Button onClick={() => onPractice(selected.slug)} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
                 <Play className="w-4 h-4 mr-2" aria-hidden="true" /> Latih {selected.category === "abjad" ? "Huruf" : "Angka"} Ini
               </Button>
             )}
-            <Button variant="outline" onClick={() => onSpeak(`${selected.title}. ${selected.description}`)}>
+            <Button className="px-btn" variant="outline" onClick={() => onSpeak(`${selected.title}. ${selected.description}`)}>
               <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Dengarkan
             </Button>
-            <Button
+            <Button className="px-btn"
               variant="outline"
               size="icon"
               onClick={() => choose(shown[position - 1])}
@@ -189,7 +189,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
             >
               <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </Button>
-            <Button
+            <Button className="px-btn"
               variant="outline"
               size="icon"
               onClick={() => choose(shown[position + 1])}

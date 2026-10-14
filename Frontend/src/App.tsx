@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import Layout from "./components/Layout";
 import LoadingScreen from "./components/LoadingScreen";
+import PixelTransition from "./components/PixelTransition";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -41,7 +42,8 @@ function AfterLogin() {
 }
 
 function App() {
-  const [showLoading, setShowLoading] = useState(true);
+  // Layar pembuka: "tampil", lalu "memudar" (halaman sudah ada di belakangnya), lalu "selesai"
+  const [splash, setSplash] = useState<"tampil" | "memudar" | "selesai">("tampil");
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -60,19 +62,28 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (showLoading) {
-    return <LoadingScreen onComplete={() => setShowLoading(false)} />;
-  }
+  const splashScreen =
+    splash === "selesai" ? null : <LoadingScreen key="pembuka" onReveal={() => setSplash("memudar")} onComplete={() => setSplash("selesai")} />;
+
+  // Selama layar pembuka masih tampil penuh, halaman belum dipasang. Bentuk keluarannya
+  // sama dengan di bawah (layar pembuka sebagai anak pertama), supaya React tidak
+  // memasangnya ulang saat halaman mulai ditampilkan.
+  if (splash === "tampil") return <>{splashScreen}</>;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent">
-        <div className="text-white text-2xl font-bold animate-pulse">Memuat...</div>
-      </div>
+      <>
+        {splashScreen}
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent">
+          <div className="text-white text-2xl font-bold animate-pulse">Memuat...</div>
+        </div>
+      </>
     );
   }
 
   return (
+    <>
+    {splashScreen}
     <QueryClientProvider client={queryClient}>
       {/* WRAP APLIKASI DENGAN SETTINGS PROVIDER */}
       <SettingsProvider>
@@ -82,6 +93,7 @@ function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <PixelTransition />
             <Routes>
               {/* Public Routes */}
               {/* Landing page bisa dibuka siapa saja; pengguna yang sudah masuk mendapat tombol ke Beranda */}
@@ -156,6 +168,7 @@ function App() {
         </MotionSettings>
       </SettingsProvider>
     </QueryClientProvider>
+    </>
   );
 }
 

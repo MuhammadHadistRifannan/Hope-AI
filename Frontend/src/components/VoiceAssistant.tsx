@@ -441,7 +441,7 @@ export default function VoiceAssistant() {
         </form>
       )}
       {continuous && (
-        <p className="px-3 py-1 rounded-full bg-red-600 text-white text-xs font-semibold shadow" aria-hidden="true">
+        <p className="px-3 py-1 border-2 border-foreground bg-red-600 text-white text-xs font-semibold" aria-hidden="true">
           Mode dengar terus
         </p>
       )}
@@ -452,7 +452,7 @@ export default function VoiceAssistant() {
           onClick={() => setTyping(true)}
           aria-label="Ketik perintah, misalnya buka flexa"
           title="Ketik perintah"
-          className="w-14 h-14 rounded-full flex items-center justify-center shadow-xl border-2 border-white/40 text-white bg-primary hover:bg-primary/90 focus:outline-none focus-visible:ring-4 focus-visible:ring-ring"
+          className="w-14 h-14 flex items-center justify-center border-[3px] border-foreground shadow-[3px_3px_0_hsl(var(--foreground)/0.35)] text-white bg-[#2f6fe4] hover:brightness-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400"
         >
           <Keyboard className="w-6 h-6" aria-hidden="true" />
         </button>
@@ -468,8 +468,8 @@ export default function VoiceAssistant() {
             : "Perintah suara. Tekan lalu bicara, atau tekan Alt M atau Ctrl M. Katakan bantuan untuk daftar perintah."
         }
         title="Perintah suara (Alt+M atau Ctrl+M)"
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl border-2 border-white/40 text-white transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-ring ${
-          isListening ? "bg-red-600 animate-pulse" : "bg-primary hover:bg-primary/90"
+        className={`w-14 h-14 flex items-center justify-center border-[3px] border-foreground shadow-[3px_3px_0_hsl(var(--foreground)/0.35)] text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400 ${
+          isListening ? "bg-red-600 animate-pulse" : "bg-[#2f6fe4] hover:brightness-110"
         }`}
       >
         {isListening ? (

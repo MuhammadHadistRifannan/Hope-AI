@@ -78,10 +78,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         to={item.href}
         aria-current={isActive ? "page" : undefined}
         className={cn(
-          "flex-1 min-w-0 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 border-t-2 text-[11px] transition-colors",
-          isActive
-            ? "border-primary text-primary font-bold bg-gradient-to-b from-primary/10 to-transparent"
-            : "border-transparent text-muted-foreground"
+          "flex-1 min-w-0 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 border-t-4 text-[11px]",
+          isActive ? "border-amber-400 bg-amber-300/25 text-foreground font-bold" : "border-transparent text-muted-foreground"
         )}
       >
         <item.icon className="w-5 h-5" aria-hidden="true" />
@@ -126,22 +124,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </a>
 
       {/* Sidebar: hanya di tablet dan desktop */}
-      <aside className="hidden md:flex w-20 lg:w-64 bg-gradient-to-b from-primary to-[#1e3a8a] text-primary-foreground fixed h-screen flex-col border-r border-white/10 shadow-2xl z-40 transition-all duration-300">
+      <aside className="px-sidebar hidden md:flex w-20 lg:w-64 fixed h-screen flex-col border-r-4 z-40">
         {/* Logo Section */}
-        <div className="p-4 lg:p-6 border-b border-white/10">
-          <Link to="/" aria-label="Hope.Ai, ke Beranda" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary to-accent flex items-center justify-center shadow-lg group-hover:shadow-secondary/50 transition-shadow duration-300 p-1">
-              {/* --- PERUBAHAN HANYA DISINI: Ikon Sparkles diganti Image Logo --- */}
-              <img 
-                src="/images/logo.png" 
-                alt="" 
-                className="w-full h-full object-contain filter drop-shadow-sm"
-              />
-              {/* --------------------------------------------------------------- */}
+        <div className="p-4 lg:p-5 border-b-4 border-white/10">
+          <Link to="/" aria-label="Hope.Ai, ke Beranda" className="flex items-center gap-3 focus-visible:outline focus-visible:outline-4 focus-visible:outline-amber-300">
+            <div className="w-12 h-12 shrink-0 flex items-center justify-center">
+              <img src="/images/logo.png" alt="" width={48} height={48} className="w-full h-full object-contain" />
             </div>
             <div className="hidden lg:block">
-              <h1 className="text-2xl font-cherry tracking-tight">Hope.Ai</h1>
-              <p className="text-xs text-primary-foreground/70 font-medium">AI untuk Pendidikan Inklusif</p>
+              <p className="px-title text-base" translate="no">Hope.Ai</p>
+              <p className="mt-1 text-xs text-white/75">AI untuk Pendidikan Inklusif</p>
             </div>
           </Link>
         </div>
@@ -149,9 +141,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Main Navigation */}
         <nav aria-label="Menu utama" className="flex-1 p-3 lg:p-4 overflow-y-auto space-y-6">
           <div className="space-y-1.5">
-            <p className="px-4 text-xs font-semibold text-primary-foreground/80 uppercase tracking-wider hidden lg:block mb-2">
-              Menu Utama
-            </p>
+            <p className="px-title px-2 text-[10px] text-amber-300 hidden lg:block mb-2">Menu Utama</p>
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               
@@ -161,32 +151,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   to={item.href}
                   aria-label={item.name}
                   aria-current={isActive ? "page" : undefined}
-                  className={cn(
-                    "flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl transition-all duration-200 group relative",
-                    isActive
-                      ? "bg-gradient-to-r from-secondary to-accent text-white shadow-md font-medium"
-                      : "text-primary-foreground/70 hover:bg-white/10 hover:text-white hover:translate-x-1"
-                  )}
+                  className="px-nav-item justify-center px-2 lg:justify-start lg:px-3"
                 >
-                  <item.icon className={cn(
-                    "w-5 h-5 lg:w-6 lg:h-6 transition-transform duration-200", 
-                    isActive ? "scale-100" : "group-hover:scale-110"
-                  )} />
-                  <span className="hidden lg:block">{item.name}</span>
-                  
-                  {isActive && (
-                    <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white hidden lg:block" />
-                  )}
+                  <item.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+                  <span className="hidden lg:block font-semibold">{item.name}</span>
                 </Link>
               );
             })}
           </div>
 
           {/* Secondary Navigation */}
-          <div className="pt-4 border-t border-white/10">
-            <p className="px-4 text-xs font-semibold text-primary-foreground/80 uppercase tracking-wider hidden lg:block mb-2">
-              Lainnya
-            </p>
+          <div className="pt-4 border-t-4 border-white/10">
+            <p className="px-title px-2 text-[10px] text-amber-300 hidden lg:block mb-2">Lainnya</p>
             <div className="space-y-1.5">
               {secondaryItems.map((item) => {
                 const isActive = location.pathname === item.href;
@@ -196,15 +172,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     to={item.href}
                     aria-label={item.name}
                     aria-current={isActive ? "page" : undefined}
-                    className={cn(
-                      "flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl transition-all duration-200 group",
-                      isActive
-                        ? "bg-white/20 text-white font-medium"
-                        : "text-primary-foreground/70 hover:bg-white/10 hover:text-white hover:translate-x-1"
-                    )}
+                    className="px-nav-item justify-center px-2 lg:justify-start lg:px-3"
                   >
-                    <item.icon className="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform duration-200" />
-                    <span className="hidden lg:block">{item.name}</span>
+                    <item.icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+                    <span className="hidden lg:block font-semibold">{item.name}</span>
                   </Link>
                 );
               })}
@@ -212,10 +183,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <button
                 onClick={handleLogout}
                 aria-label="Keluar"
-                className="flex items-center gap-3 px-3 lg:px-4 py-3 rounded-xl transition-all duration-200 text-primary-foreground/70 hover:bg-red-500/20 hover:text-white w-full group mt-4 hover:translate-x-1"
+                className="px-nav-item mt-4 w-full justify-center px-2 hover:!bg-red-500/30 lg:justify-start lg:px-3"
               >
-                <LogOut className="w-5 h-5 lg:w-6 lg:h-6 group-hover:scale-110 transition-transform duration-200" />
-                <span className="hidden lg:block">Keluar</span>
+                <LogOut className="w-5 h-5 shrink-0" aria-hidden="true" />
+                <span className="hidden lg:block font-semibold">Keluar</span>
               </button>
             </div>
           </div>
@@ -236,7 +207,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Bilah menu bawah: hanya di ponsel */}
       <nav
         aria-label="Menu utama"
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-card border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 flex items-stretch bg-card border-t-4 border-foreground pb-[env(safe-area-inset-bottom)]"
       >
         {bottomLeft.map(bottomTab)}
 
@@ -246,8 +217,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             aria-label={bottomCenter.name}
             aria-current={location.pathname === bottomCenter.href ? "page" : undefined}
             className={cn(
-              "-mt-5 w-14 h-14 rounded-full flex items-center justify-center text-white shadow-lg bg-gradient-to-br from-primary to-secondary ring-4 ring-card transition-transform active:scale-95",
-              location.pathname === bottomCenter.href && "ring-primary/30"
+              "-mt-5 w-14 h-14 flex items-center justify-center border-[3px] border-foreground bg-[#2f6fe4] text-white shadow-[3px_3px_0_hsl(var(--foreground)/0.35)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none",
+              location.pathname === bottomCenter.href && "bg-amber-300 text-[#0a1a4f]"
             )}
           >
             <bottomCenter.icon className="w-6 h-6" aria-hidden="true" />
@@ -262,10 +233,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           aria-haspopup="dialog"
           aria-expanded={moreOpen}
           className={cn(
-            "flex-1 min-w-0 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 border-t-2 text-[11px] transition-colors",
-            moreActive
-              ? "border-primary text-primary font-bold bg-gradient-to-b from-primary/10 to-transparent"
-              : "border-transparent text-muted-foreground"
+            "flex-1 min-w-0 flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 border-t-4 text-[11px]",
+            moreActive ? "border-amber-400 bg-amber-300/25 text-foreground font-bold" : "border-transparent text-muted-foreground"
           )}
         >
           <Menu className="w-5 h-5" aria-hidden="true" />
@@ -274,7 +243,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </nav>
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" className="md:hidden rounded-t-2xl max-h-[85vh] overflow-y-auto">
+        <SheetContent side="bottom" className="md:hidden rounded-none border-t-4 border-foreground max-h-[85vh] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Menu Lainnya</SheetTitle>
           </SheetHeader>
@@ -288,8 +257,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   onClick={() => setMoreOpen(false)}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-2 min-h-20 p-3 rounded-xl text-sm text-center transition-colors",
-                    isActive ? "bg-primary text-primary-foreground font-bold" : "bg-muted text-foreground"
+                    "flex flex-col items-center justify-center gap-2 min-h-20 p-3 border-[3px] border-foreground text-sm text-center",
+                    isActive ? "bg-amber-300 text-[#0a1a4f] font-bold" : "bg-card text-foreground"
                   )}
                 >
                   <item.icon className="w-6 h-6" aria-hidden="true" />
@@ -303,7 +272,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 setMoreOpen(false);
                 handleLogout();
               }}
-              className="flex flex-col items-center justify-center gap-2 min-h-20 p-3 rounded-xl text-sm bg-destructive/10 text-destructive"
+              className="flex flex-col items-center justify-center gap-2 min-h-20 p-3 border-[3px] border-destructive text-sm bg-destructive/10 text-destructive"
             >
               <LogOut className="w-6 h-6" aria-hidden="true" />
               Keluar

@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Bot, Mail, Lock, User, Eye, EyeOff, Sparkles, ArrowRight, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import AuthShell, { PixelField, authLink } from "@/components/AuthShell";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { nextPath } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,8 +28,6 @@ export default function Auth() {
     email: "",
     password: "",
   });
-
-  const penguinGif = "/gif/animasi-login.gif"; 
 
   // Reset form jika mode berubah
   useEffect(() => {
@@ -103,227 +98,142 @@ export default function Auth() {
     }
   };
 
+  const mode = isForgot ? "lupa" : isLogin ? "masuk" : "daftar";
+  const copy = {
+    lupa: {
+      title: "Lupa Password?",
+      description: "Masukkan email akunmu. Kami akan mengirim tautan untuk membuat password baru.",
+      submit: "Kirim Tautan",
+      ask: "Sudah ingat password?",
+      other: "Kembali ke halaman masuk",
+      greetings: ["Tenang, lupa itu biasa.", "Tautan barunya kukirim lewat email."],
+    },
+    masuk: {
+      title: "Selamat Datang Kembali!",
+      description: "Masuk untuk melanjutkan belajarmu.",
+      submit: "Masuk Sekarang",
+      ask: "Belum punya akun?",
+      other: "Buat akun gratis",
+      greetings: ["Hai lagi! Siap lanjut belajar?", "Pelajaranmu masih menunggu.", "Satu langkah lagi, yuk masuk!"],
+    },
+    daftar: {
+      title: "Buat Akun Baru",
+      description: "Lengkapi data diri untuk mulai belajar. Gratis.",
+      submit: "Daftar Akun",
+      ask: "Sudah punya akun?",
+      other: "Masuk ke akun saya",
+      greetings: ["Yuk gabung! Gratis, tanpa iklan.", "Cuma butuh satu menit.", "Belajar dengan caramu sendiri."],
+    },
+  }[mode];
+
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
-      
-      {/* Background Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-600 via-blue-500 to-transparent -z-10 opacity-10" />
-      <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -z-10" />
-      <div className="absolute top-40 -left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-[100px] -z-10" />
+    <AuthShell title={copy.title} description={copy.description} greetings={copy.greetings}>
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        {mode === "daftar" && (
+          <PixelField
+            id="fullName"
+            label="Nama lengkap"
+            icon={User}
+            type="text"
+            autoComplete="name"
+            placeholder="Contoh: Budi Santoso"
+            value={formData.fullName}
+            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+            required
+          />
+        )}
 
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center relative z-10">
-        
-        {/* Left Side - Animated Visual & Welcome Text */}
-        <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="hidden lg:flex flex-col items-center justify-center text-center space-y-8"
-        >
-          {/* GIF Container with Glow Effect */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full blur-3xl opacity-30 animate-pulse" />
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1, y: [0, -10, 0] }}
-              transition={{ 
-                scale: { duration: 0.5 },
-                y: { duration: 4, repeat: Infinity, ease: "easeInOut" } 
-              }}
-              className="relative z-10"
-            >
-              <img 
-                src={penguinGif} 
-                alt="" 
-                className="w-80 h-80 object-contain drop-shadow-2xl"
-              />
-            </motion.div>
-          </div>
+        <PixelField
+          id="email"
+          label="Email"
+          icon={Mail}
+          type="email"
+          autoComplete="email"
+          spellCheck={false}
+          placeholder="nama@email.com"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          required
+        />
 
-          <div className="space-y-4 max-w-md">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-white/10 shadow-sm border border-slate-200 dark:border-white/10"
-            >
-              <Sparkles className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                AI untuk Pendidikan Inklusif
-              </span>
-            </motion.div>
-
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white">
-              Belajar Jadi Lebih <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Menyenangkan</span>
-            </h1>
-            
-            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-              Belajar dengan cara yang paling cocok untukmu: lewat suara, teks, bahasa sederhana, atau isyarat, bersama Hope.Ai.
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Right Side - Auth Form Card */}
-        <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-            {/* Card Decoration */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-bl-[2.5rem]" />
-            
-            <div className="relative z-10">
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                  {isForgot ? "Lupa Password?" : isLogin ? "Selamat Datang Kembali!" : "Buat Akun Baru"}
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400">
-                  {isForgot
-                    ? "Masukkan email akun Anda. Kami akan mengirim tautan untuk membuat password baru."
-                    : isLogin
-                    ? "Masuk untuk melanjutkan progres belajar Anda"
-                    : "Lengkapi data diri untuk mulai belajar"}
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <AnimatePresence mode="wait">
-                  {!isLogin && !isForgot && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="space-y-2 overflow-hidden"
-                    >
-                      <Label htmlFor="fullName" className="text-slate-700 dark:text-slate-300">Nama Lengkap</Label>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                        <Input
-                          id="fullName"
-                          type="text"
-                          placeholder="Contoh: Budi Santoso"
-                          className="pl-12 h-12 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl"
-                          value={formData.fullName}
-                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                          required={!isLogin && !isForgot}
-                        />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="nama@email.com"
-                      className="pl-12 h-12 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
-
-                {!isForgot && (
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Minimal 6 karakter"
-                      className="pl-12 pr-12 h-12 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 rounded-xl"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  {isLogin && (
-                    <div className="text-right">
-                      <button
-                        type="button"
-                        onClick={() => setIsForgot(true)}
-                        className="text-sm text-blue-600 dark:text-blue-400 font-semibold hover:underline"
-                      >
-                        Lupa password?
-                      </button>
-                    </div>
-                  )}
-                </div>
-                )}
-
-                <Button
-                  type="submit"
-                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Loader2 className="w-6 h-6" />
-                    </motion.div>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      {isForgot ? "Kirim Tautan" : isLogin ? "Masuk Sekarang" : "Daftar Akun"}
-                      <ArrowRight className="w-5 h-5" />
-                    </span>
-                  )}
-                </Button>
-                {!isLogin && !isForgot && (
-                  <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-                    Dengan mendaftar, kamu menyetujui{" "}
-                    <Link to="/ketentuan" className="underline underline-offset-2 hover:text-primary">
-                      Ketentuan Penggunaan
-                    </Link>{" "}
-                    dan{" "}
-                    <Link to="/privasi" className="underline underline-offset-2 hover:text-primary">
-                      Kebijakan Privasi
-                    </Link>
-                    .
-                  </p>
-                )}
-              </form>
-
-              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-                <p className="text-slate-500 dark:text-slate-400 mb-2">
-                  {isForgot ? "Sudah ingat password?" : isLogin ? "Belum punya akun?" : "Sudah punya akun?"}
-                </p>
+        {mode !== "lupa" && (
+          <div>
+            <PixelField
+              id="password"
+              label="Password"
+              icon={Lock}
+              type={showPassword ? "text" : "password"}
+              autoComplete={mode === "masuk" ? "current-password" : "new-password"}
+              placeholder="Minimal 6 karakter"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              required
+              trailing={
                 <button
                   type="button"
-                  onClick={() => {
-                    if (isForgot) {
-                      setIsForgot(false);
-                      setIsLogin(true);
-                    } else {
-                      setIsLogin(!isLogin);
-                    }
-                  }}
-                  className="text-blue-600 dark:text-blue-400 font-bold hover:underline transition-all"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                  aria-pressed={showPassword}
+                  className="inline-flex h-11 w-11 items-center justify-center text-[#0a1a4f]/60 hover:text-[#0a1a4f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
                 >
-                  {isForgot ? "Kembali ke Halaman Masuk" : isLogin ? "Buat Akun Gratis" : "Masuk ke Akun Saya"}
+                  {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
+                </button>
+              }
+            />
+            {mode === "masuk" && (
+              <div className="text-right">
+                <button type="button" onClick={() => setIsForgot(true)} className={`${authLink} text-sm md:text-base`}>
+                  Lupa password?
                 </button>
               </div>
-            </div>
+            )}
           </div>
-        </motion.div>
+        )}
+
+        <button type="submit" disabled={loading} className="pixel-button pixel-button-green pixel-button-md pixel-text w-full gap-3 disabled:opacity-60">
+          {loading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> Memproses…
+            </>
+          ) : (
+            <>
+              {copy.submit} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </>
+          )}
+        </button>
+
+        {mode === "daftar" && (
+          <p className="text-sm leading-relaxed text-white/85 md:text-base">
+            Dengan mendaftar, kamu menyetujui{" "}
+            <Link to="/ketentuan" className="text-amber-300 underline underline-offset-4 hover:text-amber-200">
+              Ketentuan Penggunaan
+            </Link>{" "}
+            dan{" "}
+            <Link to="/privasi" className="text-amber-300 underline underline-offset-4 hover:text-amber-200">
+              Kebijakan Privasi
+            </Link>
+            .
+          </p>
+        )}
+      </form>
+
+      <div className="mt-5 flex flex-wrap items-center gap-x-3 border-t-4 border-dotted border-white/25 pt-3 text-base md:text-lg">
+        <span className="text-white/85">{copy.ask}</span>
+        <button
+          type="button"
+          onClick={() => {
+            if (isForgot) {
+              setIsForgot(false);
+              setIsLogin(true);
+            } else {
+              setIsLogin(!isLogin);
+            }
+          }}
+          className={authLink}
+        >
+          {copy.other}
+        </button>
       </div>
-    </div>
+    </AuthShell>
   );
 }

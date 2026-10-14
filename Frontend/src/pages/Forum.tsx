@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { applyIndonesianVoice } from "@/lib/voice";
-import { MessageSquare, ThumbsUp, Reply, Send, ChevronDown, ChevronUp, Volume2 } from "lucide-react"; // Added Volume2 icon
+import { MessageSquare, ThumbsUp, Reply, Send, ChevronDown, ChevronUp, Volume2 } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -253,25 +254,24 @@ export default function Forum() {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-4xl mx-auto"
       >
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 gradient-text">EchoForum</h1>
-          <p className={highContrast ? 'text-yellow-200' : 'text-muted-foreground text-base md:text-lg'}>
-            Terhubung, berdiskusi, dan belajar bersama
-          </p>
-        </div>
+        <PageHeader
+          title="EchoForum"
+          description="Bertanya dan berdiskusi dengan teman belajar. Setiap postingan bisa dibacakan."
+          art="echoforum"
+        />
 
         {/* Create Post */}
-        <Card className={`p-6 mb-6 ${highContrast ? 'bg-gray-900 border-yellow-400' : ''}`}>
-          <h2 className="font-bold text-lg mb-4">Buat Postingan</h2>
+        <Card className="px-card p-4 md:p-6 mb-6">
+          <h2 className="px-title text-sm mb-4">Buat Postingan</h2>
           <Textarea
             value={newPost}
             onChange={(e) => setNewPost(e.target.value)}
-            placeholder="Bagikan pikiran Anda, ajukan pertanyaan, atau mulai diskusi..."
+            placeholder="Bagikan pikiranmu, ajukan pertanyaan, atau mulai diskusi…"
             aria-label="Isi postingan baru"
-            className={`mb-4 min-h-[100px] text-base md:text-lg ${highContrast ? 'bg-black text-yellow-400 border-yellow-600 placeholder:text-yellow-700' : ''}`}
+            className={`mb-4 min-h-[100px] rounded-none border-[3px] border-foreground bg-card text-base md:text-lg ${highContrast ? 'bg-black text-yellow-400 placeholder:text-yellow-700' : ''}`}
           />
-          <Button onClick={handleCreatePost} disabled={isSubmitting || !newPost.trim()} className="bg-primary">
-            <Send className="w-4 h-4 mr-2" />
+          <Button onClick={handleCreatePost} disabled={isSubmitting || !newPost.trim()} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
+            <Send className="w-4 h-4 mr-2" aria-hidden="true" />
             Posting
           </Button>
         </Card>
@@ -280,11 +280,11 @@ export default function Forum() {
         <div className="space-y-4">
           {isLoading && (
             <p className={highContrast ? 'text-yellow-200' : 'text-muted-foreground'} role="status">
-              Memuat postingan...
+              Memuat postingan…
             </p>
           )}
           {!isLoading && posts.length === 0 && (
-            <Card className={`p-6 text-center ${highContrast ? 'bg-gray-900 border-yellow-400' : ''}`}>
+            <Card className="px-card p-6 text-center">
               <p className={highContrast ? 'text-yellow-200' : 'text-muted-foreground'}>
                 Belum ada postingan. Jadilah yang pertama memulai diskusi!
               </p>
@@ -297,47 +297,47 @@ export default function Forum() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={`p-6 card-hover ${highContrast ? 'bg-gray-900 border-yellow-400 hover:border-yellow-200' : ''}`}>
+              <Card className="px-card p-4 md:p-6">
                 <div className="flex gap-4">
-                  <Avatar className="w-10 h-10 md:w-12 md:h-12">
+                  <Avatar className="w-10 h-10 md:w-12 md:h-12 rounded-none border-[3px] border-foreground">
                     {post.avatarUrl && <AvatarImage src={post.avatarUrl} alt="" />}
-                    <AvatarFallback className="bg-primary text-primary-foreground">
+                    <AvatarFallback className="rounded-none bg-amber-300 font-bold text-[#0a1a4f]">
                       {post.avatar}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-x-2">
                         <h3 className="font-bold">{post.author}</h3>
                         <span className={`text-sm ${highContrast ? 'text-yellow-200' : 'text-muted-foreground'}`}>• {post.time}</span>
                       </div>
                       
                       {/* Tombol Audio untuk Postingan */}
-                      <Button variant="ghost" size="icon" onClick={() => speakText(post.content)} title="Bacakan Postingan" aria-label="Bacakan postingan">
-                         <Volume2 className="w-4 h-4" />
+                      <Button variant="outline" size="icon" className="px-btn h-11 w-11 shrink-0" onClick={() => speakText(post.content)} title="Bacakan Postingan" aria-label="Bacakan postingan">
+                         <Volume2 className="w-4 h-4" aria-hidden="true" />
                       </Button>
                     </div>
 
                     <p className="text-base md:text-lg mb-4 leading-relaxed">{post.content}</p>
 
-                    <div className="flex gap-4 flex-wrap">
+                    <div className="flex gap-2 flex-wrap">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => handleLike(post.id)}
                         aria-pressed={post.likedByMe}
-                        className={highContrast ? 'text-yellow-400 hover:text-white hover:bg-gray-800' : post.likedByMe ? 'text-primary' : 'text-muted-foreground hover:text-primary'}
+                        className={`px-btn min-h-10 ${post.likedByMe ? '!bg-amber-300 !text-[#0a1a4f]' : ''}`}
                       >
                         <ThumbsUp className={`w-4 h-4 mr-2 ${post.likedByMe ? 'fill-current' : ''}`} />
                         {post.likes} Suka
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => toggleComments(post.id)}
                         aria-expanded={expandedPosts.has(post.id)}
-                        className={highContrast ? 'text-yellow-400 hover:text-white hover:bg-gray-800' : 'text-muted-foreground hover:text-secondary'}
+                        className="px-btn min-h-10"
                       >
                         {expandedPosts.has(post.id) ? (
                           <ChevronUp className="w-4 h-4 mr-2" />
@@ -347,10 +347,10 @@ export default function Forum() {
                         {post.comments.length} Komentar
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-                        className={highContrast ? 'text-yellow-400 hover:text-white hover:bg-gray-800' : 'text-muted-foreground hover:text-accent'}
+                        className="px-btn min-h-10"
                       >
                         <Reply className="w-4 h-4 mr-2" />
                         Balas
@@ -369,18 +369,18 @@ export default function Forum() {
                           <Textarea
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
-                            placeholder="Tulis komentar Anda..."
+                            placeholder="Tulis komentarmu…"
                             aria-label={`Komentar untuk postingan ${post.author}`}
-                            className={`mb-2 min-h-[80px] ${highContrast ? 'bg-black text-yellow-400 border-yellow-600' : ''}`}
+                            className="mb-2 min-h-[80px] rounded-none border-[3px] border-foreground bg-card"
                           />
                           <div className="flex gap-2">
                             <Button
                               onClick={() => handleReply(post.id)}
                               disabled={isSubmitting || !replyContent.trim()}
                               size="sm"
-                              className="bg-secondary"
+                              className="px-btn min-h-10 bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                             >
-                              <Send className="w-3 h-3 mr-2" />
+                              <Send className="w-3 h-3 mr-2" aria-hidden="true" />
                               Kirim Komentar
                             </Button>
                             <Button
@@ -390,7 +390,7 @@ export default function Forum() {
                               }}
                               size="sm"
                               variant="outline"
-                              className={highContrast ? 'border-yellow-600 text-yellow-400 hover:bg-gray-800' : ''}
+                              className="px-btn min-h-10"
                             >
                               Batal
                             </Button>
@@ -406,7 +406,7 @@ export default function Forum() {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className={`mt-4 space-y-3 border-l-2 pl-4 ${highContrast ? 'border-yellow-600' : 'border-muted'}`}
+                          className="mt-4 space-y-3 border-l-4 border-dotted border-foreground/30 pl-4"
                         >
                           {post.comments.map((comment) => (
                             <motion.div
@@ -415,9 +415,9 @@ export default function Forum() {
                               animate={{ opacity: 1, x: 0 }}
                               className="flex gap-3 items-start"
                             >
-                              <Avatar className="w-8 h-8 mt-1">
+                              <Avatar className="w-9 h-9 mt-1 rounded-none border-2 border-foreground">
                                 {comment.avatarUrl && <AvatarImage src={comment.avatarUrl} alt="" />}
-                                <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
+                                <AvatarFallback className="rounded-none bg-[#cfe8ff] text-xs font-bold text-[#0a1a4f]">
                                   {comment.avatar}
                                 </AvatarFallback>
                               </Avatar>
@@ -427,11 +427,11 @@ export default function Forum() {
                                       <h4 className="font-semibold text-sm">{comment.author}</h4>
                                       <span className={`text-xs ${highContrast ? 'text-yellow-200' : 'text-muted-foreground'}`}>• {comment.time}</span>
                                    </div>
-                                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => speakText(comment.content)} aria-label="Bacakan komentar">
-                                      <Volume2 className="w-3 h-3" />
+                                   <Button variant="outline" size="icon" className="px-btn h-9 w-9 shrink-0" onClick={() => speakText(comment.content)} aria-label="Bacakan komentar">
+                                      <Volume2 className="w-4 h-4" aria-hidden="true" />
                                    </Button>
                                 </div>
-                                <p className="text-sm leading-relaxed">{comment.content}</p>
+                                <p className="text-base leading-relaxed">{comment.content}</p>
                               </div>
                             </motion.div>
                           ))}
@@ -445,17 +445,19 @@ export default function Forum() {
           ))}
         </div>
 
-        {/* Accessibility Notice */}
-        <Card className={`p-6 mt-6 ${highContrast ? 'bg-gray-800 border-yellow-500' : 'bg-accent/10 border-accent/30'}`}>
+        {/* Keterangan aksesibilitas: hanya menyebut yang memang tersedia */}
+        <Card className="px-card p-4 md:p-6 mt-6">
           <div className="flex gap-3">
-            <MessageSquare className="w-6 h-6 text-accent flex-shrink-0 mt-1" />
+            <span className="px-tile flex h-10 w-10 shrink-0 items-center justify-center" aria-hidden="true">
+              <MessageSquare className="w-5 h-5" />
+            </span>
             <div>
-              <h3 className="font-bold mb-2">Fitur Forum yang Aksesibel</h3>
-              <ul className={`text-sm space-y-1 ${highContrast ? 'text-yellow-100' : 'text-muted-foreground'}`}>
-                <li>• Dukungan teks besar untuk keterbacaan yang lebih baik</li>
-                <li>• Catatan suara untuk respon audio</li>
-                <li>• Pembuatan subtitle otomatis</li>
-                <li>• Kompatibel dengan pembaca layar</li>
+              <h3 className="px-title text-xs mb-3">Forum yang Aksesibel</h3>
+              <ul className="space-y-1.5 text-muted-foreground">
+                <li>Setiap postingan dan komentar bisa dibacakan dengan suara.</li>
+                <li>Ukuran teks, kontras, dan huruf mengikuti pengaturanmu.</li>
+                <li>Bisa dipakai dengan keyboard dan pembaca layar.</li>
+                <li>Admin menjaga forum tetap sopan dan aman.</li>
               </ul>
             </div>
           </div>

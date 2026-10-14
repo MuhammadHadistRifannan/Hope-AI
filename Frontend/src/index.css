@@ -394,6 +394,211 @@ All colors MUST be HSL.
   margin-top: -100lvh;
 }
 
+/* --- GAYA PIXEL DI DALAM APLIKASI ---
+   Kartu, judul, dan navigasi bergaya pixel yang memakai warna tema (terang, gelap,
+   kontras tinggi), sehingga semua mode tampilan tetap berfungsi. Isi teks memakai
+   huruf biasa; hanya judul dan label pendek yang memakai huruf pixel, dan itu pun
+   ikut berganti saat Huruf Ramah Disleksia dinyalakan. */
+.px-card {
+  border-radius: 0;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 3px solid hsl(var(--foreground));
+  box-shadow: 4px 4px 0 hsl(var(--foreground) / 0.22);
+}
+a.px-card,
+button.px-card,
+.px-card[role="button"] {
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+a.px-card:hover,
+button.px-card:hover,
+.px-card[role="button"]:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 hsl(var(--foreground) / 0.3);
+}
+a.px-card:active,
+button.px-card:active,
+.px-card[role="button"]:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 hsl(var(--foreground) / 0.3);
+}
+a.px-card:focus-visible,
+button.px-card:focus-visible,
+.px-card[role="button"]:focus-visible {
+  outline: 4px solid #f59e0b;
+  outline-offset: 3px;
+}
+/* Judul dan label pendek */
+.px-title {
+  font-family: "Press Start 2P", ui-monospace, monospace;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+/* Dengan Huruf Ramah Disleksia judul memakai huruf biasa, yang lebih ramping daripada
+   huruf pixel; ukurannya dinaikkan dan ditebalkan supaya tetap terbaca sebagai judul. */
+.dyslexia-font .px-title {
+  font-size: 1.3em;
+  font-weight: 700;
+  line-height: 1.35;
+}
+/* Tombol di dalam aplikasi: sudut siku, garis tebal, dan bayangan pixel. Warnanya tetap
+   mengikuti varian tombol (utama, garis, bahaya), jadi tema dan kontras tinggi aman. */
+.px-btn {
+  border-radius: 0 !important;
+  border: 3px solid hsl(var(--foreground)) !important;
+  box-shadow: 3px 3px 0 hsl(var(--foreground) / 0.25);
+  font-weight: 600;
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+.px-btn:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 hsl(var(--foreground) / 0.25);
+}
+.px-btn:focus-visible {
+  outline: 4px solid #f59e0b;
+  outline-offset: 2px;
+}
+/* Tab bergaya pixel: yang aktif berwarna amber */
+.px-tabs {
+  height: auto !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  border: 3px solid hsl(var(--foreground));
+  background: hsl(var(--card)) !important;
+}
+.px-tab {
+  min-height: 2.75rem;
+  border-radius: 0 !important;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.px-tab[data-state="active"] {
+  background: #fcd34d !important;
+  color: #0a1a4f !important;
+  box-shadow: none !important;
+}
+.px-tab:focus-visible {
+  outline: 4px solid #f59e0b;
+  outline-offset: -4px;
+}
+/* Kotak isi di dalam kartu (hasil, daftar, pratinjau) */
+.px-well {
+  border: 3px solid hsl(var(--foreground) / 0.3);
+  background: hsl(var(--muted) / 0.5);
+}
+
+/* Kotak kecil untuk ikon dan angka */
+.px-tile {
+  border: 3px solid hsl(var(--foreground));
+  background: #fcd34d;
+  color: #0a1a4f;
+}
+/* Sidebar dan kaki halaman di dalam aplikasi */
+.px-sidebar {
+  background: #0a1a4f;
+  color: #fff;
+  border-color: #060f33;
+}
+.dark .px-sidebar {
+  background: #060f33;
+  border-color: #1b2a63;
+}
+.high-contrast .px-sidebar {
+  background: #000;
+  border-color: hsl(60 100% 50%);
+  color: hsl(60 100% 50%);
+}
+.px-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  border: 3px solid transparent;
+  color: rgba(255, 255, 255, 0.82);
+}
+.px-nav-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.px-nav-item:focus-visible {
+  outline: 4px solid #fcd34d;
+  outline-offset: 2px;
+}
+.px-nav-item[aria-current="page"] {
+  background: #fcd34d;
+  color: #0a1a4f;
+  border-color: #060f33;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+}
+.high-contrast .px-nav-item {
+  color: hsl(60 100% 50%);
+}
+.high-contrast .px-nav-item[aria-current="page"] {
+  background: hsl(60 100% 50%);
+  color: #000;
+}
+
+/* Lembar berisi teks dan formulir di halaman bergaya landing: isinya memakai huruf
+   pixel yang ramping (Pixelify Sans), sedangkan judul dan tombol tetap Press Start 2P.
+   Berlaku juga saat Huruf Ramah Disleksia aktif. */
+.pixel-reading,
+.pixel-reading * {
+  font-family: "Pixelify Sans", ui-monospace, monospace;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  word-spacing: 0.18em;
+}
+.pixel-reading .font-semibold {
+  font-weight: 600;
+}
+.pixel-reading .font-pixel,
+.pixel-reading .pixel-text,
+.pixel-reading .pixel-text * {
+  font-family: "Press Start 2P", ui-monospace, monospace;
+  font-weight: 400;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+.dyslexia-font body [data-landing] .pixel-reading,
+.dyslexia-font body [data-landing] .pixel-reading * {
+  font-family: "Pixelify Sans", ui-monospace, monospace !important;
+  letter-spacing: 0.02em;
+  word-spacing: 0.18em;
+}
+.dyslexia-font body [data-landing] .pixel-reading .font-pixel,
+.dyslexia-font body [data-landing] .pixel-reading .pixel-text,
+.dyslexia-font body [data-landing] .pixel-reading .pixel-text * {
+  font-family: "Press Start 2P", ui-monospace, monospace !important;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+/* Jendela Tanya Hope: seluruh isinya memakai huruf pixel yang ramping (Pixelify Sans),
+   juga saat Huruf Ramah Disleksia aktif, sama seperti bagian lain di landing page. */
+.help-chat,
+.help-chat * {
+  font-family: "Pixelify Sans", ui-monospace, monospace;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  word-spacing: 0.18em;
+  text-shadow: none;
+}
+.help-chat .font-semibold {
+  font-weight: 600;
+}
+.dyslexia-font body [data-landing] .help-chat,
+.dyslexia-font body [data-landing] .help-chat * {
+  font-family: "Pixelify Sans", ui-monospace, monospace !important;
+  letter-spacing: 0.02em;
+  word-spacing: 0.18em;
+}
+/* Bilah gulir tipis yang senada dengan jendelanya */
+.help-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #5b7bd1 transparent;
+}
+
 /* Tombol pixel art: sudut bertingkat, sisi terang di atas-kiri, gelap di bawah-kanan,
    dan corak titik-titik seperti ubin game. Warna diatur lewat --pb-*. */
 .pixel-button {
@@ -500,6 +705,131 @@ All colors MUST be HSL.
 .wave-letter-up {
   transform: translateY(-0.24em) scale(1.38);
   transition-duration: 0.14s;
+}
+/* Layar pembuka: penguin berjalan dari ujung kiri ke ujung kanan lintasannya */
+@keyframes loading-walk {
+  from { left: 0; transform: translateX(0); }
+  to { left: 100%; transform: translateX(-100%); }
+}
+.loading-walk {
+  animation: loading-walk 2600ms linear forwards;
+}
+/* Kursor ketik berkedip di layar pembuka */
+@keyframes loading-cursor {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+.loading-cursor {
+  animation: loading-cursor 0.6s steps(1) infinite;
+}
+/* Balon kata maskot di halaman masuk dan daftar: tampilannya sama dengan balon di
+   landing page, tetapi berdiri di samping maskot dengan ekor menunjuk ke kiri. */
+.pixel-bubble {
+  position: relative;
+  max-width: min(15rem, 58vw);
+  padding: 0.5rem 0.7rem;
+  border: 3px solid #0a1a4f;
+  background: #fff;
+  color: #0a1a4f;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-align: left;
+  text-shadow: none;
+  box-shadow: 3px 4px 0 rgba(10, 26, 79, 0.4);
+  transform-origin: 0 100%;
+}
+.pixel-bubble::after {
+  content: "";
+  position: absolute;
+  left: -9px;
+  bottom: 8px;
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  border: 3px solid #0a1a4f;
+  border-right: 0;
+}
+@keyframes pixel-bubble-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.pixel-bubble-pop {
+  animation: pixel-bubble-pop 0.18s ease-out;
+}
+@media (min-width: 1024px) {
+  .pixel-bubble {
+    max-width: 17rem;
+    padding: 0.65rem 0.95rem;
+    font-size: 1.1rem;
+  }
+}
+
+/* Balon kata maskot di bagian pembuka: kotak putih bergaris navy dengan ekor kecil
+   di kiri bawah, menunjuk ke maskot. Muncul dan hilang dengan sedikit membesar. */
+.hero-bubble {
+  position: absolute;
+  left: 78%;
+  bottom: 88%;
+  width: max-content;
+  max-width: min(15rem, 62vw);
+  padding: 0.5rem 0.7rem;
+  border: 3px solid #0a1a4f;
+  background: #fff;
+  color: #0a1a4f;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  text-align: left;
+  text-shadow: none;
+  white-space: normal;
+  box-shadow: 3px 4px 0 rgba(10, 26, 79, 0.4);
+  transform-origin: 0 100%;
+  transform: scale(0.6);
+  opacity: 0;
+  transition: transform 0.16s ease-out, opacity 0.16s ease-out;
+}
+.hero-bubble::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  bottom: -9px;
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  border: 3px solid #0a1a4f;
+  border-top: 0;
+}
+.hero-bubble-on {
+  transform: scale(1);
+  opacity: 1;
+}
+@media (min-width: 768px) {
+  .hero-bubble {
+    max-width: 19rem;
+    padding: 0.6rem 0.9rem;
+    font-size: 1.05rem;
+  }
+}
+/* Peralihan halaman: kotak navy muncul lalu hilang, bertahap seperti piksel */
+@keyframes pixel-wipe-in {
+  from { transform: scale(0); }
+  to { transform: scale(1.04); }
+}
+@keyframes pixel-wipe-out {
+  from { transform: scale(1.04); }
+  to { transform: scale(0); }
+}
+.pixel-wipe-in,
+.pixel-wipe-out {
+  display: block;
+  background: #0a1a4f;
+  animation-timing-function: steps(4, end);
+  animation-fill-mode: both;
+}
+.pixel-wipe-in {
+  animation-name: pixel-wipe-in;
+}
+.pixel-wipe-out {
+  animation-name: pixel-wipe-out;
 }
 @keyframes cta-bounce {
   0%, 100% { transform: translateY(0) rotate(-1.5deg); }

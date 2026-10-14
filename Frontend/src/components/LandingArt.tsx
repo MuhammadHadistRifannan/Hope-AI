@@ -336,8 +336,8 @@ type Route = {
   drift: number; // geser ke samping saat lewat di atas penonton
 };
 const ROUTES: Route[] = [
-  { flightMs: 11000, pauseMs: 12000, delayMs: 0, side: 1, level: 0.36, roll: [0.34, 0.6], drift: 0 },
-  { flightMs: 12500, pauseMs: 14500, delayMs: 11500, side: -1, level: 0.26, roll: [0.22, 0.44], drift: -0.45 },
+  { flightMs: 11000, pauseMs: 12000, delayMs: 5000, side: 1, level: 0.36, roll: [0.34, 0.6], drift: 0 },
+  { flightMs: 12500, pauseMs: 14500, delayMs: 16500, side: -1, level: 0.26, roll: [0.22, 0.44], drift: -0.45 },
 ];
 
 function flight(route: Route, t: number, width: number, height: number) {

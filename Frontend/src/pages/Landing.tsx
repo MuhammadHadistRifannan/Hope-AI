@@ -4,7 +4,9 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 import { motion, useMotionValue, useScroll, useTransform } from "framer-motion";
 import RunnerStage, { type RunnerScene } from "@/components/ParallaxScene";
 import { FeatureIcon, HopeMascot, SkyPlane, landingArt } from "@/components/LandingArt";
+import HelpChat from "@/components/HelpChat";
 import HopeRun from "@/components/HopeRun";
+import { TransitionLink } from "@/components/PixelTransition";
 import { useSettings } from "@/context/SettingsContext";
 
 // Tiap fitur adalah satu menu dalam perjalanan. Latar di belakangnya bergeser ke
@@ -223,7 +225,17 @@ function useFadeUnderHeader() {
 // yang sedang membesar. Setelah huruf terakhir ia melompat pulang ke huruf pertama,
 // beristirahat dan menoleh, lalu mulai lagi.
 const HOP_MS = 340; // jeda antarhuruf
-const REST_STEPS = 8; // ketukan untuk pulang dan beristirahat setelah huruf terakhir
+const REST_STEPS = 17; // ketukan untuk pulang, beristirahat, dan menyapa setelah huruf terakhir
+// Selama beristirahat di atas huruf pertama, maskot menyapa lewat balon kata.
+// Tiap putaran kalimatnya berganti.
+const BUBBLE = { from: 3, to: 15 }; // ketukan istirahat saat balon tampil
+const GREETINGS = [
+  "Hai! Aku Hope, teman belajarmu.",
+  "Yuk, mulai belajar. Gratis!",
+  "Gulir ke bawah, ada enam fitur.",
+  "Bisa pakai suara, teks, atau isyarat.",
+  "Mau main sebentar? Coba Hope Run!",
+];
 // Huruf yang sedang naik: sama dengan .wave-letter-up di index.css
 const RISE = { scale: 1.38, lift: 0.24, originY: 0.85 };
 
@@ -231,7 +243,12 @@ type Spot = { x: number; top: number; raisedTop: number };
 
 function HeroTitle({ text, animated, className }: { text: string; animated: boolean; className: string }) {
   const count = Array.from(text.replace(/ /g, "")).length;
-  const [active, setActive] = useState(0);
+  // Satu penghitung untuk semuanya: huruf mana yang naik, dan putaran ke berapa
+  const [tick, setTick] = useState(0);
+  const active = tick % (count + REST_STEPS);
+  const rest = active - count; // ketukan istirahat; negatif selama masih melompat
+  const greeting = GREETINGS[Math.floor(tick / (count + REST_STEPS)) % GREETINGS.length];
+  const talking = rest >= BUBBLE.from && rest <= BUBBLE.to;
   const wrapRef = useRef<HTMLDivElement>(null);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const mascotRef = useRef<HTMLDivElement>(null);
@@ -242,9 +259,9 @@ function HeroTitle({ text, animated, className }: { text: string; animated: bool
 
   useEffect(() => {
     if (!animated) return;
-    const step = setInterval(() => setActive((current) => (current + 1) % (count + REST_STEPS)), HOP_MS);
+    const step = setInterval(() => setTick((current) => current + 1), HOP_MS);
     return () => clearInterval(step);
-  }, [animated, count]);
+  }, [animated]);
 
   // Ukur tempat hinggap di atas tiap huruf: titik tengahnya, dan tinggi tinta hurufnya
   // (huruf kecil dan titik lebih rendah daripada huruf besar).
@@ -387,6 +404,8 @@ function HeroTitle({ text, animated, className }: { text: string; animated: bool
         <div ref={bodyRef} style={{ transformOrigin: "50% 100%" }}>
           <HopeMascot animated standalone={false} className="block w-full h-auto drop-shadow-[3px_4px_0_rgba(10,26,79,0.45)]" />
         </div>
+        {/* Balon kata: muncul di kanan atas maskot selama ia beristirahat */}
+        <div className={`hero-bubble pixel-body-plain ${talking ? "hero-bubble-on" : ""}`}>{greeting}</div>
       </div>
       <h1 className="text-[1em] leading-[inherit]">
         <span className="sr-only">{text}</span>
@@ -503,6 +522,17 @@ function MenuSection({
 
 const ArcadeArt = landingArt.arcade;
 
+// Di layar lebar daftar fitur di kaki halaman berupa dua kolom, dengan Flexa dan
+// EchoForum di baris terakhir (di bawah Pathly dan Isyarat).
+const footerOrder: Record<string, string> = {
+  eyeread: "lg:order-1",
+  neotutor: "lg:order-2",
+  pathly: "lg:order-3",
+  isyarat: "lg:order-4",
+  flexa: "lg:order-5",
+  echoforum: "lg:order-6",
+};
+
 // Tempat halaman berhenti: tiap menu, Hope Arcade, lalu bagian penutup
 const snapIds = [...chapters.map((chapter) => chapter.id), "arcade", "mulai"];
 
@@ -555,13 +585,13 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
 
           <div className="pointer-events-auto flex shrink-0 items-center gap-2.5 md:gap-4">
             {!isLoggedIn && (
-              <Link to="/auth" className="pixel-button pixel-button-blue pixel-text">
+              <TransitionLink to="/auth" className="pixel-button pixel-button-blue pixel-text">
                 Masuk
-              </Link>
+              </TransitionLink>
             )}
-            <Link to={startHref} className="pixel-button pixel-button-green pixel-text">
+            <TransitionLink to={startHref} className="pixel-button pixel-button-green pixel-text">
               {isLoggedIn ? "Beranda" : "Daftar"}
-            </Link>
+            </TransitionLink>
           </div>
         </div>
       </nav>
@@ -588,10 +618,15 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
             </p>
             {/* Satu ajakan utama (hijau, lebih besar) dan satu pilihan kedua yang lebih tenang */}
             <div data-fade className="relative mt-6 flex w-full max-w-xs flex-col items-stretch gap-3 sm:w-auto sm:max-w-none sm:flex-row sm:items-center sm:gap-4">
-              <Link to={startHref} className="pixel-button pixel-button-green pixel-button-hero pixel-text gap-3 whitespace-nowrap">
+              <TransitionLink to={startHref} className="pixel-button pixel-button-green pixel-button-hero pixel-text gap-3 whitespace-nowrap">
                 {isLoggedIn ? "Buka Beranda" : "Mulai Belajar Gratis"} <ArrowRight className="w-5 h-5 shrink-0" aria-hidden="true" />
-              </Link>
-              <a href="#eyeread" onClick={glide("eyeread")} className="pixel-button pixel-button-blue pixel-button-md pixel-text gap-3 whitespace-nowrap">
+              </TransitionLink>
+              <a
+                href="#eyeread"
+                onClick={glide("eyeread")}
+                // Di ponsel yang pendek tombol ini berada di dasar layar; disisakan ruang untuk tombol Tanya Hope
+                className="pixel-button pixel-button-blue pixel-button-md pixel-text gap-3 whitespace-nowrap [@media(max-height:620px)]:max-sm:mr-[4.25rem]"
+              >
                 Jelajahi fitur <ArrowDown className="w-5 h-5 shrink-0" aria-hidden="true" />
               </a>
             </div>
@@ -628,9 +663,9 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
                     </h2>
                     <p data-fade className="pixel-text mt-3 md:mt-5 text-xs md:text-lg leading-[1.8] md:leading-[1.9] text-balance">{chapter.heading}</p>
                     <p data-fade className="pixel-body mt-2 md:mt-3 text-base md:text-xl lg:text-2xl leading-[1.45] text-balance">{chapter.description}</p>
-                    <Link to={featureHref(chapter.path)} data-fade className="pixel-button pixel-button-blue pixel-button-md pixel-text mt-5 md:mt-8 gap-3">
+                    <TransitionLink to={featureHref(chapter.path)} data-fade className="pixel-button pixel-button-blue pixel-button-md pixel-text mt-5 md:mt-8 gap-3">
                       Coba {chapter.name} <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                    </Link>
+                    </TransitionLink>
                   </>
                 }
                 art={<Art animated={animated} className="w-[90%] lg:w-full max-w-[380px] lg:max-w-[420px] max-h-full lg:max-h-[34svh] h-auto drop-shadow-[6px_8px_0_rgba(10,26,79,0.45)]" />}
@@ -676,24 +711,24 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
               Perjalanan belajarmu dimulai dari sini.
             </h2>
 
-            <Link
+            <TransitionLink
               to={startHref}
               data-fade="tengah"
               className={`pixel-button pixel-button-green pixel-button-lg pixel-text-lg mt-10 mb-16 w-full max-w-2xl gap-4 ${animated ? "cta-bounce" : ""}`}
             >
               <span className="text-[clamp(0.8rem,2.4vw,1.6rem)] leading-[1.3] whitespace-nowrap">{isLoggedIn ? "Buka Beranda" : "Mulai Belajar Gratis"}</span>
               <ArrowRight className="hidden sm:block w-[clamp(1.25rem,3.4vw,2.2rem)] h-[clamp(1.25rem,3.4vw,2.2rem)] shrink-0" aria-hidden="true" />
-            </Link>
+            </TransitionLink>
 
             {/* Kaki halaman: pita gelap bergaya pixel, supaya tautan terbaca di atas pemandangan */}
             <footer className="pixel-footer mt-auto -mx-5 self-stretch text-left">
               <div className="mx-auto max-w-5xl px-5 md:px-8 pt-8 pb-8">
-                <div className="grid gap-8 lg:grid-cols-4 lg:gap-x-6">
+                <div className="grid gap-8 lg:grid-cols-4 lg:gap-x-10">
                   <nav aria-labelledby="kaki-fitur" className="lg:col-span-2">
                     <p id="kaki-fitur" data-fade className="text-[11px] md:text-xs text-amber-300">Fitur</p>
-                    <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-x-2 sm:gap-x-4">
+                    <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-x-2 sm:gap-x-4 lg:grid-cols-2 lg:gap-x-6">
                       {chapters.map((chapter) => (
-                        <li key={chapter.id} data-fade>
+                        <li key={chapter.id} data-fade className={footerOrder[chapter.id]}>
                           <a
                             href={`#${chapter.id}`}
                             onClick={glide(chapter.id)}
@@ -752,6 +787,8 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
           </section>
         </main>
       </div>
+      {/* Tanya-jawab singkat; disembunyikan selama permainan terbuka */}
+      {!arcadeOpen && <HelpChat />}
       {arcadeOpen && <HopeRun onClose={closeArcade} calm={!animated} />}
     </div>
   );

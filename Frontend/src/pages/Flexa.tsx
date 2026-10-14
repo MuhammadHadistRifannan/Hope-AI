@@ -25,12 +25,12 @@ import {
   HandMetal,
   Image as ImageIcon,
   Video,
-  Languages,
   Share2,
   Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -443,93 +443,67 @@ export default function Flexa() {
   if (currentView === "levels") {
     return (
       <div className="min-h-screen p-3 md:p-8 max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            Pusat Belajar Flexa
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Akses materi inklusif, kamus isyarat, atau unggah dokumenmu sendiri.
-          </p>
-        </motion.div>
+        <PageHeader
+          title="Flexa"
+          description="Pilih materi, buka kamus isyarat, atau unggah dokumenmu sendiri."
+          art="flexa"
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {(Object.keys(learningPath) as LevelKey[]).map((key) => (
-            <motion.div
-              key={key}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-            >
+            <div key={key}>
               <Card
-                className={`p-6 cursor-pointer h-full flex flex-col items-center text-center hover:shadow-xl transition-all border-2 border-transparent hover:border-primary/20 ${
-                  learningPath[key].color.replace("text-", "bg-").split(" ")[0]
-                }/10`}
+                className="px-card p-6 cursor-pointer h-full flex flex-col items-center text-center"
                 {...clickable(() => handleLevelSelect(key))}
               >
-                <div
-                  className={`p-4 rounded-full mb-4 ${learningPath[key].color} bg-white shadow-sm`}
-                >
+                <div className="mb-4 border-[3px] border-foreground bg-white p-3" aria-hidden="true">
                   {learningPath[key].icon}
                 </div>
-                <h2 className="text-xl font-bold mb-2 capitalize">
-                  {learningPath[key].title}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {learningPath[key].description}
-                </p>
+                <h2 className="px-title text-sm mb-2">{learningPath[key].title}</h2>
+                <p className="text-muted-foreground">{learningPath[key].description}</p>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <motion.div whileHover={{ scale: 1.02 }} className="group">
+          <div>
             <Card
-              className="relative p-8 border-2 border-blue-100 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/30 dark:to-background cursor-pointer h-full overflow-hidden hover:border-primary transition-all shadow-sm hover:shadow-md"
+              className="px-card p-6 cursor-pointer h-full"
               {...clickable(() => navigate("/isyarat?tab=kamus"))}
             >
-              <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Languages className="w-40 h-40 text-primary" />
-              </div>
-              <div className="relative z-10 flex flex-col h-full justify-between">
+              <div className="flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                      <HandMetal className="w-8 h-8" />
+                    <div className="px-tile p-2.5" aria-hidden="true">
+                      <HandMetal className="w-7 h-7" />
                     </div>
-                    <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                      Kamus Isyarat SIBI
-                    </h3>
+                    <h3 className="px-title text-sm">Kamus Isyarat SIBI</h3>
                   </div>
-                  <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                  <p className="text-muted-foreground mb-6 leading-relaxed">
                     Lihat contoh abjad dan angka SIBI, lalu langsung tirukan di depan kamera.
                     Kamus dan latihannya ada di menu Isyarat.
                   </p>
                 </div>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-white shadow-primary/20 shadow-lg">
+                <Button className="px-btn w-full bg-[#2f6fe4] text-white hover:bg-[#2f6fe4]/90">
                   Buka Kamus di Isyarat
                 </Button>
               </div>
             </Card>
-          </motion.div>
+          </div>
 
-          <motion.div whileHover={{ scale: 1.02 }} className="group">
-            <Card className="relative p-8 border-2 border-dashed border-slate-200 bg-slate-50/50 dark:bg-slate-900/10 h-full flex flex-col justify-center items-center text-center cursor-pointer hover:border-primary transition-all">
-              <div className="mb-4 p-4 bg-white dark:bg-slate-800 rounded-full text-primary shadow-sm">
+          <div>
+            <Card className="px-card !border-dashed p-6 h-full flex flex-col justify-center items-center text-center">
+              <div className="px-tile mb-4 p-3" aria-hidden="true">
                 {isProcessingUpload ? (
-                  <Loader2 className="w-8 h-8 animate-spin" />
+                  <Loader2 className="w-7 h-7 animate-spin" />
                 ) : (
-                  <Upload className="w-8 h-8" />
+                  <Upload className="w-7 h-7" />
                 )}
               </div>
-              <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">
-                Upload Materi Sendiri
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Konversi PDF/Foto bukumu menjadi Audio & Ringkasan.
+              <h3 className="px-title text-sm mb-2">Upload Materi Sendiri</h3>
+              <p className="text-muted-foreground mb-4">
+                Ubah PDF atau foto bukumu menjadi audio dan ringkasan.
               </p>
 
               <Input
@@ -541,19 +515,19 @@ export default function Flexa() {
               />
               <Button
                 variant="outline"
-                className="border-primary/50 text-primary hover:bg-primary/5"
+                className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90 hover:text-white"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isProcessingUpload}
               >
-                {isProcessingUpload ? "Memproses..." : "Pilih File"}
+                {isProcessingUpload ? "Memproses…" : "Pilih File"}
               </Button>
             </Card>
-          </motion.div>
+          </div>
         </div>
 
         {documents.length > 0 && (
-          <section aria-labelledby="dokumen-saya" className="mt-4">
-            <h2 id="dokumen-saya" className="text-2xl font-bold mb-4">
+          <section aria-labelledby="dokumen-saya" className="mt-8">
+            <h2 id="dokumen-saya" className="px-title text-sm md:text-base mb-4">
               Dokumen Saya
             </h2>
             <div className="grid gap-3">
@@ -570,7 +544,7 @@ export default function Flexa() {
                     key={doc.id}
                     role="button"
                     tabIndex={0}
-                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors flex justify-between items-center gap-4"
+                    className="px-card p-4 cursor-pointer flex justify-between items-center gap-4"
                     onClick={open}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
@@ -609,33 +583,33 @@ export default function Flexa() {
     const levelData = learningPath[selectedLevel];
     return (
       <div className="min-h-screen p-3 md:p-8 max-w-4xl mx-auto">
-        <Button variant="ghost" onClick={goBack} className="mb-6 pl-0">
-          <ArrowLeft className="mr-2 h-5 w-5" /> Kembali
+        <Button variant="outline" onClick={goBack} className="px-btn mb-6">
+          <ArrowLeft className="mr-2 h-5 w-5" aria-hidden="true" /> Kembali
         </Button>
         <div className="mb-8">
           <div
-            className={`inline-block px-4 py-1 rounded-full text-sm font-bold mb-4 capitalize ${levelData.color}`}
+            className={`inline-block border-[3px] border-foreground px-3 py-1 text-sm font-bold mb-4 ${levelData.color}`}
           >
             {levelData.title}
           </div>
-          <h1 className="text-3xl font-bold">Daftar Materi</h1>
+          <h1 className="px-title text-lg md:text-2xl">Daftar Materi</h1>
         </div>
         <div className="grid gap-4">
           {chaptersByLevel[selectedLevel].length === 0 && (
-            <p className="text-muted-foreground" role="status">Memuat materi...</p>
+            <p className="text-muted-foreground" role="status">Memuat materi…</p>
           )}
           {chaptersByLevel[selectedLevel].map((chapter, index) => (
             <Card
               key={chapter.id}
-              className="p-6 cursor-pointer hover:bg-muted/50 transition-colors flex justify-between items-center group"
+              className="px-card p-4 md:p-5 cursor-pointer flex justify-between items-center gap-4"
               {...clickable(() => handleChapterSelect(chapter))}
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                <div className="px-tile px-title w-12 h-12 shrink-0 flex items-center justify-center text-sm" aria-hidden="true">
                   {index + 1}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold group-hover:text-primary">
+                  <h3 className="text-lg font-bold">
                     {chapter.title}
                   </h3>
                 </div>
@@ -659,14 +633,14 @@ export default function Flexa() {
     };
     return (
       <div className="min-h-screen p-3 md:p-12 max-w-5xl mx-auto">
-        <Button variant="outline" onClick={goBack} className="mb-8">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+        <Button variant="outline" onClick={goBack} className="px-btn mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Kembali
         </Button>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-4 space-y-6">
-            <Card className="p-6 bg-slate-50 dark:bg-slate-900 border-primary/20 sticky top-8">
-              <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
-                <BrainCircuit className="w-5 h-5 text-primary" /> Mode Belajar
+            <Card className="px-card p-5 sticky top-8">
+              <h3 className="px-title text-sm mb-6 flex items-center gap-2">
+                <BrainCircuit className="w-5 h-5 shrink-0" aria-hidden="true" /> Mode Belajar
               </h3>
               <div className="space-y-2 mb-8">
                 <label className="text-sm font-medium text-muted-foreground block mb-2">
@@ -675,21 +649,27 @@ export default function Flexa() {
                 <div className="flex gap-2">
                   <Button
                     variant={textSize === "normal" ? "default" : "outline"}
-                    className="flex-1"
+                    className="px-btn flex-1"
+                    aria-pressed={textSize === "normal"}
+                    aria-label="Ukuran teks normal"
                     onClick={() => setTextSize("normal")}
                   >
                     A
                   </Button>
                   <Button
                     variant={textSize === "large" ? "default" : "outline"}
-                    className="flex-1 text-lg"
+                    className="px-btn flex-1 text-lg"
+                    aria-pressed={textSize === "large"}
+                    aria-label="Ukuran teks besar"
                     onClick={() => setTextSize("large")}
                   >
                     A+
                   </Button>
                   <Button
                     variant={textSize === "extra" ? "default" : "outline"}
-                    className="flex-1 text-xl font-bold"
+                    className="px-btn flex-1 text-xl font-bold"
+                    aria-pressed={textSize === "extra"}
+                    aria-label="Ukuran teks sangat besar"
                     onClick={() => setTextSize("extra")}
                   >
                     A++
@@ -702,7 +682,7 @@ export default function Flexa() {
                 </label>
                 {!isSpeaking ? (
                   <Button
-                    className="w-full h-12 text-lg bg-primary hover:bg-primary/90"
+                    className="px-btn w-full h-12 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
                     onClick={() => {
                       // 1. Ambil teks asli (gunakan default string kosong jika null)
                       const rawContent = selectedChapter?.content || "";
@@ -727,7 +707,7 @@ export default function Flexa() {
                 ) : (
                   <Button
                     variant="destructive"
-                    className="w-full h-12 text-lg"
+                    className="px-btn w-full h-12 text-lg"
                     onClick={stopSpeaking}
                   >
                     <PauseCircle className="mr-2 h-6 w-6 animate-pulse" />{" "}
@@ -741,13 +721,13 @@ export default function Flexa() {
                 </p>
                 {/* Dokumen yang belum tersimpan belum punya id untuk ditanyakan */}
                 {(selectedChapter.id !== "custom-upload" || selectedChapter.documentId) && (
-                  <Button variant="outline" className="w-full h-12 justify-start" onClick={askTutor}>
+                  <Button variant="outline" className="px-btn w-full h-12 justify-start" onClick={askTutor}>
                     <MessageSquare className="mr-2 h-5 w-5" aria-hidden="true" /> Tanya NeoTutor
                   </Button>
                 )}
                 <Button
                   variant="outline"
-                  className="w-full h-12 justify-start"
+                  className="px-btn w-full h-12 justify-start"
                   onClick={() => {
                     stopSpeaking();
                     setShowQuiz(true);
@@ -758,7 +738,7 @@ export default function Flexa() {
               </div>
             </Card>
             <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-none border-[3px] border-foreground">
                 <DialogTitle>Kuis: {selectedChapter.title}</DialogTitle>
                 <DialogDescription>
                   Soal dibuat AI dari materi ini dan menyesuaikan dengan jawabanmu.
@@ -774,32 +754,32 @@ export default function Flexa() {
             </Dialog>
           </div>
           <div className="lg:col-span-8">
-            <Card className="min-h-[60vh] flex flex-col shadow-lg border-t-4 border-t-primary">
+            <Card className="px-card min-h-[60vh] flex flex-col">
               <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
                 className="w-full flex flex-col flex-1"
               >
-                <div className="px-6 pt-6 border-b">
-                  <h1 className="text-3xl font-bold mb-2">
+                <div className="px-4 pt-5 md:px-6 border-b-[3px] border-foreground/25">
+                  <h1 className="text-2xl md:text-3xl font-bold mb-4">
                     {selectedChapter.title}
                   </h1>
-                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto mb-6">
-                    <TabsTrigger value="text">
+                  <TabsList className="px-tabs grid w-full grid-cols-2 sm:grid-cols-4 mb-5">
+                    <TabsTrigger value="text" className="px-tab">
                       <Type className="w-4 h-4 mr-2" /> Bacaan
                     </TabsTrigger>
-                    <TabsTrigger value="simple">
+                    <TabsTrigger value="simple" className="px-tab">
                       <Sparkles className="w-4 h-4 mr-2" /> Sederhana
                     </TabsTrigger>
-                    <TabsTrigger value="audio">
+                    <TabsTrigger value="audio" className="px-tab">
                       <Volume2 className="w-4 h-4 mr-2" /> Audio Fokus
                     </TabsTrigger>
-                    <TabsTrigger value="summary">
+                    <TabsTrigger value="summary" className="px-tab">
                       <FileText className="w-4 h-4 mr-2" /> Ringkasan
                     </TabsTrigger>
                   </TabsList>
                 </div>
-                <div className="p-6 flex-1 bg-white dark:bg-black/20">
+                <div className="p-4 md:p-6 flex-1">
                   <AnimatePresence mode="wait">
                     {activeTab === "text" && (
                       <motion.div
@@ -824,30 +804,29 @@ export default function Flexa() {
                         className="h-full flex flex-col items-center justify-center text-center"
                       >
                         <div
-                          className={`w-40 h-40 rounded-full flex items-center justify-center mb-8 transition-all duration-500 ${
-                            isSpeaking
-                              ? "bg-primary text-white shadow-2xl scale-110"
-                              : "bg-muted text-muted-foreground"
+                          className={`w-32 h-32 border-[3px] border-foreground flex items-center justify-center mb-8 ${
+                            isSpeaking ? "bg-amber-300 text-[#0a1a4f] animate-pulse" : "bg-muted text-muted-foreground"
                           }`}
                         >
-                          <Volume2 className="w-20 h-20" />
+                          <Volume2 className="w-16 h-16" aria-hidden="true" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-2">
-                          {isSpeaking ? "Sedang Membaca..." : "Siap Membaca"}
+                        <h3 className="px-title text-sm mb-2">
+                          {isSpeaking ? "Sedang Membaca…" : "Siap Membaca"}
                         </h3>
                       </motion.div>
                     )}
                     {activeTab === "simple" && (
                       <motion.div key="simple" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                        <div className="bg-sky-50 dark:bg-sky-900/10 border border-sky-200 p-4 md:p-6 rounded-xl">
+                        <div className="bg-sky-50 dark:bg-sky-900/10 border-[3px] border-foreground/30 p-4 md:p-6">
                           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                            <h3 className="font-bold text-xl text-sky-900 dark:text-sky-100">
+                            <h3 className="px-title text-sm text-sky-900 dark:text-sky-100">
                               Versi Bahasa Sederhana
                             </h3>
                             {simpleTexts[summaryKey] && (
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="px-btn min-h-10"
                                 onClick={() => speakText(simpleTexts[summaryKey].text)}
                               >
                                 <Volume2 className="w-4 h-4 mr-2" aria-hidden="true" /> Dengarkan
@@ -873,13 +852,14 @@ export default function Flexa() {
                                 <p className="mb-3">Versi sederhana belum bisa dibuat saat ini.</p>
                                 <Button
                                   variant="outline"
+                                  className="px-btn"
                                   onClick={() => loadSimpleText(summaryKey, selectedChapter.content)}
                                 >
                                   Coba Lagi
                                 </Button>
                               </div>
                             ) : (
-                              <p className="text-lg">NeoTutor sedang menulis ulang materi ini dengan bahasa sederhana...</p>
+                              <p className="text-lg">NeoTutor sedang menulis ulang materi ini dengan bahasa sederhana…</p>
                             )}
                           </div>
                         </div>
@@ -891,13 +871,13 @@ export default function Flexa() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                       >
-                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 p-6 rounded-xl">
-                          <h3 className="font-bold text-xl mb-4 text-yellow-800">
+                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border-[3px] border-foreground/30 p-4 md:p-6">
+                          <h3 className="px-title text-sm mb-4 text-yellow-900 dark:text-yellow-100">
                             Intisari Materi
                           </h3>
                           <p className="text-xl leading-relaxed whitespace-pre-line" aria-live="polite">
                             {isSummaryLoading && !summaries[summaryKey]
-                              ? "NeoTutor sedang meringkas materi ini..."
+                              ? "NeoTutor sedang meringkas materi ini…"
                               : summaries[summaryKey]}
                           </p>
                         </div>
