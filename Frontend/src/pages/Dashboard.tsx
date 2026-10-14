@@ -149,7 +149,7 @@ export default function Dashboard() {
           {!linear && <HopeMascot animated={!effectiveReduceMotion} className="h-auto w-16 shrink-0 md:w-20" />}
           <div className="min-w-0">
             <p className="text-muted-foreground">{greeting()},</p>
-            <h1 className="px-title text-lg md:text-2xl text-foreground break-words">Halo, {name || "…"}</h1>
+            <h1 className="px-title text-2xl md:text-3xl text-foreground break-words">Halo, {name || "…"}</h1>
           </div>
         </div>
         <AccessibilityBar />
@@ -251,7 +251,7 @@ export default function Dashboard() {
       <div className={linear ? "space-y-8" : "grid grid-cols-1 lg:grid-cols-2 gap-6"}>
         {/* Ringkasan minggu ini */}
         <section aria-labelledby="judul-minggu" className="px-card p-4 md:p-6">
-          <h2 id="judul-minggu" className="px-title text-sm md:text-base">
+          <h2 id="judul-minggu" className="px-title text-lg md:text-xl">
             Minggu Ini
           </h2>
           <p className="mb-4 mt-1 text-sm text-muted-foreground">Kegiatanmu dalam 7 hari terakhir</p>
@@ -267,7 +267,7 @@ export default function Dashboard() {
                   <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <stat.icon className="h-4 w-4 shrink-0" aria-hidden="true" /> {stat.label}
                   </dt>
-                  <dd className="px-title mt-2 text-base md:text-lg">{stat.value}</dd>
+                  <dd className="px-title mt-2 text-xl md:text-2xl">{stat.value}</dd>
                 </div>
               ))}
             </dl>
@@ -280,7 +280,7 @@ export default function Dashboard() {
         {/* Forum */}
         <section aria-labelledby="judul-forum" className="px-card p-4 md:p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 id="judul-forum" className="px-title text-sm md:text-base">
+            <h2 id="judul-forum" className="px-title text-lg md:text-xl">
               Terbaru di EchoForum
             </h2>
             <Link to="/forum" className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4">

@@ -491,7 +491,7 @@ export default function SignLanguage() {
                         return (
                           <span
                             key={i}
-                            className={`px-title w-12 h-14 flex items-center justify-center text-xl border-[3px] ${
+                            className={`px-title w-12 h-14 flex items-center justify-center text-3xl border-[3px] ${
                               done
                                 ? "bg-[#1a8f43] border-foreground text-white"
                                 : current
@@ -551,7 +551,7 @@ export default function SignLanguage() {
                       Untuk huruf yang sama dua kali, turunkan tangan sejenak.
                     </p>
                     <div
-                      className="px-well px-title min-h-[6rem] p-4 text-xl break-words mb-4"
+                      className="px-well px-title min-h-[6rem] p-4 text-3xl break-words mb-4"
                       aria-live="polite"
                       aria-label="Hasil ejaan"
                     >
@@ -651,7 +651,7 @@ export default function SignLanguage() {
       <Dialog open={celebration !== null} onOpenChange={(open) => !open && nextWord()}>
         <DialogContent className="text-center rounded-none border-[3px] border-foreground">
           <DialogHeader>
-            <DialogTitle className="px-title text-lg text-center">{celebration?.praise}</DialogTitle>
+            <DialogTitle className="px-title text-2xl text-center">{celebration?.praise}</DialogTitle>
             <DialogDescription className="text-lg text-center">
               Kamu berhasil mengeja <strong className="text-foreground">{celebration?.word}</strong> dengan isyarat.
             </DialogDescription>

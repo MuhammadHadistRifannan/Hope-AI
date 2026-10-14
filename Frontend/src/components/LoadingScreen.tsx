@@ -151,7 +151,7 @@ export default function LoadingScreen({ onReveal, onComplete }: Props) {
       }`}
       style={{ transition: calm ? undefined : `opacity ${FADE}ms ease-in-out` }}
     >
-      <h1 className="text-[clamp(1.75rem,7vw,3.25rem)] leading-[1.25]" translate="no">
+      <h1 className="font-pixel text-[clamp(2.6rem,10vw,4.6rem)] leading-[1.15]" translate="no">
         <Typed text={TITLE} shown={titleShown} cursor={typingTitle} />
       </h1>
       <p className="pixel-body-plain mt-3 text-base text-[#3c5b87] md:text-xl">

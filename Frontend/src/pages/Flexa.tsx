@@ -459,7 +459,7 @@ export default function Flexa() {
                 <div className="mb-4 border-[3px] border-foreground bg-white p-3" aria-hidden="true">
                   {learningPath[key].icon}
                 </div>
-                <h2 className="px-title text-sm mb-2">{learningPath[key].title}</h2>
+                <h2 className="px-title text-lg mb-2">{learningPath[key].title}</h2>
                 <p className="text-muted-foreground">{learningPath[key].description}</p>
               </Card>
             </div>
@@ -478,7 +478,7 @@ export default function Flexa() {
                     <div className="px-tile p-2.5" aria-hidden="true">
                       <HandMetal className="w-7 h-7" />
                     </div>
-                    <h3 className="px-title text-sm">Kamus Isyarat SIBI</h3>
+                    <h3 className="px-title text-lg">Kamus Isyarat SIBI</h3>
                   </div>
                   <p className="text-muted-foreground mb-6 leading-relaxed">
                     Lihat contoh abjad dan angka SIBI, lalu langsung tirukan di depan kamera.
@@ -501,7 +501,7 @@ export default function Flexa() {
                   <Upload className="w-7 h-7" />
                 )}
               </div>
-              <h3 className="px-title text-sm mb-2">Upload Materi Sendiri</h3>
+              <h3 className="px-title text-lg mb-2">Upload Materi Sendiri</h3>
               <p className="text-muted-foreground mb-4">
                 Ubah PDF atau foto bukumu menjadi audio dan ringkasan.
               </p>
@@ -527,7 +527,7 @@ export default function Flexa() {
 
         {documents.length > 0 && (
           <section aria-labelledby="dokumen-saya" className="mt-8">
-            <h2 id="dokumen-saya" className="px-title text-sm md:text-base mb-4">
+            <h2 id="dokumen-saya" className="px-title text-lg md:text-xl mb-4">
               Dokumen Saya
             </h2>
             <div className="grid gap-3">
@@ -592,7 +592,7 @@ export default function Flexa() {
           >
             {levelData.title}
           </div>
-          <h1 className="px-title text-lg md:text-2xl">Daftar Materi</h1>
+          <h1 className="px-title text-2xl md:text-3xl">Daftar Materi</h1>
         </div>
         <div className="grid gap-4">
           {chaptersByLevel[selectedLevel].length === 0 && (
@@ -605,7 +605,7 @@ export default function Flexa() {
               {...clickable(() => handleChapterSelect(chapter))}
             >
               <div className="flex items-center gap-4">
-                <div className="px-tile px-title w-12 h-12 shrink-0 flex items-center justify-center text-sm" aria-hidden="true">
+                <div className="px-tile px-title w-12 h-12 shrink-0 flex items-center justify-center text-lg" aria-hidden="true">
                   {index + 1}
                 </div>
                 <div>
@@ -639,7 +639,7 @@ export default function Flexa() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-4 space-y-6">
             <Card className="px-card p-5 sticky top-8">
-              <h3 className="px-title text-sm mb-6 flex items-center gap-2">
+              <h3 className="px-title text-lg mb-6 flex items-center gap-2">
                 <BrainCircuit className="w-5 h-5 shrink-0" aria-hidden="true" /> Mode Belajar
               </h3>
               <div className="space-y-2 mb-8">
@@ -810,7 +810,7 @@ export default function Flexa() {
                         >
                           <Volume2 className="w-16 h-16" aria-hidden="true" />
                         </div>
-                        <h3 className="px-title text-sm mb-2">
+                        <h3 className="px-title text-lg mb-2">
                           {isSpeaking ? "Sedang Membaca…" : "Siap Membaca"}
                         </h3>
                       </motion.div>
@@ -819,7 +819,7 @@ export default function Flexa() {
                       <motion.div key="simple" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                         <div className="bg-sky-50 dark:bg-sky-900/10 border-[3px] border-foreground/30 p-4 md:p-6">
                           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                            <h3 className="px-title text-sm text-sky-900 dark:text-sky-100">
+                            <h3 className="px-title text-lg text-sky-900 dark:text-sky-100">
                               Versi Bahasa Sederhana
                             </h3>
                             {simpleTexts[summaryKey] && (
@@ -872,7 +872,7 @@ export default function Flexa() {
                         animate={{ opacity: 1 }}
                       >
                         <div className="bg-yellow-50 dark:bg-yellow-900/10 border-[3px] border-foreground/30 p-4 md:p-6">
-                          <h3 className="px-title text-sm mb-4 text-yellow-900 dark:text-yellow-100">
+                          <h3 className="px-title text-lg mb-4 text-yellow-900 dark:text-yellow-100">
                             Intisari Materi
                           </h3>
                           <p className="text-xl leading-relaxed whitespace-pre-line" aria-live="polite">

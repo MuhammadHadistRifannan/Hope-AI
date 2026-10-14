@@ -155,7 +155,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <img src="/images/logo.png" alt="" width={48} height={48} className="w-full h-full object-contain" />
             </div>
             <div className={`hidden ${wide("lg:block")} min-w-0`}>
-              <p className="px-title text-base" translate="no">Hope.Ai</p>
+              <p className="px-title text-xl" translate="no">Hope.Ai</p>
               <p className="mt-1 text-xs text-white/75">AI untuk Pendidikan Inklusif</p>
             </div>
           </Link>
@@ -178,7 +178,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Main Navigation */}
         <nav aria-label="Menu utama" className={`flex-1 p-3 ${wide("lg:p-4")} overflow-y-auto space-y-6`}>
           <div className="space-y-1.5">
-            <p className={`px-title px-2 text-[10px] text-amber-300 hidden ${wide("lg:block")} mb-2`}>Menu Utama</p>
+            <p className={`px-title px-2 text-sm text-amber-300 hidden ${wide("lg:block")} mb-2`}>Menu Utama</p>
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               
@@ -200,7 +200,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Secondary Navigation */}
           <div className="pt-4 border-t-4 border-white/10">
-            <p className={`px-title px-2 text-[10px] text-amber-300 hidden ${wide("lg:block")} mb-2`}>Lainnya</p>
+            <p className={`px-title px-2 text-sm text-amber-300 hidden ${wide("lg:block")} mb-2`}>Lainnya</p>
             <div className="space-y-1.5">
               {secondaryItems.map((item) => {
                 const isActive = location.pathname === item.href;

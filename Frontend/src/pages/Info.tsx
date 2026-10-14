@@ -119,8 +119,8 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
                 EyeRead, dan teks yang diminta dibacakan, untuk menghasilkan jawaban, ringkasan, kuis, dan suara.
               </>,
               <>
-                <strong>Google Fonts</strong> menyediakan huruf, dan <strong>Kamus SIBI Kemendikdasmen</strong> menyediakan
-                gambar serta video isyarat. Keduanya dimuat langsung dari server mereka, sehingga mereka menerima alamat IP-mu.
+                <strong>Kamus SIBI Kemendikdasmen</strong> menyediakan gambar serta video isyarat. Media itu dimuat
+                langsung dari server mereka, sehingga mereka menerima alamat IP-mu.
               </>,
             ]}
           />
@@ -239,13 +239,7 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
         </Section>
 
         <Section title="Huruf">
-          <List
-            items={[
-              "Press Start 2P karya CodeMan38 dan Pixelify Sans karya Stefie Justprince, untuk halaman depan.",
-              "Cherry Bomb One, untuk judul di dalam aplikasi.",
-            ]}
-          />
-          <p>Ketiganya berlisensi SIL Open Font License dan dimuat lewat Google Fonts.</p>
+          <p>Semua teks memakai huruf bawaan perangkat, sehingga tidak ada huruf yang diunduh dari layanan lain.</p>
         </Section>
 
         <Section title="Gambar di halaman depan">
@@ -376,7 +370,7 @@ export default function Info({ slug }: { slug: InfoSlug }) {
         {/* Lembar gelap bergaya pixel: teks panjang tetap terbaca di atas pemandangan */}
         <main id="isi" className="px-3 pb-12 pt-4 md:px-5 md:pt-8">
           <div className="pixel-sheet pixel-body-plain mx-auto max-w-3xl px-5 py-8 md:px-10 md:py-12 text-base md:text-lg leading-relaxed text-white">
-            <h1 className="font-pixel text-[clamp(1.15rem,4.6vw,2rem)] leading-[1.4] text-balance">{page.title}</h1>
+            <h1 className="font-pixel text-[clamp(1.7rem,6vw,2.6rem)] leading-[1.4] text-balance">{page.title}</h1>
             <p className="mt-3 text-sm md:text-base text-amber-300">Terakhir diperbarui {UPDATED}</p>
             <p className="mt-6 text-lg md:text-xl leading-relaxed text-pretty">{page.intro}</p>
             {page.body}

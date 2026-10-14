@@ -28,7 +28,7 @@ export default function PageHeader({ title, description, art, lively = false, co
         </span>
       )}
       <div className="min-w-0 flex-1">
-        <h1 className="px-title text-lg text-foreground md:text-2xl" translate="no">
+        <h1 className="px-title text-2xl text-foreground md:text-3xl" translate="no">
           {title}
         </h1>
         <p className={`mt-2 max-w-prose text-base text-muted-foreground md:text-lg ${compact ? "hidden md:block" : ""}`}>{description}</p>

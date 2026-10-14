@@ -262,7 +262,7 @@ export default function Forum() {
 
         {/* Create Post */}
         <Card className="px-card p-4 md:p-6 mb-6">
-          <h2 className="px-title text-sm mb-4">Buat Postingan</h2>
+          <h2 className="px-title text-lg mb-4">Buat Postingan</h2>
           <Textarea
             value={newPost}
             onChange={(e) => setNewPost(e.target.value)}
@@ -452,7 +452,7 @@ export default function Forum() {
               <MessageSquare className="w-5 h-5" />
             </span>
             <div>
-              <h3 className="px-title text-xs mb-3">Forum yang Aksesibel</h3>
+              <h3 className="px-title text-base mb-3">Forum yang Aksesibel</h3>
               <ul className="space-y-1.5 text-muted-foreground">
                 <li>Setiap postingan dan komentar bisa dibacakan dengan suara.</li>
                 <li>Ukuran teks, kontras, dan huruf mengikuti pengaturanmu.</li>

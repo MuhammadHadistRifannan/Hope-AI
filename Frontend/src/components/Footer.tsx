@@ -19,7 +19,7 @@ export default function Footer() {
                 />
               </div>
               <div>
-                <h3 className="px-title text-sm text-white" translate="no">Hope.Ai</h3>
+                <h3 className="px-title text-lg text-white" translate="no">Hope.Ai</h3>
                 <p className="text-xs text-blue-200 font-medium">AI untuk Pendidikan Inklusif</p>
               </div>
             </div>
@@ -30,7 +30,7 @@ export default function Footer() {
 
           {/* 2. FITUR UTAMA */}
           <div>
-            <h4 className="px-title text-[11px] text-amber-300 mb-5">Fitur</h4>
+            <h4 className="px-title text-base text-amber-300 mb-5">Fitur</h4>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link to="/eyeread" className="text-slate-300 hover:text-blue-400 transition-colors flex items-center gap-2 group">
@@ -67,7 +67,7 @@ export default function Footer() {
 
           {/* 3. DUKUNGAN */}
           <div>
-            <h4 className="px-title text-[11px] text-amber-300 mb-5">Bantuan</h4>
+            <h4 className="px-title text-base text-amber-300 mb-5">Bantuan</h4>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link to="/profile" className="text-slate-300 hover:text-white transition-colors">
@@ -94,7 +94,7 @@ export default function Footer() {
 
           {/* 4. PROYEK */}
           <div>
-            <h4 className="px-title text-[11px] text-amber-300 mb-5">Proyek</h4>
+            <h4 className="px-title text-base text-amber-300 mb-5">Proyek</h4>
             <a
               href="https://github.com/MuhammadHadistRifannan/Hope-AI"
               target="_blank"

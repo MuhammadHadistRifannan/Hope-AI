@@ -83,7 +83,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
       {selected && (
         <section aria-labelledby="kamus-judul" className="px-well p-3 md:p-4 mb-5">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <h2 id="kamus-judul" className="px-title text-sm">
+            <h2 id="kamus-judul" className="px-title text-lg">
               {selected.title}
             </h2>
             <div className="inline-flex gap-1.5" role="group" aria-label="Jenis contoh">

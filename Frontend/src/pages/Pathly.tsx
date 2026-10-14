@@ -961,7 +961,7 @@ export default function Pathly() {
                 <div className="px-tile p-4 mb-5" aria-hidden="true">
                   <MapPin className="w-10 h-10" />
                 </div>
-                <h2 className="px-title text-base mb-2">Ayo Belajar</h2>
+                <h2 className="px-title text-xl mb-2">Ayo Belajar</h2>
                 <p className="text-muted-foreground text-lg">Ikuti peta materi dan kuis terstruktur.</p>
               </Card>
 
@@ -973,7 +973,7 @@ export default function Pathly() {
                 <div className="px-tile p-4 mb-5" aria-hidden="true">
                   <Gamepad2 className="w-10 h-10" />
                 </div>
-                <h2 className="px-title text-base mb-2">Ayo Bermain</h2>
+                <h2 className="px-title text-xl mb-2">Ayo Bermain</h2>
                 <p className="text-muted-foreground text-lg">Asah otak dengan mini-games seru.</p>
               </Card>
             </div>
@@ -1024,7 +1024,7 @@ export default function Pathly() {
                     exit={{ opacity: 0 }}
                     className="max-w-xl mx-auto relative z-10 text-center"
                   >
-                    <h1 className="px-title text-lg md:text-2xl mb-2">Peta Belajar</h1>
+                    <h1 className="px-title text-2xl md:text-3xl mb-2">Peta Belajar</h1>
                     <p className="text-muted-foreground mb-12">
                       Selesaikan setiap level untuk membuka materi baru.
                     </p>
@@ -1163,7 +1163,7 @@ export default function Pathly() {
               >
                 <Card className="px-card p-5 md:p-8">
                   <div className="flex justify-between items-center mb-8">
-                    <span className="px-title text-xs text-muted-foreground">
+                    <span className="px-title text-base text-muted-foreground">
                       Soal {qIndex + 1} / {activeModule.quiz.length}
                     </span>
                     <Button className="px-btn" variant="ghost" size="sm" onClick={resetPath}>
@@ -1197,7 +1197,7 @@ export default function Pathly() {
                           className="px-card p-4 text-lg font-bold text-left flex items-center gap-3"
                         >
                           <span
-                            className="px-tile px-title w-9 h-9 flex-shrink-0 text-xs flex items-center justify-center"
+                            className="px-tile px-title w-9 h-9 flex-shrink-0 text-base flex items-center justify-center"
                             aria-hidden="true"
                           >
                             {optionLetters[i]}
@@ -1228,7 +1228,7 @@ export default function Pathly() {
                     <div className="px-tile w-32 h-32 flex items-center justify-center mx-auto mb-6">
                       <Crown className="w-16 h-16 animate-bounce" aria-hidden="true" />
                     </div>
-                    <h1 className="px-title text-lg md:text-xl mb-3">Selamat! Kamu Tamat!</h1>
+                    <h1 className="px-title text-2xl md:text-3xl mb-3">Selamat! Kamu Tamat!</h1>
                     <p className="text-muted-foreground mb-8 text-lg">
                       Luar biasa! Kamu telah menyelesaikan semua tantangan.
                     </p>
@@ -1261,7 +1261,7 @@ export default function Pathly() {
                     <div className="px-tile w-32 h-32 flex items-center justify-center mx-auto mb-6">
                       <Trophy className="w-16 h-16 animate-bounce" aria-hidden="true" />
                     </div>
-                    <h1 className="px-title text-lg md:text-xl mb-3">Level Selesai!</h1>
+                    <h1 className="px-title text-2xl md:text-3xl mb-3">Level Selesai!</h1>
                     <p className="text-muted-foreground mb-8 text-lg">
                       Kamu mendapatkan +100 XP
                     </p>
@@ -1351,7 +1351,7 @@ export default function Pathly() {
                       <div className="px-tile w-20 h-20 flex items-center justify-center mb-6">
                         <Brain className="w-10 h-10" aria-hidden="true" />
                       </div>
-                      <h1 className="px-title text-lg md:text-xl mb-3">Memory Match</h1>
+                      <h1 className="px-title text-2xl md:text-3xl mb-3">Memory Match</h1>
                       <p className="text-slate-600 dark:text-slate-300 text-lg mb-8 max-w-md leading-relaxed">
                         Latih ingatanmu dengan mencocokkan pasangan kartu dengan
                         simbol dan teks yang sama sebelum waktu habis!
@@ -1377,7 +1377,7 @@ export default function Pathly() {
                         {memTimeLeft}s
                       </span>
                     </div>
-                    <div className="px-tile px-title px-3 py-2 text-xs md:text-sm">
+                    <div className="px-tile px-title px-3 py-2 text-base md:text-lg">
                       Score: {memScore}
                     </div>
                   </div>
@@ -1411,7 +1411,7 @@ export default function Pathly() {
                             </span>
                           </div>
                         ) : (
-                          <span className="px-title text-xl opacity-60">?</span>
+                          <span className="px-title text-3xl opacity-60">?</span>
                         )}
                       </motion.div>
                     ))}
@@ -1424,7 +1424,7 @@ export default function Pathly() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 dark:bg-slate-900/95 p-8 text-center"
                       >
-                        <h2 className="px-title text-lg md:text-xl mb-5">
+                        <h2 className="px-title text-2xl md:text-3xl mb-5">
                           {matchedCount === cardsData.length / 2
                             ? "Luar Biasa!"
                             : "Waktu Habis!"}
@@ -1450,7 +1450,7 @@ export default function Pathly() {
                       <div className="px-tile w-20 h-20 flex items-center justify-center mb-6">
                         <Calculator className="w-10 h-10" aria-hidden="true" />
                       </div>
-                      <h1 className="px-title text-lg md:text-xl mb-3">Math Whiz</h1>
+                      <h1 className="px-title text-2xl md:text-3xl mb-3">Math Whiz</h1>
                       <p className="text-slate-600 dark:text-slate-300 text-lg mb-8 max-w-md leading-relaxed">
                         Asah kemampuan berhitungmu! Jumlahkan atau kurangkan
                         buah-buahan tersebut dan pilih jawaban yang benar.
@@ -1472,7 +1472,7 @@ export default function Pathly() {
                         {mathTimeLeft}s
                       </span>
                     </div>
-                    <div className="px-tile px-title px-3 py-2 text-xs md:text-sm">
+                    <div className="px-tile px-title px-3 py-2 text-base md:text-lg">
                       {mathScore} Pts
                     </div>
                   </div>
@@ -1545,7 +1545,7 @@ export default function Pathly() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 p-8 text-center"
                       >
-                        <h2 className="px-title text-lg md:text-xl mb-3">Selesai!</h2>
+                        <h2 className="px-title text-2xl md:text-3xl mb-3">Selesai!</h2>
                         <p className="text-muted-foreground mb-4 text-lg">
                           Skor Akhir Kamu:
                         </p>

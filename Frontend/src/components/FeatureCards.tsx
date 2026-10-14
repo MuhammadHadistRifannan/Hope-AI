@@ -43,7 +43,7 @@ export function FeatureCard({ feature }: { feature: Feature }) {
         {Art && <Art animated={lively && !effectiveReduceMotion} className="h-full w-auto" />}
       </span>
       <span className="flex flex-1 flex-col gap-2 p-4">
-        <span className="px-title text-sm">{feature.name}</span>
+        <span className="px-title text-lg">{feature.name}</span>
         <span className="flex-1 leading-relaxed text-muted-foreground">{feature.description}</span>
         <span className="mt-1 flex items-center gap-2 font-semibold text-primary">
           Buka {feature.name} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />

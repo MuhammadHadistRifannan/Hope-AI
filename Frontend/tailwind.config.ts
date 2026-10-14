@@ -21,7 +21,7 @@ export default {
         // Huruf serif untuk judul bagian di landing page
         editorial: ['Fraunces', 'Georgia', 'serif'],
         // Huruf pixel untuk landing page
-        pixel: ['"Press Start 2P"', 'ui-monospace', 'monospace'],
+        pixel: ['ui-sans-serif', 'system-ui', '-apple-system', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

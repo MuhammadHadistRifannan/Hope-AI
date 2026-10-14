@@ -565,7 +565,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
   const focusRing = "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300";
 
   return (
-    <div data-landing className="relative min-h-screen font-pixel bg-[#7cc4e8]">
+    <div data-landing className="relative min-h-screen font-landing bg-[#7cc4e8]">
       <a
         href="#eyeread"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-white focus:text-black focus:shadow-lg"
@@ -578,7 +578,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
         <div className="flex items-center justify-between gap-2 md:gap-6">
           <Link to="/landing" className={`pointer-events-auto flex shrink-0 items-center gap-2 md:gap-3 rounded-2xl ${focusRing}`}>
             <img src="/images/logo.png" alt="" width={72} height={72} className="w-11 h-11 md:w-[72px] md:h-[72px] object-contain drop-shadow-[3px_4px_0_rgba(10,26,79,0.6)]" />
-            <span className="pixel-text-lg hidden min-[440px]:inline text-xs sm:text-lg md:text-2xl" translate="no">
+            <span className="pixel-text-lg font-pixel hidden min-[440px]:inline text-lg sm:text-xl md:text-3xl" translate="no">
               Hope.Ai
             </span>
           </Link>
@@ -611,7 +611,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
             <HeroTitle
               text="Belajar Tanpa Batasan."
               animated={animated}
-              className="pixel-text-lg max-w-5xl lg:max-w-none text-[clamp(1.5rem,5vw,4rem)] lg:text-[clamp(1.5rem,3.9vw,3.5rem)] [@media(max-height:700px)]:lg:text-[clamp(1.5rem,3.6vw,3rem)] leading-[1.25] text-balance lg:whitespace-nowrap"
+              className="pixel-text-lg font-pixel max-w-5xl lg:max-w-none text-[clamp(2.1rem,9vw,5rem)] lg:text-[clamp(2.5rem,5.6vw,5.5rem)] [@media(max-height:700px)]:lg:text-[clamp(2.2rem,4.8vw,4.2rem)] leading-[1.25] text-balance lg:whitespace-nowrap"
             />
             <p data-fade className="pixel-body relative mt-4 md:mt-5 max-w-4xl text-base md:text-xl leading-[1.45] text-balance">
               Platform belajar berbasis AI untuk siswa dengan cara belajar yang berbeda.
@@ -644,7 +644,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
                 animated={animated}
                 text={
                   <>
-                    <p data-fade className="pixel-text text-[11px] md:text-base !text-amber-300">
+                    <p data-fade className="pixel-text text-sm md:text-xl font-semibold !text-amber-300">
                       <span aria-hidden="true">
                         {i + 1}/{chapters.length} ·{" "}
                       </span>
@@ -657,11 +657,11 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
                       id={`judul-${chapter.id}`}
                       translate="no"
                       data-fade
-                      className="pixel-text-lg mt-2 md:mt-3 text-[clamp(1.25rem,6.4vw,1.75rem)] md:text-[clamp(1.5rem,4.6vw,3.6rem)] lg:text-[clamp(1.5rem,3.9vw,3.6rem)] leading-[1.2] break-words"
+                      className="pixel-text-lg font-pixel mt-2 md:mt-3 text-[clamp(1.9rem,9vw,2.6rem)] md:text-[clamp(2.2rem,6vw,4.6rem)] lg:text-[clamp(2.2rem,5vw,4.6rem)] leading-[1.2] break-words"
                     >
                       {chapter.name}
                     </h2>
-                    <p data-fade className="pixel-text mt-3 md:mt-5 text-xs md:text-lg leading-[1.8] md:leading-[1.9] text-balance">{chapter.heading}</p>
+                    <p data-fade className="pixel-text mt-3 md:mt-5 text-xl md:text-3xl font-semibold leading-snug text-balance">{chapter.heading}</p>
                     <p data-fade className="pixel-body mt-2 md:mt-3 text-base md:text-xl lg:text-2xl leading-[1.45] text-balance">{chapter.description}</p>
                     <TransitionLink to={featureHref(chapter.path)} data-fade className="pixel-button pixel-button-blue pixel-button-md pixel-text mt-5 md:mt-8 gap-3">
                       Coba {chapter.name} <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -680,11 +680,11 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
             animated={animated}
             text={
               <>
-                <p data-fade className="pixel-text text-[11px] md:text-base !text-amber-300">Hope Arcade</p>
+                <p data-fade className="pixel-text text-sm md:text-xl font-semibold !text-amber-300">Hope Arcade</p>
                 <h2
                   id="judul-arcade"
                   data-fade
-                  className="pixel-text-lg mt-2 md:mt-3 text-[clamp(1.1rem,5.4vw,1.6rem)] md:text-[clamp(1.4rem,3.6vw,2.6rem)] lg:text-[clamp(1.3rem,2.9vw,2.4rem)] leading-[1.3] text-balance"
+                  className="pixel-text-lg font-pixel mt-2 md:mt-3 text-[clamp(1.6rem,7.5vw,2.3rem)] md:text-[clamp(2rem,5vw,3.6rem)] lg:text-[clamp(2rem,4vw,3.6rem)] leading-[1.3] text-balance"
                 >
                   Ready, Set, Hope Run!
                 </h2>
@@ -707,7 +707,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
 
           {/* Penutup: satu ajakan besar, lalu kaki halaman di atas latar yang sama */}
           <section id="mulai" aria-labelledby="judul-penutup" className="min-h-[100svh] flex flex-col items-center px-5 pt-44 lg:pt-48 text-center">
-            <h2 id="judul-penutup" data-fade className="pixel-text-lg max-w-4xl text-[clamp(1.2rem,3.6vw,2.6rem)] leading-[1.45] text-balance">
+            <h2 id="judul-penutup" data-fade className="pixel-text-lg font-pixel max-w-4xl text-[clamp(1.7rem,5vw,3.8rem)] leading-[1.2] text-balance">
               Perjalanan belajarmu dimulai dari sini.
             </h2>
 
@@ -716,7 +716,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
               data-fade="tengah"
               className={`pixel-button pixel-button-green pixel-button-lg pixel-text-lg mt-10 mb-16 w-full max-w-2xl gap-4 ${animated ? "cta-bounce" : ""}`}
             >
-              <span className="text-[clamp(0.8rem,2.4vw,1.6rem)] leading-[1.3] whitespace-nowrap">{isLoggedIn ? "Buka Beranda" : "Mulai Belajar Gratis"}</span>
+              <span className="text-[clamp(1.25rem,3.4vw,2.4rem)] font-semibold leading-[1.3] whitespace-nowrap">{isLoggedIn ? "Buka Beranda" : "Mulai Belajar Gratis"}</span>
               <ArrowRight className="hidden sm:block w-[clamp(1.25rem,3.4vw,2.2rem)] h-[clamp(1.25rem,3.4vw,2.2rem)] shrink-0" aria-hidden="true" />
             </TransitionLink>
 
@@ -725,14 +725,14 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
               <div className="mx-auto max-w-5xl px-5 md:px-8 pt-8 pb-8">
                 <div className="grid gap-8 lg:grid-cols-4 lg:gap-x-10">
                   <nav aria-labelledby="kaki-fitur" className="lg:col-span-2">
-                    <p id="kaki-fitur" data-fade className="text-[11px] md:text-xs text-amber-300">Fitur</p>
+                    <p id="kaki-fitur" data-fade className="text-base md:text-lg font-semibold text-amber-300">Fitur</p>
                     <ul className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-x-2 sm:gap-x-4 lg:grid-cols-2 lg:gap-x-6">
                       {chapters.map((chapter) => (
                         <li key={chapter.id} data-fade className={footerOrder[chapter.id]}>
                           <a
                             href={`#${chapter.id}`}
                             onClick={glide(chapter.id)}
-                            className={`inline-flex items-center gap-2 sm:gap-3 min-h-11 text-[11px] min-[360px]:text-xs md:text-sm text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}
+                            className={`inline-flex items-center gap-2 sm:gap-3 min-h-11 text-base md:text-lg text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}
                             translate="no"
                           >
                             <FeatureIcon name={chapter.id} className="w-5 h-5 shrink-0" />
@@ -743,35 +743,35 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
                     </ul>
                   </nav>
                   <nav aria-labelledby="kaki-tentang">
-                    <p id="kaki-tentang" data-fade className="text-[11px] md:text-xs text-amber-300">Tentang</p>
+                    <p id="kaki-tentang" data-fade className="text-base md:text-lg font-semibold text-amber-300">Tentang</p>
                     <ul className="mt-2 flex flex-wrap gap-x-8 lg:block">
                       <li data-fade>
-                        <Link to="/aksesibilitas" className={`inline-flex items-center min-h-11 text-[11px] min-[360px]:text-xs md:text-sm text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
+                        <Link to="/aksesibilitas" className={`inline-flex items-center min-h-11 text-base md:text-lg text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
                           Aksesibilitas
                         </Link>
                       </li>
                       <li data-fade>
-                        <Link to="/kredit" className={`inline-flex items-center min-h-11 text-[11px] min-[360px]:text-xs md:text-sm text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
+                        <Link to="/kredit" className={`inline-flex items-center min-h-11 text-base md:text-lg text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
                           Kredit
                         </Link>
                       </li>
                       <li data-fade>
-                        <a href="https://github.com/MuhammadHadistRifannan/Hope-AI" target="_blank" rel="noopener noreferrer" className={`inline-flex items-center min-h-11 text-[11px] min-[360px]:text-xs md:text-sm text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
+                        <a href="https://github.com/MuhammadHadistRifannan/Hope-AI" target="_blank" rel="noopener noreferrer" className={`inline-flex items-center min-h-11 text-base md:text-lg text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
                           Kode sumber<span className="sr-only"> di GitHub (membuka tab baru)</span>
                         </a>
                       </li>
                     </ul>
                   </nav>
                   <nav aria-labelledby="kaki-legal">
-                    <p id="kaki-legal" data-fade className="text-[11px] md:text-xs text-amber-300">Legal</p>
+                    <p id="kaki-legal" data-fade className="text-base md:text-lg font-semibold text-amber-300">Legal</p>
                     <ul className="mt-2 flex flex-wrap gap-x-8 lg:block">
                       <li data-fade>
-                        <Link to="/privasi" className={`inline-flex items-center min-h-11 text-[11px] min-[360px]:text-xs md:text-sm text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
+                        <Link to="/privasi" className={`inline-flex items-center min-h-11 text-base md:text-lg text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
                           Privasi
                         </Link>
                       </li>
                       <li data-fade>
-                        <Link to="/ketentuan" className={`inline-flex items-center min-h-11 text-[11px] min-[360px]:text-xs md:text-sm text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
+                        <Link to="/ketentuan" className={`inline-flex items-center min-h-11 text-base md:text-lg text-white rounded underline-offset-8 origin-left transition-transform duration-150 ease-out [@media(hover:hover)]:hover:scale-110 focus-visible:scale-110 active:scale-100 motion-reduce:transform-none hover:text-amber-200 hover:underline ${focusRing}`}>
                           Ketentuan
                         </Link>
                       </li>
@@ -780,7 +780,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
                 </div>
                 <div className="mt-8 border-t-4 border-dotted border-white/25 pt-6 flex flex-col gap-2 text-sm md:text-base leading-[1.6] text-white">
                   <p data-fade className="pixel-body-plain">Setiap cara belajar layak mendapat ruang.</p>
-                  <p data-fade className="text-[11px] md:text-xs leading-[2]">© {new Date().getFullYear()} Tim Hope.Ai. Dibuat untuk UINIC 8.0.</p>
+                  <p data-fade className="text-sm md:text-base leading-[1.8]">© {new Date().getFullYear()} Tim Hope.Ai. Dibuat untuk UINIC 8.0.</p>
                 </div>
               </div>
             </footer>

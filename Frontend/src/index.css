@@ -275,21 +275,6 @@ All colors MUST be HSL.
   line-height: 1.8;
 }
 
-/* Landing page selalu memakai huruf pixel, walaupun Huruf Ramah Disleksia aktif.
-   Setelan itu tetap berlaku di semua halaman di dalam aplikasi. */
-.dyslexia-font body [data-landing],
-.dyslexia-font body [data-landing] * {
-  font-family: "Press Start 2P", ui-monospace, monospace !important;
-  letter-spacing: normal;
-  word-spacing: normal;
-}
-.dyslexia-font body [data-landing] .pixel-body,
-.dyslexia-font body [data-landing] .pixel-body-plain {
-  font-family: "Pixelify Sans", "Press Start 2P", ui-monospace, monospace !important;
-  word-spacing: 0.3em;
-  letter-spacing: 0.03em;
-}
-
 /* Kurangi Gerakan: dipasang saat pengguna atau sistem operasinya meminta */
 .reduce-motion *,
 .reduce-motion *::before,
@@ -330,27 +315,21 @@ All colors MUST be HSL.
     2px 2px #0a1a4f, -2px -2px #0a1a4f, 2px -2px #0a1a4f, -2px 2px #0a1a4f,
     4px 5px 0 rgba(10, 26, 79, 0.55);
 }
-/* Kalimat penjelas di landing page: huruf pixel yang lebih ramping dan mudah dibaca,
-   dengan garis tepi lebih tipis. Judul dan tombol tetap Press Start 2P. */
+/* Kalimat penjelas di landing page: huruf biasa yang mudah dibaca, putih dengan garis
+   tepi navy tipis supaya terbaca di atas pemandangan. Hanya judul yang berhuruf pixel. */
 .pixel-body {
-  font-family: "Pixelify Sans", "Press Start 2P", ui-monospace, monospace;
-  font-weight: 500;
-  /* Spasi bawaan huruf ini sempit; dilebarkan supaya kata tidak terlihat menyambung */
-  word-spacing: 0.3em;
-  letter-spacing: 0.03em;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
   color: #fff;
   text-shadow:
     1.5px 0 #0a1a4f, -1.5px 0 #0a1a4f, 0 1.5px #0a1a4f, 0 -1.5px #0a1a4f,
     1.5px 1.5px #0a1a4f, -1.5px -1.5px #0a1a4f, 1.5px -1.5px #0a1a4f, -1.5px 1.5px #0a1a4f,
     3px 3px 0 rgba(10, 26, 79, 0.5);
 }
-/* Huruf yang sama tanpa garis tepi, untuk teks di atas latar pekat (kaki halaman) */
+/* Huruf yang sama tanpa garis tepi, untuk teks di atas latar pekat */
 .pixel-body-plain {
-  font-family: "Pixelify Sans", "Press Start 2P", ui-monospace, monospace;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-weight: 500;
-  /* Spasi bawaan huruf ini sempit; dilebarkan supaya kata tidak terlihat menyambung */
-  word-spacing: 0.3em;
-  letter-spacing: 0.03em;
 }
 .pixel-text-lg {
   color: #fff;
@@ -394,6 +373,16 @@ All colors MUST be HSL.
   margin-top: -100lvh;
 }
 
+/* Judul besar bergaya landing (kelas font-pixel): huruf biasa yang sangat tebal */
+.font-pixel {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+/* Huruf dasar halaman bergaya landing: huruf biasa yang mudah dibaca */
+.font-landing {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 /* --- GAYA PIXEL DI DALAM APLIKASI ---
    Kartu, judul, dan navigasi bergaya pixel yang memakai warna tema (terang, gelap,
    kontras tinggi), sehingga semua mode tampilan tetap berfungsi. Isi teks memakai
@@ -429,19 +418,15 @@ button.px-card:focus-visible,
   outline: 4px solid #f59e0b;
   outline-offset: 3px;
 }
-/* Judul dan label pendek */
+/* Judul dan label pendek: huruf biasa yang tebal, bukan huruf pixel, supaya mudah dibaca.
+   Kesan pixel datang dari kotak, garis tebal, ilustrasi, dan warnanya. */
 .px-title {
-  font-family: "Press Start 2P", ui-monospace, monospace;
-  line-height: 1.6;
-  letter-spacing: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
-/* Dengan Huruf Ramah Disleksia judul memakai huruf biasa, yang lebih ramping daripada
-   huruf pixel; ukurannya dinaikkan dan ditebalkan supaya tetap terbaca sebagai judul. */
-.dyslexia-font .px-title {
-  font-size: 1.3em;
-  font-weight: 700;
-  line-height: 1.35;
-}
+
 /* Tombol di dalam aplikasi: sudut siku, garis tebal, dan bayangan pixel. Warnanya tetap
    mengikuti varian tombol (utama, garis, bahaya), jadi tema dan kontras tinggi aman. */
 .px-btn {
@@ -539,59 +524,21 @@ button.px-card:focus-visible,
   color: #000;
 }
 
-/* Lembar berisi teks dan formulir di halaman bergaya landing: isinya memakai huruf
-   pixel yang ramping (Pixelify Sans), sedangkan judul dan tombol tetap Press Start 2P.
-   Berlaku juga saat Huruf Ramah Disleksia aktif. */
+/* Lembar berisi teks dan formulir di halaman bergaya landing: isinya berhuruf biasa,
+   hanya judul yang berhuruf pixel (font-pixel). */
 .pixel-reading,
 .pixel-reading * {
-  font-family: "Pixelify Sans", ui-monospace, monospace;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  word-spacing: 0.18em;
-}
-.pixel-reading .font-semibold {
-  font-weight: 600;
-}
-.pixel-reading .font-pixel,
-.pixel-reading .pixel-text,
-.pixel-reading .pixel-text * {
-  font-family: "Press Start 2P", ui-monospace, monospace;
-  font-weight: 400;
-  letter-spacing: normal;
-  word-spacing: normal;
-}
-.dyslexia-font body [data-landing] .pixel-reading,
-.dyslexia-font body [data-landing] .pixel-reading * {
-  font-family: "Pixelify Sans", ui-monospace, monospace !important;
-  letter-spacing: 0.02em;
-  word-spacing: 0.18em;
-}
-.dyslexia-font body [data-landing] .pixel-reading .font-pixel,
-.dyslexia-font body [data-landing] .pixel-reading .pixel-text,
-.dyslexia-font body [data-landing] .pixel-reading .pixel-text * {
-  font-family: "Press Start 2P", ui-monospace, monospace !important;
-  letter-spacing: normal;
-  word-spacing: normal;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Jendela Tanya Hope: seluruh isinya memakai huruf pixel yang ramping (Pixelify Sans),
-   juga saat Huruf Ramah Disleksia aktif, sama seperti bagian lain di landing page. */
+/* Jendela Tanya Hope: berhuruf biasa, tanpa bayangan teks */
 .help-chat,
 .help-chat * {
-  font-family: "Pixelify Sans", ui-monospace, monospace;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  word-spacing: 0.18em;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   text-shadow: none;
 }
 .help-chat .font-semibold {
   font-weight: 600;
-}
-.dyslexia-font body [data-landing] .help-chat,
-.dyslexia-font body [data-landing] .help-chat * {
-  font-family: "Pixelify Sans", ui-monospace, monospace !important;
-  letter-spacing: 0.02em;
-  word-spacing: 0.18em;
 }
 /* Bilah gulir tipis yang senada dengan jendelanya */
 .help-scroll {
@@ -624,26 +571,27 @@ button.px-card:focus-visible,
     calc(var(--px) * 2) 100%, calc(var(--px) * 2) calc(100% - var(--px)), var(--px) calc(100% - var(--px)), var(--px) calc(100% - var(--px) * 2), 0 calc(100% - var(--px) * 2)
   );
   image-rendering: pixelated;
-  /* Ukuran dasar: tombol kecil di navigasi */
+  /* Ukuran dasar: tombol kecil di navigasi. Tulisan tombol berhuruf biasa. */
   min-height: 2.75rem;
   padding: 0.5rem 0.9rem;
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
   text-align: center;
 }
 .pixel-button-md {
-  padding: 1rem 1.4rem;
-  font-size: 12px;
+  padding: 0.9rem 1.4rem;
+  font-size: 16px;
 }
 /* Ajakan utama di pembuka: lebih besar daripada tombol lain di sekitarnya */
 .pixel-button-hero {
-  padding: 1.1rem 0.9rem;
-  font-size: 11px;
+  padding: 1rem 0.9rem;
+  font-size: 16px;
 }
 @media (min-width: 380px) {
   .pixel-button-hero {
-    padding: 1.1rem 1.4rem;
-    font-size: 13px;
+    padding: 1rem 1.4rem;
+    font-size: 18px;
   }
 }
 .pixel-button-lg {
@@ -652,16 +600,17 @@ button.px-card:focus-visible,
 }
 @media (min-width: 768px) {
   .pixel-button {
-    padding: 0.9rem 1.6rem;
-    font-size: 14px;
+    padding: 0.8rem 1.6rem;
+    font-size: 17px;
   }
   .pixel-button-md {
-    padding: 1.1rem 1.8rem;
+    padding: 1rem 1.8rem;
+    font-size: 18px;
   }
   .pixel-button-hero {
     --px: 6px;
-    padding: 1.45rem 2.2rem;
-    font-size: 16px;
+    padding: 1.3rem 2.2rem;
+    font-size: 21px;
   }
   .pixel-button-lg {
     --px: 8px;

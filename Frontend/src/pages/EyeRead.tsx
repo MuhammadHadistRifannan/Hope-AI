@@ -592,7 +592,7 @@ export default function EyeRead() {
                 <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
                   <div className="text-center">
                     <div className="animate-spin h-10 w-10 border-4 border-foreground border-t-amber-400 mx-auto mb-4" aria-hidden="true"></div>
-                    <p className="px-title text-xs" role="status">
+                    <p className="px-title text-base" role="status">
                       Memproses teks…
                     </p>
                   </div>

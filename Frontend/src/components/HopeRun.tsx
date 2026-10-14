@@ -404,7 +404,7 @@ export default function HopeRun({ onClose, calm }: Props) {
     >
       <div className={`${wide} my-auto flex flex-col gap-3 md:gap-4`}>
         <div className="flex items-center justify-between gap-3">
-          <h2 id="hope-run-judul" className="pixel-text text-sm md:text-lg !text-amber-300">
+          <h2 id="hope-run-judul" className="pixel-text font-pixel text-sm md:text-lg !text-amber-300">
             Hope Run
           </h2>
           <div className="flex items-center gap-2">
@@ -494,7 +494,7 @@ export default function HopeRun({ onClose, calm }: Props) {
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#0a1a4f]/70 p-4 text-center md:gap-5">
                   {status === "paused" && (
                     <>
-                      <p className="pixel-text-lg text-lg md:text-3xl">Jeda</p>
+                      <p className="pixel-text-lg font-pixel text-lg md:text-3xl">Jeda</p>
                       <button type="button" autoFocus onClick={pauseOrResume} className="pixel-button pixel-button-green pixel-button-md pixel-text gap-3">
                         <Play className="h-4 w-4" aria-hidden="true" /> Lanjut
                       </button>
@@ -502,7 +502,7 @@ export default function HopeRun({ onClose, calm }: Props) {
                   )}
                   {status === "over" && (
                     <>
-                      <p className="pixel-text-lg text-lg md:text-3xl">Game Over</p>
+                      <p className="pixel-text-lg font-pixel text-lg md:text-3xl">Game Over</p>
                       <p className="pixel-body text-base md:text-xl">
                         Skor {score}
                         {record ? " · Rekor baru!" : ""}

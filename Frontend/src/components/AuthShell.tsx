@@ -40,7 +40,7 @@ export default function AuthShell({ scene = { folder: "s3", layers: 4 }, title, 
   const greeting = greetings[turn % greetings.length];
 
   return (
-    <div data-landing className="relative min-h-screen bg-[#b98a63] font-pixel">
+    <div data-landing className="relative min-h-screen bg-[#b98a63] font-landing">
       {/* Pemandangan pixel yang sama dengan landing page, diam di belakang isi */}
       <div aria-hidden="true" className="scene-stage fixed inset-x-0 top-0 overflow-hidden">
         {Array.from({ length: scene.layers }, (_, i) => (
@@ -61,7 +61,7 @@ export default function AuthShell({ scene = { folder: "s3", layers: 4 }, title, 
         <header className="flex items-center justify-between gap-2 p-3 md:p-5">
           <Link to="/landing" className={`flex shrink-0 items-center gap-2 md:gap-3 rounded-2xl ${focusRing}`}>
             <img src="/images/logo.png" alt="" width={72} height={72} className="w-11 h-11 md:w-[72px] md:h-[72px] object-contain drop-shadow-[3px_4px_0_rgba(10,26,79,0.6)]" />
-            <span className="pixel-text-lg hidden min-[440px]:inline text-xs sm:text-lg md:text-2xl" translate="no">
+            <span className="pixel-text-lg font-pixel hidden min-[440px]:inline text-lg sm:text-xl md:text-3xl" translate="no">
               Hope.Ai
             </span>
           </Link>
@@ -81,9 +81,9 @@ export default function AuthShell({ scene = { folder: "s3", layers: 4 }, title, 
               </p>
             </div>
             <div className="hidden lg:block">
-              <p className="pixel-text mt-6 text-xs !text-amber-300">AI untuk Pendidikan Inklusif</p>
+              <p className="pixel-text mt-6 text-lg font-semibold !text-amber-300">AI untuk Pendidikan Inklusif</p>
               {/* Huruf membesar bergiliran, sama seperti judul di landing page */}
-              <p className="pixel-text-lg mt-4 text-[clamp(1.5rem,2.9vw,2.4rem)] leading-[1.45] text-balance">
+              <p className="pixel-text-lg font-pixel mt-4 text-[clamp(2.2rem,4vw,3.4rem)] leading-[1.2] text-balance">
                 <WaveText text="Belajar Tanpa Batasan." animated={animated} />
               </p>
               <p className="pixel-body mx-auto mt-5 max-w-md text-xl leading-[1.45] text-balance">
@@ -94,7 +94,7 @@ export default function AuthShell({ scene = { folder: "s3", layers: 4 }, title, 
 
           {/* Kanan: lembar formulir */}
           <main className="pixel-sheet pixel-reading mx-auto w-full max-w-md px-5 py-6 text-white md:px-9 md:py-8">
-            <h1 className="font-pixel text-[clamp(1rem,4.4vw,1.4rem)] leading-[1.45] text-balance">{title}</h1>
+            <h1 className="font-pixel text-[clamp(1.6rem,6vw,2.1rem)] leading-[1.2] text-balance">{title}</h1>
             <p className="mt-2.5 text-base leading-snug text-white/85 md:text-lg">{description}</p>
             {children}
           </main>
