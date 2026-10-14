@@ -73,7 +73,13 @@ public class GeminiService : IGeminiService
         };
 
         var response = await client.V1.Models.GenerateContentAsync(model.nameModel, content);
-        return response.Candidates![0].Content!.Parts![0].Text!;
+        // Jawaban bisa terbagi ke beberapa bagian, atau kosong bila Gemini menahannya
+        // (misalnya karena filter keamanan). Kosong diperlakukan sebagai kegagalan yang jelas.
+        var parts = response.Candidates?.FirstOrDefault()?.Content?.Parts;
+        var text = parts == null ? "" : string.Concat(parts.Select(part => part.Text ?? ""));
+        if (string.IsNullOrWhiteSpace(text))
+            throw new InvalidOperationException("Gemini tidak mengembalikan jawaban");
+        return text;
     }
 
     static Content TextContent(string role, string text)

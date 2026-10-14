@@ -28,10 +28,12 @@ namespace MyApp.Namespace
         readonly IChatHistoryService _history;
         readonly ITtsService _tts;
         readonly ModelAi _model; 
+        readonly ILogger<GeminiController> _logger;
 
-        public GeminiController(IGeminiService client , IChatHistoryService history , ITtsService tts)
+        public GeminiController(IGeminiService client , IChatHistoryService history , ITtsService tts, ILogger<GeminiController> logger)
         {
             _client = client;
+            _logger = logger;
             _history = history;
             _tts = tts;
             _model = new ModelAi
@@ -39,6 +41,12 @@ namespace MyApp.Namespace
                 nameModel = "gemini-2.5-flash"  
             };
         }
+
+        // Kegagalan layanan AI dikembalikan sebagai 503, bukan 502. Cloudflare di depan
+        // server mengganti setiap balasan 502 dengan halaman errornya sendiri yang tidak
+        // membawa header CORS, sehingga browser hanya melihat "diblokir CORS" dan pesan
+        // aslinya hilang.
+        ObjectResult Unavailable(string message) => StatusCode(StatusCodes.Status503ServiceUnavailable, message);
 
         [HttpPost("chat")]
         [EndpointSummary("Bertanya ke NeoTutor")]
@@ -72,14 +80,25 @@ namespace MyApp.Namespace
                 return NotFound(e.Message);
             }
 
+            // Gemini sesekali gagal sesaat (sibuk atau jawaban kosong); dicoba sekali lagi
             string response;
             try
             {
                 response = await _client.Chat(_model, history, text, material);
             }
-            catch (Exception e)
+            catch (Exception first)
             {
-                return StatusCode(502, "NeoTutor sedang tidak bisa menjawab: " + e.Message);
+                _logger.LogWarning(first, "Chat Gemini gagal, dicoba sekali lagi");
+                try
+                {
+                    await Task.Delay(800);
+                    response = await _client.Chat(_model, history, text, material);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Chat Gemini gagal dua kali");
+                    return Unavailable("NeoTutor sedang tidak bisa menjawab: " + e.Message);
+                }
             }
 
             var cleanResponse = response.Replace('*' , ' ');
@@ -110,11 +129,11 @@ namespace MyApp.Namespace
             }
             catch (QuizGenerationException e)
             {
-                return StatusCode(502, e.Message);
+                return Unavailable(e.Message);
             }
             catch (Exception e)
             {
-                return StatusCode(502, "Kuis belum bisa dibuat: " + e.Message);
+                return Unavailable("Kuis belum bisa dibuat: " + e.Message);
             }
         }
 
@@ -140,7 +159,7 @@ namespace MyApp.Namespace
             }
             catch (Exception e)
             {
-                return StatusCode(502, "Suara AI belum bisa dibuat: " + e.Message);
+                return Unavailable("Suara AI belum bisa dibuat: " + e.Message);
             }
         }
 
@@ -180,7 +199,7 @@ namespace MyApp.Namespace
             }
             catch (Exception e)
             {
-                return StatusCode(502, "Versi sederhana belum bisa dibuat: " + e.Message);
+                return Unavailable("Versi sederhana belum bisa dibuat: " + e.Message);
             }
         }
     }

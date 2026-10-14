@@ -314,12 +314,17 @@ export default function NeoTutor() {
       }
     } catch (error) {
       console.error(error);
+      // Pesan dari server (misalnya "NeoTutor sedang tidak bisa menjawab") lebih berguna
+      // daripada pesan umum; kegagalan jaringan tetap memakai pesan umum.
+      const fromServer = error instanceof Error && error.message && !/failed to fetch|networkerror|load failed/i.test(error.message);
       setMessages(prev => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "Terjadi kesalahan saat menghubungi server."
+          content: fromServer
+            ? `${error.message} Coba kirim lagi sebentar lagi.`
+            : "Tidak bisa menghubungi server. Periksa koneksi internetmu, lalu coba lagi."
         },
       ]);
     } finally {
