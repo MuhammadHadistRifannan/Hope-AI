@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BisindoDictionary, { BisindoCredit } from "@/components/BisindoDictionary";
 import type { RawFrame, WordModel, WordPrediction } from "@/lib/sign/bisindo";
-import { BISINDO_WORDS, bisindoVideo, bisindoWord } from "@/lib/sign/bisindoWords";
+import { BISINDO_WORDS, bisindoVideo, bisindoWord, differenceBetween } from "@/lib/sign/bisindoWords";
 
 export const WORD_MIN_CONFIDENCE = 0.6;
 const NEXT_WORD_DELAY_MS = 3000;
@@ -108,7 +108,9 @@ export default function BisindoPanel({
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       nextTimer.current = setTimeout(() => startWord(), NEXT_WORD_DELAY_MS);
     } else if (confident) {
-      setHint(`Terbaca "${guess!.label}". Coba lagi isyarat "${target}".`);
+      // Untuk pasangan yang mirip menurut audit, jelaskan bedanya
+      const difference = differenceBetween(guess!.label, target);
+      setHint(`Terbaca "${guess!.label}". ${difference ?? `Coba lagi isyarat "${target}".`}`);
     } else {
       setHint("Belum yakin. Ulangi gerakannya lebih jelas, lalu turunkan tangan.");
     }

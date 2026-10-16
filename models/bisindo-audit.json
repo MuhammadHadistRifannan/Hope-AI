@@ -1,0 +1,725 @@
+{
+ "labels": [
+  "Apa Kabar",
+  "Baik",
+  "Berapa",
+  "Dimana",
+  "Halo",
+  "Kamu",
+  "Makan",
+  "Membaca",
+  "Menulis",
+  "Minum",
+  "Saya",
+  "Selamat Pagi",
+  "Senang",
+  "Siapa",
+  "Terima Kasih",
+  "Tidur"
+ ],
+ "videos": 800,
+ "per_word": {
+  "Apa Kabar": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.918,
+   "min_true_prob": 0.805,
+   "mean_margin": 0.907,
+   "below_threshold": 0,
+   "most_similar": "Senang"
+  },
+  "Baik": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.856,
+   "min_true_prob": 0.689,
+   "mean_margin": 0.84,
+   "below_threshold": 0,
+   "most_similar": "Minum"
+  },
+  "Berapa": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.864,
+   "min_true_prob": 0.414,
+   "mean_margin": 0.84,
+   "below_threshold": 2,
+   "most_similar": "Menulis"
+  },
+  "Dimana": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.856,
+   "min_true_prob": 0.479,
+   "mean_margin": 0.834,
+   "below_threshold": 3,
+   "most_similar": "Kamu"
+  },
+  "Halo": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.885,
+   "min_true_prob": 0.694,
+   "mean_margin": 0.87,
+   "below_threshold": 0,
+   "most_similar": "Minum"
+  },
+  "Kamu": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.874,
+   "min_true_prob": 0.726,
+   "mean_margin": 0.851,
+   "below_threshold": 0,
+   "most_similar": "Minum"
+  },
+  "Makan": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.858,
+   "min_true_prob": 0.651,
+   "mean_margin": 0.84,
+   "below_threshold": 0,
+   "most_similar": "Berapa"
+  },
+  "Membaca": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.827,
+   "min_true_prob": 0.306,
+   "mean_margin": 0.802,
+   "below_threshold": 2,
+   "most_similar": "Berapa"
+  },
+  "Menulis": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.876,
+   "min_true_prob": 0.697,
+   "mean_margin": 0.862,
+   "below_threshold": 0,
+   "most_similar": "Dimana"
+  },
+  "Minum": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.884,
+   "min_true_prob": 0.623,
+   "mean_margin": 0.866,
+   "below_threshold": 0,
+   "most_similar": "Halo"
+  },
+  "Saya": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.894,
+   "min_true_prob": 0.81,
+   "mean_margin": 0.883,
+   "below_threshold": 0,
+   "most_similar": "Terima Kasih"
+  },
+  "Selamat Pagi": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.829,
+   "min_true_prob": 0.509,
+   "mean_margin": 0.805,
+   "below_threshold": 2,
+   "most_similar": "Siapa"
+  },
+  "Senang": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.787,
+   "min_true_prob": 0.441,
+   "mean_margin": 0.736,
+   "below_threshold": 5,
+   "most_similar": "Baik"
+  },
+  "Siapa": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.894,
+   "min_true_prob": 0.709,
+   "mean_margin": 0.882,
+   "below_threshold": 0,
+   "most_similar": "Dimana"
+  },
+  "Terima Kasih": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.855,
+   "min_true_prob": 0.761,
+   "mean_margin": 0.841,
+   "below_threshold": 0,
+   "most_similar": "Saya"
+  },
+  "Tidur": {
+   "accuracy": 1.0,
+   "mean_true_prob": 0.843,
+   "min_true_prob": 0.733,
+   "mean_margin": 0.819,
+   "below_threshold": 0,
+   "most_similar": "Saya"
+  }
+ },
+ "confused_pairs": [],
+ "model_runner_up_pairs": [
+  [
+   "Baik ~ Senang",
+   0.0161
+  ],
+  [
+   "Apa Kabar ~ Senang",
+   0.0121
+  ],
+  [
+   "Dimana ~ Siapa",
+   0.0116
+  ],
+  [
+   "Berapa ~ Selamat Pagi",
+   0.0098
+  ],
+  [
+   "Kamu ~ Minum",
+   0.0097
+  ],
+  [
+   "Saya ~ Tidur",
+   0.009
+  ],
+  [
+   "Berapa ~ Makan",
+   0.0079
+  ],
+  [
+   "Dimana ~ Kamu",
+   0.0076
+  ],
+  [
+   "Halo ~ Minum",
+   0.0067
+  ],
+  [
+   "Selamat Pagi ~ Siapa",
+   0.0065
+  ]
+ ],
+ "model_embedding_pairs": [
+  [
+   "Kamu ~ Minum",
+   0.5823
+  ],
+  [
+   "Berapa ~ Selamat Pagi",
+   0.5813
+  ],
+  [
+   "Halo ~ Minum",
+   0.5812
+  ],
+  [
+   "Apa Kabar ~ Senang",
+   0.5784
+  ],
+  [
+   "Dimana ~ Kamu",
+   0.5652
+  ],
+  [
+   "Apa Kabar ~ Halo",
+   0.5561
+  ],
+  [
+   "Dimana ~ Siapa",
+   0.5492
+  ],
+  [
+   "Makan ~ Siapa",
+   0.5433
+  ],
+  [
+   "Baik ~ Minum",
+   0.542
+  ],
+  [
+   "Selamat Pagi ~ Siapa",
+   0.538
+  ]
+ ],
+ "raw_template_pairs": [
+  [
+   "Dimana ~ Kamu",
+   0.3966
+  ],
+  [
+   "Berapa ~ Kamu",
+   0.4335
+  ],
+  [
+   "Makan ~ Siapa",
+   0.4551
+  ],
+  [
+   "Dimana ~ Makan",
+   0.4862
+  ],
+  [
+   "Dimana ~ Siapa",
+   0.5083
+  ],
+  [
+   "Berapa ~ Dimana",
+   0.5102
+  ],
+  [
+   "Makan ~ Saya",
+   0.5112
+  ],
+  [
+   "Makan ~ Selamat Pagi",
+   0.5143
+  ]
+ ],
+ "nearest_neighbor_accuracy": 0.9925,
+ "nearest_neighbor_confusions": [
+  [
+   "Baik ~ Senang",
+   1
+  ],
+  [
+   "Membaca ~ Senang",
+   1
+  ],
+  [
+   "Berapa ~ Kamu",
+   1
+  ],
+  [
+   "Dimana ~ Kamu",
+   1
+  ],
+  [
+   "Makan ~ Siapa",
+   1
+  ],
+  [
+   "Halo ~ Minum",
+   1
+  ]
+ ],
+ "stress": {
+  "derau kuat (σ=0,05)": {
+   "accuracy": 1.0,
+   "top_errors": []
+  },
+  "30% frame hilang": {
+   "accuracy": 0.9988,
+   "top_errors": [
+    [
+     "Senang → Apa Kabar",
+     1
+    ]
+   ]
+  },
+  "kamera ±10 fps": {
+   "accuracy": 0.9988,
+   "top_errors": [
+    [
+     "Membaca → Apa Kabar",
+     1
+    ]
+   ]
+  },
+  "hanya satu tangan terlacak": {
+   "accuracy": 0.995,
+   "top_errors": [
+    [
+     "Senang → Baik",
+     2
+    ],
+    [
+     "Senang → Apa Kabar",
+     1
+    ],
+    [
+     "Membaca → Apa Kabar",
+     1
+    ]
+   ]
+  },
+  "gerakan lebih cepat (70%)": {
+   "accuracy": 0.9975,
+   "top_errors": [
+    [
+     "Senang → Baik",
+     2
+    ]
+   ]
+  },
+  "dicerminkan (kidal)": {
+   "accuracy": 1.0,
+   "top_errors": []
+  }
+ },
+ "traits": {
+  "Apa Kabar": {
+   "two_hands": 0.45,
+   "wrist_height": 0.28,
+   "path_length": 4.86
+  },
+  "Baik": {
+   "two_hands": 0.86,
+   "wrist_height": 0.26,
+   "path_length": 4.88
+  },
+  "Berapa": {
+   "two_hands": 0.06,
+   "wrist_height": 0.4,
+   "path_length": 2.72
+  },
+  "Dimana": {
+   "two_hands": 0.02,
+   "wrist_height": 0.36,
+   "path_length": 2.4
+  },
+  "Halo": {
+   "two_hands": 0.01,
+   "wrist_height": -0.1,
+   "path_length": 3.05
+  },
+  "Kamu": {
+   "two_hands": 0.04,
+   "wrist_height": 0.15,
+   "path_length": 2.87
+  },
+  "Makan": {
+   "two_hands": 0.06,
+   "wrist_height": 0.24,
+   "path_length": 3.04
+  },
+  "Membaca": {
+   "two_hands": 0.79,
+   "wrist_height": 0.38,
+   "path_length": 5.88
+  },
+  "Menulis": {
+   "two_hands": 0.81,
+   "wrist_height": 0.49,
+   "path_length": 5.43
+  },
+  "Minum": {
+   "two_hands": 0.03,
+   "wrist_height": -0.14,
+   "path_length": 4.21
+  },
+  "Saya": {
+   "two_hands": 0.06,
+   "wrist_height": 0.45,
+   "path_length": 2.64
+  },
+  "Selamat Pagi": {
+   "two_hands": 0.04,
+   "wrist_height": 0.25,
+   "path_length": 3.27
+  },
+  "Senang": {
+   "two_hands": 0.76,
+   "wrist_height": 0.3,
+   "path_length": 5.69
+  },
+  "Siapa": {
+   "two_hands": 0.03,
+   "wrist_height": 0.19,
+   "path_length": 2.66
+  },
+  "Terima Kasih": {
+   "two_hands": 0.7,
+   "wrist_height": 0.58,
+   "path_length": 2.46
+  },
+  "Tidur": {
+   "two_hands": 0.3,
+   "wrist_height": 0.21,
+   "path_length": 5.29
+  }
+ },
+ "other_signer_halo_050": "Halo 0.69, Minum 0.04, Apa Kabar 0.04",
+ "cross_session_accuracy": 1.0,
+ "confusion": [
+  [
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   50
+  ]
+ ]
+}

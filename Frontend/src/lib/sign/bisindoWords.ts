@@ -124,5 +124,52 @@ export const BISINDO_PHRASES: { text: string; words: string[]; note?: string }[]
   { text: "Saya senang membaca", words: ["Saya", "Senang", "Membaca"], note: "Untuk menyebut hobi." },
 ];
 
+// Pasangan isyarat yang paling mirip menurut audit (ml/bisindo/audit.py,
+// hasilnya di models/bisindo-audit.json): kata kedua terkuat menurut model
+// dan jarak gerakan tanpa model. Penjelasan bedanya diambil dari gerakan di atas.
+export const BISINDO_SIMILAR: { words: [string, string]; difference: string }[] = [
+  {
+    words: ["Dimana", "Kamu"],
+    difference: "Kamu: telunjuk menunjuk ke depan, ke lawan bicara. Dimana: telunjuk teracung dan digerakkan ke kiri dan kanan.",
+  },
+  {
+    words: ["Dimana", "Siapa"],
+    difference: "Siapa: tangan menyentuh dagu lalu turun. Dimana: telunjuk teracung di depan bahu tanpa menyentuh dagu.",
+  },
+  {
+    words: ["Baik", "Senang"],
+    difference: "Baik: kedua tangan menyentuh dada lalu jempol diacungkan. Senang: kedua telapak tetap terbuka dan bergerak naik di depan dada.",
+  },
+  {
+    words: ["Apa Kabar", "Senang"],
+    difference: "Apa Kabar: telapak menghadap atas di depan perut, lalu tangan kanan diangkat ke samping kepala. Senang: kedua telapak bergerak naik di depan dada.",
+  },
+  {
+    words: ["Berapa", "Selamat Pagi"],
+    difference: "Berapa: tangan terbuka maju dari dagu dengan telapak menghadap atas. Selamat Pagi: setelah maju dari dagu, tangan diangkat di depan bahu.",
+  },
+  {
+    words: ["Berapa", "Makan"],
+    difference: "Makan: ujung jari dikuncupkan dan didekatkan ke mulut. Berapa: jari-jari terbuka dan tangan maju menjauhi dagu.",
+  },
+  {
+    words: ["Halo", "Minum"],
+    difference: "Halo: tangan menyentuh dahi lalu telapak terbuka di samping kepala. Minum: tangan seperti memegang gelas di depan mulut lalu dimiringkan.",
+  },
+  {
+    words: ["Saya", "Tidur"],
+    difference: "Saya: satu telapak diletakkan di dada. Tidur: kedua telapak dirapatkan di samping pipi dan kepala dimiringkan.",
+  },
+];
+
 export const bisindoWord = (label: string) => BISINDO_WORDS.find((word) => word.label === label);
+
+export const similarTo = (label: string) =>
+  BISINDO_SIMILAR.filter((pair) => pair.words.includes(label)).map((pair) => ({
+    label: pair.words[0] === label ? pair.words[1] : pair.words[0],
+    difference: pair.difference,
+  }));
+
+export const differenceBetween = (a: string, b: string) =>
+  BISINDO_SIMILAR.find((pair) => pair.words.includes(a) && pair.words.includes(b))?.difference;
 export const bisindoVideo = (word: BisindoWord) => `${BISINDO_VIDEO_DIR}/${word.slug}.mp4`;

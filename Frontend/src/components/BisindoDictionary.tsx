@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Play, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { BISINDO_PHRASES, BISINDO_WORDS, bisindoVideo, type BisindoWord } from "@/lib/sign/bisindoWords";
+import { BISINDO_PHRASES, BISINDO_WORDS, bisindoVideo, similarTo, type BisindoWord } from "@/lib/sign/bisindoWords";
 
 type Props = {
   // Kata yang bisa dikenali kamera (label model)
@@ -59,6 +59,21 @@ export default function BisindoDictionary({ practicable, onPractice, onSpeak }: 
           <span className="font-semibold">Gerakan:</span> {selected.movement}{" "}
           <span className="text-muted-foreground">(ringkasan dari video; ikuti videonya untuk gerakan lengkap)</span>
         </p>
+        {similarTo(selected.label).length > 0 && (
+          <div className="mt-3 border-2 border-foreground/40 p-3">
+            <p className="text-sm font-semibold mb-1">Mirip dengan</p>
+            <ul className="space-y-2">
+              {similarTo(selected.label).map((similar) => (
+                <li key={similar.label} className="text-sm leading-relaxed">
+                  <Button size="sm" variant="outline" className="px-btn min-h-9 mr-2" onClick={() => choose(similar.label)}>
+                    {similar.label}
+                  </Button>
+                  {similar.difference}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-2 mt-4">
           {practicable.has(selected.label) && (

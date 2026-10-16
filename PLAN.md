@@ -103,7 +103,7 @@ Kondisi sekarang:
 | C2.2 | Mode eja kata | Mode Latihan: kata acak, tiap huruf benar diucapkan, kata lengkap diucapkan dengan pujian lalu lanjut ke kata berikutnya. Mode Eja ke Suara tetap ada | **Terpasang**, sama seperti di atas |
 | C2.3 | Rekaman sendiri 3–5 orang | Dilatih ulang dengan data gabungan; akurasi pada orang yang tidak ikut dilatih dicatat | Dikerjakan tim |
 | C2.4 | Pelacakan dua tangan untuk BISINDO | Mode BISINDO melacak kedua tangan dan titik tubuh (bahu sebagai acuan posisi); mode SIBI tetap satu tangan dan hasilnya tidak berubah | **Selesai**: tombol SIBI/BISINDO di halaman Isyarat (`?bahasa=bisindo`), titik tubuh dari `pose_landmarker_lite`; tes SIBI tetap lulus dan mode SIBI dicek di browser |
-| C2.5 | Model kata BISINDO | Kata ditebak dari satu isyarat utuh (tangan terlihat sampai diturunkan), di browser; di bawah ambang 0,6 tampil "Belum yakin"; tes otomatis memastikan hasil browser sama dengan Python | **Terpasang**: `models/bisindo-kata.json`, Conv1D di atas 30 frame. Tes membandingkan pemotongan, fitur, dan peluang dengan Python. Dicek di Chrome dengan kamera palsu berisi video uji: 18 dari 18 isyarat benar (keyakinan 73–94%). Belum diuji dengan orang sungguhan |
+| C2.5 | Model kata BISINDO | Kata ditebak dari satu isyarat utuh (tangan terlihat sampai diturunkan), di browser; di bawah ambang 0,6 tampil "Belum yakin"; tes otomatis memastikan hasil browser sama dengan Python | **Terpasang**: `models/bisindo-kata.json`, Conv1D di atas 30 frame. Tes membandingkan pemotongan, fitur, dan peluang dengan Python. Uji lintas sesi 100% setelah dilatih ulang (lihat audit di bawah); di Chrome dengan kamera palsu 9 dari 9 benar. Belum diuji dengan orang sungguhan |
 | C2.6 | Latihan dan Isyarat ke Suara BISINDO | Latihan: kata acak dengan video contoh, kata benar diucapkan dengan pujian lalu lanjut, kata salah diberi petunjuk. Isyarat ke Suara: kata yang terbaca menyusun kalimat yang bisa diucapkan | **Selesai**, dicek di browser |
 | C2.7 | Kamus BISINDO | Tiap kata punya video contoh, arti, ringkasan gerakan, tombol "Latih Kata Ini", dan kredit sumber; ada frasa perkenalan yang disusun dari kata-kata itu | **Selesai**: 16 video di `Frontend/public/sign/bisindo/` (dengan `LICENSE.txt`), kredit juga di `/kredit`. Ringkasan gerakan ditulis dari video; sebaiknya dicek penutur BISINDO |
 | C2.8 | Rekam Data BISINDO | Guru/admin bisa merekam contoh kata (termasuk kata baru seperti Nama, Umur, Hobi) dan mengunduh JSON yang langsung dibaca `train.py` | **Terpasang**; alur unduh → latih ulang belum dicoba dengan rekaman sungguhan |
@@ -114,11 +114,34 @@ Dataset gambar BISINDO yang terbuka umumnya hanya alfabet. Untuk kata sehari-har
 
 **Dipakai: BISINDO 40 Kata** (Kaggle `anggiyohanespardede/bisindo-40-kata-mp4`, lisensi MIT; 40 kata × 50 video, 400×300, ±30 fps). Dari daftar perkenalan yang diminta (halo, nama saya, apa kabar, kabar baik, saya berasal dari, umur saya, hobi saya), 16 kata yang dipakai: Halo, Selamat Pagi, Saya, Kamu, Siapa, Apa Kabar, Baik, Senang, Terima Kasih, Dimana, Berapa, Membaca, Menulis, Makan, Minum, Tidur. Kata **Nama, Umur, Hobi, dan Berasal tidak ada di dataset terbuka mana pun yang kami temukan**; di Kamus diganti padanan terdekat ("Kamu siapa?", "Kamu di mana?", "Kamu berapa?", "Saya senang membaca") dan bisa direkam sendiri lewat Rekam Data (C2.8).
 
-**Hasil pelatihan:** akurasi 100% (128/128 video uji), juga 100% saat kamera disimulasikan 15 fps dan saat gerakan dicerminkan (peraga kidal). **Angka ini terlalu optimistis untuk proposal:** hampir semua video diperagakan satu orang, jadi peraga di data uji juga ada di data latih. Angka yang layak dikutip harus dari orang lain, dan dicoba oleh pengguna Tuli sebelum diklaim.
+**Cara mengukur:** dataset direkam dalam dua sesi (video 001–025 dan 026–050; beda latar, pakaian, dan hari). Model dilatih di satu sesi dan diuji di sesi lainnya, bergantian. Cara ini lebih keras daripada pembagian acak, tapi peraganya tetap sebagian besar orang yang sama (hanya Halo 050 dari peraga lain).
+
+**Audit 17 Oktober** (`ml/bisindo/audit.py`, hasil lengkap di `models/bisindo-audit.json`):
+
+| Uji pada sesi yang tidak dilatih | Model pertama | Setelah dilatih ulang |
+|---|---|---|
+| Lintas sesi | 99,5% (796/800; 3 Tidur → Saya, 1 Dimana → Siapa) | **100%** (800/800) |
+| Hanya satu tangan terlacak | **75,7%** (Senang, Membaca → Apa Kabar; Terima Kasih → Saya) | **99,5%** |
+| 30% frame hilang / kamera ±10 fps | 99,8% / 99,6% | 99,9% / 99,9% |
+| Gerakan lebih cepat / dicerminkan (kidal) | 99,3% / 99,4% | 99,8% / 100% |
+| Video dengan keyakinan di bawah 0,6 ("Belum yakin") | 25 | 14 |
+
+Yang diubah saat melatih ulang: pada isyarat dua tangan, satu tangan kadang dihilangkan di sebagian frame atau sepanjang isyarat, supaya model tetap mengenali kata saat pelacak kehilangan satu tangan (tangan bersilangan atau keluar kamera). Di Chrome dengan kamera palsu, model baru membaca 9 dari 9 isyarat dengan benar; keyakinan Terima Kasih naik dari 73–86% menjadi 90–94%.
+
+**Isyarat yang mirip** (konsisten menurut peluang kata kedua, representasi model, dan jarak gerakan tanpa model):
+- Satu telunjuk di depan bahu atau wajah: **Dimana, Kamu, Siapa**
+- Dua tangan di depan dada: **Baik, Senang, Apa Kabar** (juga Membaca)
+- Tangan di dekat mulut atau dagu: **Berapa, Selamat Pagi, Makan**
+- Tangan terangkat di dekat kepala: **Halo, Minum**
+- **Saya, Tidur** (tertukar di model pertama, tidak lagi setelah dilatih ulang)
+
+Paling mudah "Belum yakin": Senang, Membaca, Selamat Pagi. Kamus menampilkan bagian "Mirip dengan" beserta bedanya, dan Latihan menjelaskan beda itu bila isyarat terbaca sebagai kata yang mirip (`BISINDO_SIMILAR` di `bisindoWords.ts`).
+
+**Angka ini tetap belum boleh dikutip sebagai akurasi untuk pengguna:** peraganya hampir selalu satu orang. Angka untuk proposal harus dari orang lain, dan dicoba oleh pengguna Tuli sebelum diklaim. Pasangan mirip di atas adalah kata yang perlu diperhatikan khusus saat uji itu.
 
 **Alur latih ulang** (`ml/bisindo/`, Python 3 dengan `mediapipe`, `torch`, `opencv-python`; berjalan di CPU sekitar 2 menit):
 1. Video per kata di satu folder per kata → `extract.py` mengambil titik tangan dan tubuh (model `.task` sama dengan browser) ke `.pkl`.
-2. `train.py <.pkl ...> [rekaman .json ...] --out <folder>` menghasilkan `bisindo-kata.json` dan `bisindo-kata.samples.json`.
+2. `train.py <.pkl ...> [rekaman .json ...] --out <folder>` mencetak uji lintas sesi, lalu menghasilkan `bisindo-kata.json` dan `bisindo-kata.samples.json`. `audit.py` dengan masukan yang sama menulis `audit.json` (pasangan mirip dan uji ketahanan); salin ke `models/bisindo-audit.json`.
 3. Salin `bisindo-kata.json` ke `models/` dan `Frontend/public/models/`, `bisindo-kata.samples.json` ke `models/`, lalu jalankan `npm test`. Kata baru juga perlu ditambahkan ke `src/lib/sign/bisindoWords.ts` beserta videonya.
 
 **Alternatif lain yang dicek:** WL-BISINDO (32 kata, 5 orang, varian Banten, CC BY-NC 4.0) lebih baik untuk uji pada orang yang tidak ikut dilatih, dan punya Teman, Keluarga, Tuli, Maaf, Pagi/Siang/Sore/Malam. Talkee (CC0) punya Nama, Perkenalkan, dan Bertemu, tapi hanya berupa titik MediaPipe dengan format lain, jadi perlu dicek dulu sebelum dipakai.

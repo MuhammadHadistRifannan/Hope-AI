@@ -6,7 +6,7 @@ import {
   FEATURE_SIZE, FRAMES, GAP_MS, MAX_SIGN_MS, SignSegmenter, frameFeatures, predictWord, resample, wordProbabilities,
   type WordModel,
 } from "./bisindo";
-import { BISINDO_WORDS } from "./bisindoWords";
+import { BISINDO_SIMILAR, BISINDO_WORDS } from "./bisindoWords";
 
 // Tubuh tegak menghadap kamera: bahu di (300, 200) dan (200, 200), pergelangan di bawahnya
 const pose = (): Point[] => {
@@ -108,9 +108,10 @@ describe("model kata BISINDO", () => {
     expect(served).toBe(readFileSync(resolve(root, "models/bisindo-kata.json"), "utf8"));
   });
 
-  it("semua kata model ada di kamus", () => {
+  it("semua kata model dan pasangan mirip ada di kamus", () => {
     const known = new Set(BISINDO_WORDS.map((word) => word.label));
     expect(model.labels.filter((label) => !known.has(label))).toEqual([]);
+    expect(BISINDO_SIMILAR.flatMap((pair) => pair.words).filter((label) => !known.has(label))).toEqual([]);
   });
 
   for (const sample of samples) {

@@ -2,6 +2,13 @@
 
     python train.py <keluaran extract.py .pkl ...> [rekaman .json ...] --out <folder>
 
+Langkah:
+  1. Uji lintas sesi: dataset BISINDO 40 Kata direkam dalam dua sesi (video
+     001–025 dan 026–050, beda latar, pakaian, dan hari). Model dilatih di
+     satu sesi dan diuji di sesi lainnya, bergantian. Angka inilah yang
+     dicatat, karena pembagian acak hampir selalu 100%.
+  2. Model akhir dilatih dengan semua video.
+
 Menghasilkan:
   bisindo-kata.json          model untuk Frontend/public/models/
   bisindo-kata.samples.json  contoh untuk tes kesamaan browser (models/ di akar repo)
@@ -15,7 +22,7 @@ import json
 import os
 import pickle
 import random
-from collections import Counter, defaultdict
+from collections import Counter
 
 import numpy as np
 import torch
@@ -89,6 +96,18 @@ def augment(seq, rng):
     seq[:, Y_INDEX] = scale * (np.sin(angle) * x + np.cos(angle) * y) + shift[1]
     seq[:, COORDS] += rng.normal(0, 0.02, size=(len(seq), COORDS.sum()))
 
+    # Pelacak sering kehilangan satu tangan (tangan bersilangan atau keluar
+    # kamera). Pada isyarat dua tangan, kadang satu tangan dihilangkan di
+    # sebagian frame atau sepanjang isyarat. Tangan yang tersisa tetap di
+    # slotnya, sama seperti frameFeatures saat hanya satu tangan terlihat.
+    if present[0].mean() > 0.3 and present[1].mean() > 0.3:
+        roll = rng.random()
+        slot = int(rng.integers(2))
+        if roll < 0.15:
+            present[slot] = np.zeros_like(present[slot])
+        elif roll < 0.4:
+            present[slot] = present[slot] & (rng.random(len(seq)) > rng.uniform(0.2, 0.6))
+
     # Slot tangan yang kosong tetap nol, seperti saat dipakai sungguhan
     for s in range(2):
         seq[~present[s], s * HAND_SIZE : (s + 1) * HAND_SIZE] = 0
@@ -134,10 +153,13 @@ def export(model, labels, mean, std):
     }
 
 
-def forward_json(model, seq):
-    """Perhitungan yang sama persis dengan browser, untuk memeriksa ekspor."""
+def forward_json(model, seq, until=None):
+    """Perhitungan yang sama persis dengan browser, untuk memeriksa ekspor.
+
+    until: berhenti setelah lapisan ke-sekian (representasi antara untuk audit.py).
+    """
     x = (np.asarray(seq, dtype=np.float64) - np.array(model["mean"])) / np.array(model["std"])
-    for layer in model["layers"]:
+    for layer in model["layers"][:until]:
         if layer["type"] == "conv1d":
             W, b = np.array(layer["W"]), np.array(layer["b"])
             k = W.shape[0]
@@ -156,124 +178,139 @@ def forward_json(model, seq):
     return x
 
 
+def session_of(clip):
+    """Video 001–025 dan 026–050 di BISINDO 40 Kata adalah dua sesi rekaman
+    berbeda; rekaman dari halaman Isyarat dikelompokkan per peraga."""
+    name = clip["file"]
+    if ":" in name:
+        return "rekaman:" + name.split(":", 1)[1]
+    return "A" if int(os.path.splitext(name)[0]) <= 25 else "B"
+
+
+def build(clips):
+    labels = sorted({c["label"] for c in clips})
+    items, skipped = [], Counter()
+    for clip in clips:
+        seq = sign_sequence(clip["frames"])
+        if seq is None:
+            skipped[clip["label"]] += 1
+            continue
+        items.append({"label": clip["label"], "clip": clip, "seq": seq, "session": session_of(clip)})
+    return labels, items, skipped
+
+
+def fit(items, labels, epochs, seed, log=None):
+    """Melatih dengan jumlah epoch tetap, jadi tidak ada pilihan yang diambil dari data uji."""
+    torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+    index = {label: i for i, label in enumerate(labels)}
+    train_x = np.stack([it["seq"] for it in items])
+    train_y = np.array([index[it["label"]] for it in items])
+    flat = train_x.reshape(-1, FEATURE_SIZE)
+    # Dibulatkan seperti di JSON supaya model dilatih dengan angka yang sama
+    mean = np.round(flat.mean(axis=0), DECIMALS)
+    std = np.round(np.maximum(flat.std(axis=0), 1e-2), DECIMALS)
+    norm = lambda x: torch.tensor((x - mean) / std, dtype=torch.float32)
+
+    model = WordModel(len(labels))
+    optimizer = torch.optim.AdamW(model.parameters(), lr=2e-3, weight_decay=1e-3)
+    schedule = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs)
+    loss_fn = nn.CrossEntropyLoss(label_smoothing=0.1)
+    for epoch in range(epochs):
+        model.train()
+        order = rng.permutation(len(train_x))
+        for start in range(0, len(order), 32):
+            batch = order[start : start + 32]
+            x = norm(np.stack([augment(train_x[i], rng) for i in batch]))
+            optimizer.zero_grad()
+            loss = loss_fn(model(x), torch.tensor(train_y[batch]))
+            loss.backward()
+            optimizer.step()
+        schedule.step()
+        if log and (epoch % 25 == 0 or epoch == epochs - 1):
+            log(f"  epoch {epoch:3d}  loss {loss.item():.3f}")
+    model.eval()
+    return export(model, labels, mean, std)
+
+
+def evaluate(exported, items, labels):
+    """Matriks kebingungan dan peluang tiap video, dihitung seperti di browser."""
+    index = {label: i for i, label in enumerate(labels)}
+    confusion = np.zeros((len(labels), len(labels)), dtype=int)
+    probs = []
+    for it in items:
+        p = forward_json(exported, it["seq"])
+        confusion[index[it["label"]], p.argmax()] += 1
+        probs.append(p)
+    return confusion, probs
+
+
+def cross_session(labels, items, epochs, log=print):
+    """Latih di satu sesi, uji di sesi lain, bergantian. Mengembalikan gabungan
+    matriks kebingungan dan (item, peluang, model) tiap video uji untuk audit."""
+    confusion = np.zeros((len(labels), len(labels)), dtype=int)
+    held_out = []
+    for test_session in ("A", "B"):
+        train_items = [it for it in items if it["session"] != test_session]
+        test_items = [it for it in items if it["session"] == test_session]
+        log(f"latih tanpa sesi {test_session} ({len(train_items)} video), uji sesi {test_session} ({len(test_items)} video)")
+        exported = fit(train_items, labels, epochs, SEED)
+        c, probs = evaluate(exported, test_items, labels)
+        log(f"  akurasi sesi {test_session}: {np.trace(c) / c.sum():.3f}")
+        confusion += c
+        held_out += [(it, p, exported) for it, p in zip(test_items, probs)]
+    return confusion, held_out
+
+
+def print_confusion(confusion, labels, log=print):
+    for i, label in enumerate(labels):
+        wrong = {labels[j]: int(n) for j, n in enumerate(confusion[i]) if n and j != i}
+        log(f"  {label:14s} {confusion[i, i]}/{confusion[i].sum()}" + (f"  salah ke {wrong}" if wrong else ""))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("inputs", nargs="+")
     parser.add_argument("--out", required=True)
     parser.add_argument("--epochs", type=int, default=150)
     args = parser.parse_args()
-
     random.seed(SEED)
     np.random.seed(SEED)
-    torch.manual_seed(SEED)
-    rng = np.random.default_rng(SEED)
 
-    clips = load(args.inputs)
-    labels = sorted({c["label"] for c in clips})
-    by_label = defaultdict(list)
-    skipped = Counter()
-    for clip in clips:
-        seq = sign_sequence(clip["frames"])
-        if seq is None:
-            skipped[clip["label"]] += 1
-            continue
-        by_label[clip["label"]].append((clip, seq))
-    print("kata:", len(labels), "| video terpakai:", sum(map(len, by_label.values())), "| terbuang:", dict(skipped))
+    labels, items, skipped = build(load(args.inputs))
+    print("kata:", len(labels), "| video terpakai:", len(items), "| terbuang:", dict(skipped))
 
-    # Pembagian acak per kata: 70% latih, 15% validasi, 15% uji
-    split = {"train": [], "val": [], "test": []}
-    for label in labels:
-        items = by_label[label]
-        rng.shuffle(items)
-        n_val = n_test = max(1, round(len(items) * 0.15))
-        split["test"] += [(label, *it) for it in items[:n_test]]
-        split["val"] += [(label, *it) for it in items[n_test : n_test + n_val]]
-        split["train"] += [(label, *it) for it in items[n_test + n_val :]]
-
-    index = {label: i for i, label in enumerate(labels)}
-    train_x = np.stack([seq for _, _, seq in split["train"]])
-    train_y = np.array([index[label] for label, _, _ in split["train"]])
-    mean = train_x.reshape(-1, FEATURE_SIZE).mean(axis=0)
-    std = np.maximum(train_x.reshape(-1, FEATURE_SIZE).std(axis=0), 1e-2)
-    # Dibulatkan seperti di JSON supaya model dilatih dengan angka yang sama
-    mean, std = np.round(mean, DECIMALS), np.round(std, DECIMALS)
-    norm = lambda x: torch.tensor((x - mean) / std, dtype=torch.float32)
-
-    def tensors(name):
-        xs = np.stack([seq for _, _, seq in split[name]])
-        ys = torch.tensor([index[label] for label, _, _ in split[name]])
-        return norm(xs), ys
-
-    val_x, val_y = tensors("val")
-    test_x, test_y = tensors("test")
-
-    model = WordModel(len(labels))
-    optimizer = torch.optim.AdamW(model.parameters(), lr=2e-3, weight_decay=1e-3)
-    schedule = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.epochs)
-    loss_fn = nn.CrossEntropyLoss(label_smoothing=0.1)
-    best_acc, best_state = -1.0, None
-
-    for epoch in range(args.epochs):
-        model.train()
-        order = rng.permutation(len(train_x))
-        for start in range(0, len(order), 32):
-            batch = order[start : start + 32]
-            x = norm(np.stack([augment(train_x[i], rng) for i in batch]))
-            y = torch.tensor(train_y[batch])
-            optimizer.zero_grad()
-            loss = loss_fn(model(x), y)
-            loss.backward()
-            optimizer.step()
-        schedule.step()
-
-        model.eval()
-        with torch.no_grad():
-            acc = (model(val_x).argmax(1) == val_y).float().mean().item()
-        if acc >= best_acc:
-            best_acc, best_state = acc, {k: v.clone() for k, v in model.state_dict().items()}
-        if epoch % 10 == 0 or epoch == args.epochs - 1:
-            print(f"epoch {epoch:3d}  loss {loss.item():.3f}  val {acc:.3f}")
-
-    model.load_state_dict(best_state)
-    model.eval()
-    exported = export(model, labels, mean, std)
-
-    # Akurasi uji dihitung dengan model hasil ekspor, cara yang sama dengan browser
-    confusion = np.zeros((len(labels), len(labels)), dtype=int)
-    confidences = []
-    for label, _, seq in split["test"]:
-        probs = forward_json(exported, seq)
-        confusion[index[label], probs.argmax()] += 1
-        confidences.append(probs.max())
+    confusion, held_out = cross_session(labels, items, args.epochs)
     accuracy = np.trace(confusion) / confusion.sum()
-    print(f"\nvalidasi terbaik {best_acc:.3f} | uji {accuracy:.3f} ({np.trace(confusion)}/{confusion.sum()})")
-    print("keyakinan rata-rata pada data uji:", round(float(np.mean(confidences)), 3))
-    for i, label in enumerate(labels):
-        wrong = {labels[j]: int(n) for j, n in enumerate(confusion[i]) if n and j != i}
-        print(f"  {label:14s} {confusion[i, i]}/{confusion[i].sum()}" + (f"  salah ke {wrong}" if wrong else ""))
+    true_prob = [p[labels.index(it["label"])] for it, p, _ in held_out]
+    print(f"\nakurasi lintas sesi {accuracy:.3f} ({np.trace(confusion)}/{confusion.sum()})")
+    print("peluang rata-rata untuk kata yang benar:", round(float(np.mean(true_prob)), 3))
+    print_confusion(confusion, labels)
 
-    # Uji ketahanan: kamera lebih lambat (tiap frame kedua dibuang, ±15 fps)
-    # dan peraga kidal (gerakan dicerminkan)
+    # Uji ketahanan pada sesi yang tidak dilatih: kamera ±15 fps dan peraga kidal
     def accuracy_of(make):
         hits = total = 0
-        for label, clip, seq in split["test"]:
-            variant = make(clip, seq)
+        for it, _, exported in held_out:
+            variant = make(it)
             if variant is None:
                 continue
             total += 1
-            hits += int(labels[forward_json(exported, variant).argmax()] == label)
+            hits += int(labels[forward_json(exported, variant).argmax()] == it["label"])
         return hits / max(total, 1)
 
-    slow = accuracy_of(lambda clip, _: sign_sequence(clip["frames"][::2]))
-    mirrored = accuracy_of(lambda _, seq: mirror(seq))
-    print(f"uji ±15 fps {slow:.3f} | uji dicerminkan (kidal) {mirrored:.3f}")
+    slow = accuracy_of(lambda it: sign_sequence(it["clip"]["frames"][::2]))
+    mirrored = accuracy_of(lambda it: mirror(it["seq"]))
+    print(f"lintas sesi ±15 fps {slow:.3f} | lintas sesi dicerminkan (kidal) {mirrored:.3f}")
 
+    print("\nmodel akhir dengan semua video")
+    exported = fit(items, labels, args.epochs, SEED, log=print)
     exported["evaluation"] = {
-        "split": "acak per video 70/15/15; peraga uji juga ada di data latih",
-        "test_accuracy": round(float(accuracy), 4),
-        "test_accuracy_15fps": round(float(slow), 4),
-        "test_accuracy_mirrored": round(float(mirrored), 4),
-        "test_videos": int(confusion.sum()),
+        "method": "lintas sesi: latih di satu sesi rekaman, uji di sesi lainnya (2 lipatan); peraganya sebagian besar orang yang sama",
+        "cross_session_accuracy": round(float(accuracy), 4),
+        "cross_session_accuracy_15fps": round(float(slow), 4),
+        "cross_session_accuracy_mirrored": round(float(mirrored), 4),
+        "videos": int(confusion.sum()),
+        "confusion": confusion.tolist(),
     }
     os.makedirs(args.out, exist_ok=True)
     with open(os.path.join(args.out, "bisindo-kata.json"), "w", encoding="utf-8") as f:
@@ -283,7 +320,7 @@ def main():
     # 0–16 yang dipakai fitur), fitur, dan peluang
     samples = []
     for label in labels[:2]:
-        clip = next(c for l, c, _ in split["test"] if l == label)
+        clip = next(it["clip"] for it in items if it["label"] == label)
         frames = [
             (t, [np.round(h, 1) for h in hands], None if pose is None else np.round(pose[:17], 1))
             for t, hands, pose in clip["frames"]
