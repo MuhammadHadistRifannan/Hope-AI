@@ -84,9 +84,13 @@ Sudah ada dan tetap dipertahankan: perintah "bantuan" sesuai halaman, saran saat
 |---|---|---|
 | Landing page parallax bergaya endless runner | Latar dari delapan adegan summer menempel di layar dan bergeser ke samping saat digulir; logo dan tombol Masuk (biru) dan Daftar (hijau) bergaya pixel art menempel di atas; tiap menu hanya berisi nama, satu kalimat, dan tombol coba; ilustrasi tiap menu digambar dengan kode (`LandingArt.tsx`), bukan GIF; penutup berupa satu ajakan besar "Daftar Gratis"; teks tanpa kotak dengan huruf Press Start 2P. Bilah kemajuan, tombol ganti huruf, dan tombol hentikan animasi dihapus; animasi tetap berhenti otomatis bila Kurangi Gerakan aktif. Revisi dari review desain: semua tombol memakai satu komponen pixel (hijau = tindakan utama, biru = sekunder), tombol "Coba" membuka fiturnya langsung (yang belum masuk mendaftar dulu lalu diteruskan lewat `?next=`), ilustrasi punya teks alternatif, link kaki halaman diperbesar. Isi tiap menu ditahan di layar dan meluncur masuk/keluar dari samping (bukan naik dari bawah); tombol "Jelajahi fitur" dan link kaki halaman menggulir beranimasi. Revisi 11 Okt: maskot penguin buatan kode dan judul beranimasi ombak per huruf di pembuka; tiap menu berisi kalimat pemikat + satu kalimat deskripsi sesuai fitur nyata; tata letak menu khusus ponsel (isi muat satu layar); kaki halaman berupa pita gelap dengan kelompok Fitur/Proyek dan ikon pixel. Halaman informasi publik `/privasi`, `/ketentuan`, `/aksesibilitas`, `/kredit` (`Info.tsx`) ditautkan dari kaki halaman dan formulir daftar; isinya perlu dibaca tim/dosen sebelum dikumpulkan, dan alamat kontak tim belum ada. Revisi 12 Okt: maskot melompat dari huruf ke huruf di judul, pesawat pixel melintas mendekat di langit pembuka, halaman berhenti otomatis di bagian terdekat, dan bagian Hope Arcade dengan permainan Hope Run (`HopeRun.tsx`, aturan di `lib/hopeRun.ts` dengan 8 tes). Tambahan 12 Okt: layar pembuka pixel (penguin detektif, teks diketik, memudar ke halaman), balon kata maskot, dua pesawat, pengaturan aksesibilitas Hope Run (Mode Bantuan, pilihan tombol, ukuran tombol, suara), dan "Tanya Hope" (tanya-jawab siap pakai, bukan AI; `HelpChat.tsx`, `lib/helpChat.ts`). Halaman Masuk, Daftar, Lupa dan Atur Ulang Password memakai gaya landing (`AuthShell.tsx`: latar pixel, maskot pixel, lembar navy, tombol pixel). Kerangka aplikasi (sidebar, navigasi bawah, tombol suara, kaki halaman) dan Beranda memakai gaya pixel berbasis warna tema (`px-card`, `px-title`, `px-nav-item`); menu lain menyusul satu per satu | **Selesai**, dicek lewat tangkapan layar otomatis di ukuran desktop dan ponsel; kehalusan gerakan perlu dicek langsung. Aset latar di `Frontend/public/parallax`; hanya landing page yang berubah |
 
-## Isyarat (SIBI)
+## Isyarat (SIBI untuk abjad, BISINDO untuk kata)
 
-Cakupan: abjad jari dan angka SIBI. J dan Z (isyarat bergerak) dikecualikan dulu; BISINDO masuk roadmap. Video tidak pernah keluar dari perangkat.
+Cakupan: dua fitur dengan model terpisah.
+- **SIBI, abjad jari dan angka, satu tangan.** Sudah terpasang. J dan Z (isyarat bergerak) dikecualikan dulu.
+- **BISINDO, 16 kata dasar, dua tangan.** Terpasang (C2.4 sampai C2.8).
+
+Di aplikasi, SIBI dan BISINDO selalu diberi label masing-masing supaya pengguna tidak mengira keduanya satu sistem. Video kamera tidak pernah keluar dari perangkat.
 
 Kondisi sekarang:
 - Model sudah dilatih di Colab (`models/sibi-abjad.json`, salinannya di `Frontend/public/models/`): 24 huruf tanpa J dan Z, belum termasuk angka.
@@ -98,6 +102,26 @@ Kondisi sekarang:
 | C2.1 | Halaman Isyarat memakai model dan normalisasi dari notebook | Huruf dikenali dari kamera; di bawah ambang 0,7 tampil "Belum yakin"; persentase keyakinan selalu tampil | **Terpasang**: hasil di browser sama dengan notebook (tes otomatis pada data latih); uji dengan tangan sungguhan oleh tim |
 | C2.2 | Mode eja kata | Mode Latihan: kata acak, tiap huruf benar diucapkan, kata lengkap diucapkan dengan pujian lalu lanjut ke kata berikutnya. Mode Eja ke Suara tetap ada | **Terpasang**, sama seperti di atas |
 | C2.3 | Rekaman sendiri 3–5 orang | Dilatih ulang dengan data gabungan; akurasi pada orang yang tidak ikut dilatih dicatat | Dikerjakan tim |
+| C2.4 | Pelacakan dua tangan untuk BISINDO | Mode BISINDO melacak kedua tangan dan titik tubuh (bahu sebagai acuan posisi); mode SIBI tetap satu tangan dan hasilnya tidak berubah | **Selesai**: tombol SIBI/BISINDO di halaman Isyarat (`?bahasa=bisindo`), titik tubuh dari `pose_landmarker_lite`; tes SIBI tetap lulus dan mode SIBI dicek di browser |
+| C2.5 | Model kata BISINDO | Kata ditebak dari satu isyarat utuh (tangan terlihat sampai diturunkan), di browser; di bawah ambang 0,6 tampil "Belum yakin"; tes otomatis memastikan hasil browser sama dengan Python | **Terpasang**: `models/bisindo-kata.json`, Conv1D di atas 30 frame. Tes membandingkan pemotongan, fitur, dan peluang dengan Python. Dicek di Chrome dengan kamera palsu berisi video uji: 18 dari 18 isyarat benar (keyakinan 73–94%). Belum diuji dengan orang sungguhan |
+| C2.6 | Latihan dan Isyarat ke Suara BISINDO | Latihan: kata acak dengan video contoh, kata benar diucapkan dengan pujian lalu lanjut, kata salah diberi petunjuk. Isyarat ke Suara: kata yang terbaca menyusun kalimat yang bisa diucapkan | **Selesai**, dicek di browser |
+| C2.7 | Kamus BISINDO | Tiap kata punya video contoh, arti, ringkasan gerakan, tombol "Latih Kata Ini", dan kredit sumber; ada frasa perkenalan yang disusun dari kata-kata itu | **Selesai**: 16 video di `Frontend/public/sign/bisindo/` (dengan `LICENSE.txt`), kredit juga di `/kredit`. Ringkasan gerakan ditulis dari video; sebaiknya dicek penutur BISINDO |
+| C2.8 | Rekam Data BISINDO | Guru/admin bisa merekam contoh kata (termasuk kata baru seperti Nama, Umur, Hobi) dan mengunduh JSON yang langsung dibaca `train.py` | **Terpasang**; alur unduh → latih ulang belum dicoba dengan rekaman sungguhan |
+
+### Data kata BISINDO
+
+Dataset gambar BISINDO yang terbuka umumnya hanya alfabet. Untuk kata sehari-hari datanya berupa video, dan tidak cukup diekstrak jadi gambar: hampir semua isyarat kata berupa gerakan dan banyak yang memakai dua tangan, jadi model membaca urutan frame.
+
+**Dipakai: BISINDO 40 Kata** (Kaggle `anggiyohanespardede/bisindo-40-kata-mp4`, lisensi MIT; 40 kata × 50 video, 400×300, ±30 fps). Dari daftar perkenalan yang diminta (halo, nama saya, apa kabar, kabar baik, saya berasal dari, umur saya, hobi saya), 16 kata yang dipakai: Halo, Selamat Pagi, Saya, Kamu, Siapa, Apa Kabar, Baik, Senang, Terima Kasih, Dimana, Berapa, Membaca, Menulis, Makan, Minum, Tidur. Kata **Nama, Umur, Hobi, dan Berasal tidak ada di dataset terbuka mana pun yang kami temukan**; di Kamus diganti padanan terdekat ("Kamu siapa?", "Kamu di mana?", "Kamu berapa?", "Saya senang membaca") dan bisa direkam sendiri lewat Rekam Data (C2.8).
+
+**Hasil pelatihan:** akurasi 100% (128/128 video uji), juga 100% saat kamera disimulasikan 15 fps dan saat gerakan dicerminkan (peraga kidal). **Angka ini terlalu optimistis untuk proposal:** hampir semua video diperagakan satu orang, jadi peraga di data uji juga ada di data latih. Angka yang layak dikutip harus dari orang lain, dan dicoba oleh pengguna Tuli sebelum diklaim.
+
+**Alur latih ulang** (`ml/bisindo/`, Python 3 dengan `mediapipe`, `torch`, `opencv-python`; berjalan di CPU sekitar 2 menit):
+1. Video per kata di satu folder per kata → `extract.py` mengambil titik tangan dan tubuh (model `.task` sama dengan browser) ke `.pkl`.
+2. `train.py <.pkl ...> [rekaman .json ...] --out <folder>` menghasilkan `bisindo-kata.json` dan `bisindo-kata.samples.json`.
+3. Salin `bisindo-kata.json` ke `models/` dan `Frontend/public/models/`, `bisindo-kata.samples.json` ke `models/`, lalu jalankan `npm test`. Kata baru juga perlu ditambahkan ke `src/lib/sign/bisindoWords.ts` beserta videonya.
+
+**Alternatif lain yang dicek:** WL-BISINDO (32 kata, 5 orang, varian Banten, CC BY-NC 4.0) lebih baik untuk uji pada orang yang tidak ikut dilatih, dan punya Teman, Keluarga, Tuli, Maaf, Pagi/Siang/Sore/Malam. Talkee (CC0) punya Nama, Perkenalkan, dan Bertemu, tapi hanya berupa titik MediaPipe dengan format lain, jadi perlu dicek dulu sebelum dipakai.
 
 ## Keamanan dan peran
 
@@ -114,6 +138,7 @@ Kondisi sekarang:
 
 - **Data latih SIBI.** Pembuat dataset Kaggle `alvinbintang/sibi-dataset` sudah memberi izin pemakaian; simpan bukti izinnya dan sebut sumbernya di proposal. Model dilatih dengan `ml/sibi/sibi_training.ipynb`; rekaman tambahan dibuat lewat tab Rekam Data (berkas CSV langsung dibaca notebook).
 - **Rekaman sendiri** abjad SIBI dari 3–5 orang.
+- **Uji kata BISINDO dengan orang sungguhan**: minimal 3 orang yang tidak ada di video latih, sebaiknya termasuk pengguna Tuli, memperagakan ke-16 kata; catat berapa yang benar. Bila akurasinya rendah, rekam mereka lewat Rekam Data BISINDO lalu latih ulang. Kata Nama, Umur, Hobi, dan Berasal juga bisa direkam dengan cara ini.
 - **Uji pengguna** dengan penyandang disabilitas dan kuesioner SUS; hasilnya masuk proposal.
 - **Pengaturan Supabase untuk lupa password**: Site URL diisi alamat Vercel; alamat Vercel dan `http://localhost:5173` didaftarkan di Redirect URLs.
 - **Kuota suara AI**: paket gratis Gemini TTS hanya 10 permintaan per hari per model.

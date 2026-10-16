@@ -12,6 +12,7 @@ const UPDATED = "11 Oktober 2026";
 const REPO_URL = "https://github.com/MuhammadHadistRifannan/Hope-AI";
 const SIBI_URL = "https://pkplk.kemendikdasmen.go.id/sibi/";
 const DATASET_URL = "https://www.kaggle.com/datasets/alvinbintang/sibi-dataset";
+const BISINDO_DATASET_URL = "https://www.kaggle.com/datasets/anggiyohanespardede/bisindo-40-kata-mp4";
 
 function External({ href, children }: { href: string; children: ReactNode }) {
   return (
@@ -171,7 +172,7 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
               "Teks pendamping suara dan penanda visual sebagai pengganti bunyi.",
               "Pilihan Kurangi Gerakan, yang juga mengikuti pengaturan sistem operasimu.",
               "Seluruh halaman bisa dijalankan dengan keyboard, dengan penanda fokus yang terlihat.",
-              "Kamus dan latihan abjad jari SIBI.",
+              "Kamus dan latihan abjad jari SIBI, serta 16 kata dasar BISINDO dengan dua tangan.",
             ]}
           />
         </Section>
@@ -191,7 +192,8 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
           <List
             items={[
               "Perintah suara bergantung pada browser: berjalan di Chrome dan Safari, belum di Firefox.",
-              "Latihan Isyarat mengenali 24 huruf abjad jari SIBI. Huruf J dan Z (yang memakai gerakan), angka, dan kata belum dikenali, dan hasilnya bisa keliru pada pencahayaan redup.",
+              "Latihan Isyarat mengenali 24 huruf abjad jari SIBI. Huruf J dan Z (yang memakai gerakan) dan angka belum dikenali, dan hasilnya bisa keliru pada pencahayaan redup.",
+              "Pengenal kata BISINDO baru mengenal 16 kata dasar dan dilatih dari video yang hampir semuanya diperagakan satu orang, sehingga bisa keliru untuk gaya isyarat orang lain atau isyarat dari daerah lain.",
               "Halaman depan selalu memakai huruf pixel, walaupun huruf ramah disleksia diaktifkan. Pengaturan itu berlaku di semua halaman setelah masuk.",
               "Teks di halaman depan berada di atas gambar; keterbacaannya dijaga dengan garis tepi gelap pada huruf.",
               "Jawaban NeoTutor dibuat oleh AI dan bisa salah.",
@@ -222,6 +224,11 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
               <>
                 Model pengenal abjad jari dilatih dari <External href={DATASET_URL}>SIBI Dataset karya Alvin Bintang</External>,
                 dipakai dengan izin pembuatnya.
+              </>,
+              <>
+                Video contoh dan model pengenal kata BISINDO memakai{" "}
+                <External href={BISINDO_DATASET_URL}>BISINDO 40 Kata karya Anggi Yohanes Pardede</External> (lisensi MIT).
+                Enam belas video contohnya disalin ke Hope.Ai.
               </>,
               <>
                 Posisi tangan dideteksi dengan <strong>MediaPipe</strong> dari Google (lisensi Apache 2.0), dijalankan di

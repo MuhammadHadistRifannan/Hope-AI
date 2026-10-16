@@ -1,18 +1,29 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
+import { FilesetResolver, HandLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision";
 import type { Point } from "@/lib/sign/landmarks";
 
-// width dan height: ukuran asli gambar kamera, dipakai untuk koordinat piksel
-export type HandFrame = { landmarks: Point[]; handedness: string; width: number; height: number } | null;
+// width dan height: ukuran asli gambar kamera, dipakai untuk koordinat piksel.
+// landmarks dan handedness: tangan pertama (dipakai SIBI). hands: semua tangan
+// yang terlihat; pose: titik tubuh, hanya diisi bila twoHands aktif (BISINDO).
+export type HandFrame = {
+  landmarks: Point[];
+  handedness: string;
+  hands: Point[][];
+  pose: Point[] | null;
+  width: number;
+  height: number;
+} | null;
 
 type Status = "idle" | "loading" | "ready" | "error";
 
-// Menyalakan kamera dan melacak satu tangan dengan MediaPipe, seluruhnya di
-// browser: gambar kamera tidak pernah dikirim ke server.
+// Menyalakan kamera dan melacak tangan dengan MediaPipe, seluruhnya di
+// browser: gambar kamera tidak pernah dikirim ke server. Satu tangan untuk
+// SIBI; dua tangan ditambah titik tubuh untuk BISINDO (twoHands).
 export function useHandTracking(
   videoRef: RefObject<HTMLVideoElement>,
   enabled: boolean,
-  onFrame: (frame: HandFrame, now: number) => void
+  onFrame: (frame: HandFrame, now: number) => void,
+  twoHands = false
 ) {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
@@ -28,6 +39,7 @@ export function useHandTracking(
     let cancelled = false;
     let stream: MediaStream | null = null;
     let landmarker: HandLandmarker | null = null;
+    let poseLandmarker: PoseLandmarker | null = null;
     let frameRequest = 0;
     let lastVideoTime = -1;
 
@@ -49,8 +61,15 @@ export function useHandTracking(
         landmarker = await HandLandmarker.createFromOptions(fileset, {
           baseOptions: { modelAssetPath: "/mediapipe/hand_landmarker.task", delegate: "GPU" },
           runningMode: "VIDEO",
-          numHands: 1,
+          numHands: twoHands ? 2 : 1,
         });
+        if (twoHands) {
+          poseLandmarker = await PoseLandmarker.createFromOptions(fileset, {
+            baseOptions: { modelAssetPath: "/mediapipe/pose_landmarker_lite.task", delegate: "GPU" },
+            runningMode: "VIDEO",
+            numPoses: 1,
+          });
+        }
         if (cancelled) return;
         setStatus("ready");
 
@@ -61,11 +80,14 @@ export function useHandTracking(
             const now = performance.now();
             const result = landmarker.detectForVideo(video, now);
             const landmarks = result.landmarks?.[0];
+            const pose = landmarks && poseLandmarker ? poseLandmarker.detectForVideo(video, now).landmarks?.[0] : null;
             latestOnFrame.current(
               landmarks
                 ? {
                     landmarks,
                     handedness: result.handedness?.[0]?.[0]?.categoryName ?? "Right",
+                    hands: result.landmarks,
+                    pose: pose ?? null,
                     width: video.videoWidth,
                     height: video.videoHeight,
                   }
@@ -97,9 +119,10 @@ export function useHandTracking(
       cancelAnimationFrame(frameRequest);
       stream?.getTracks().forEach((track) => track.stop());
       landmarker?.close();
+      poseLandmarker?.close();
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, [enabled, videoRef]);
+  }, [enabled, videoRef, twoHands]);
 
   return { status, error };
 }
