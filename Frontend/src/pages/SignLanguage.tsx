@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/context/SettingsContext";
 import { useRoles } from "@/hooks/use-roles";
 import { useHandTracking, type HandFrame } from "@/hooks/use-hand-tracking";
-import { toFeatures, toPixels } from "@/lib/sign/landmarks";
+import { normalizeLandmarks, toFeatures, toPixels } from "@/lib/sign/landmarks";
 import { loadSignModel, predict, type Prediction, type SignModel } from "@/lib/sign/classifier";
 import { Stabilizer, type StabilizerState } from "@/lib/sign/stabilizer";
 import { speak, stopSpeech } from "@/lib/speech";
@@ -26,6 +26,12 @@ import SignCredit from "@/components/SignCredit";
 import SignDictionary from "@/components/SignDictionary";
 import BisindoPanel, { WORD_MIN_CONFIDENCE, type SignResult } from "@/components/BisindoPanel";
 import { SignSegmenter, loadWordModel, predictWord, type WordModel, type WordPrediction } from "@/lib/sign/bisindo";
+import OtomatisPanel from "@/components/OtomatisPanel";
+import {
+  ROUTER_CONFIG, SYSTEM_NAME, SignRouter, appendToTranscript, closeSpelling, removeLast, transcriptText,
+  type RouterEvent, type RouterLive, type SignSystem, type TranscriptPart,
+} from "@/lib/sign/router";
+import { readSignPreference, saveSignPreference, type SignLanguage as Language } from "@/lib/sign/preference";
 import { useSearchParams } from "react-router-dom";
 
 const MODEL_URL = "/models/sibi-abjad.json";
@@ -63,7 +69,7 @@ const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)]
 type Reference = { title: string; image: string; description: string };
 type Practice = { word: string; index: number };
 type LiveGuess = { prediction: Prediction | null; state: StabilizerState; progress: number; hasHand: boolean };
-type Language = "sibi" | "bisindo";
+type AutoLive = RouterLive & { letter: Prediction | null; last: { event: RouterEvent; at: number } | null };
 type WordLive = {
   hasHand: boolean;
   poseMissing: boolean;
@@ -97,12 +103,22 @@ export default function SignLanguage() {
   useEffect(() => {
     if (tabFromUrl && ["latihan", "eja", "kamus", "rekam"].includes(tabFromUrl)) setMode(tabFromUrl);
   }, [tabFromUrl]);
-  // ?bahasa=bisindo membuka langsung kata BISINDO; bawaannya abjad SIBI
+  // ?bahasa=bisindo (atau sibi, otomatis) membuka langsung bahasa itu;
+  // tanpa itu, pilihan terakhir di perangkat ini dipakai lagi
   const languageFromUrl = searchParams.get("bahasa");
-  const [language, setLanguage] = useState<Language>(languageFromUrl === "bisindo" ? "bisindo" : "sibi");
+  const isLanguage = (value: string | null): value is Language =>
+    value === "sibi" || value === "bisindo" || value === "otomatis";
+  const [saved] = useState(readSignPreference);
+  const [language, setLanguage] = useState<Language>(isLanguage(languageFromUrl) ? languageFromUrl : saved.language);
+  const [preferred, setPreferred] = useState<SignSystem>(saved.preferred);
   useEffect(() => {
-    if (languageFromUrl === "bisindo" || languageFromUrl === "sibi") setLanguage(languageFromUrl);
+    if (isLanguage(languageFromUrl)) setLanguage(languageFromUrl);
   }, [languageFromUrl]);
+  // SIBI atau BISINDO yang terakhir dipakai menjadi sistem yang diutamakan mode Otomatis
+  useEffect(() => {
+    if (language !== "otomatis") setPreferred(language);
+  }, [language]);
+  useEffect(() => saveSignPreference({ language, preferred }), [language, preferred]);
   const [cameraOn, setCameraOn] = useState(false);
   const [model, setModel] = useState<SignModel | null>(null);
   const [modelChecked, setModelChecked] = useState(false);
@@ -133,6 +149,22 @@ export default function SignLanguage() {
   const [wordTarget, setWordTarget] = useState<string | null>(null);
   const lastWord = useRef<WordLive["last"]>(null);
   const tooLong = useRef(false);
+
+  // Mode Otomatis: router memilih huruf SIBI atau kata BISINDO; ambangnya
+  // mengikuti sistem yang diutamakan
+  const makeRouter = (system: SignSystem) =>
+    new SignRouter((sequence) => {
+      const current = latest.current.wordModel;
+      return current ? predictWord(current, sequence) : null;
+    }, ROUTER_CONFIG[system]);
+  const router = useRef<SignRouter>();
+  if (!router.current) router.current = makeRouter(preferred);
+  useEffect(() => {
+    router.current = makeRouter(preferred);
+  }, [preferred]);
+  const [transcript, setTranscript] = useState<TranscriptPart[]>([]);
+  const lastAuto = useRef<AutoLive["last"]>(null);
+  const [autoLive, setAutoLive] = useState<AutoLive>({ ...router.current.live, letter: null, last: null });
 
   // Mode Rekam Data (guru dan admin)
   const [signer, setSigner] = useState("");
@@ -259,6 +291,29 @@ export default function SignLanguage() {
     }
   };
 
+  // --- Otomatis: huruf SIBI dan kata BISINDO dari satu kamera ---
+  const onAutoFrame = (frame: HandFrame, now: number) => {
+    const hands = frame ? frame.hands.map((hand) => toPixels(hand, frame.width, frame.height)) : [];
+    const pose = frame?.pose ? toPixels(frame.pose, frame.width, frame.height) : null;
+    // Model SIBI hanya dijalankan saat satu tangan terlihat
+    const features = hands.length === 1 && model ? normalizeLandmarks(hands[0]) : null;
+    const letter = features && model ? predict(model, features) : null;
+    const events = router.current!.push(hands, pose, letter, now);
+
+    for (const event of events) {
+      lastAuto.current = { event, at: now };
+      if (event.type === "unsure") continue;
+      setTranscript((parts) => appendToTranscript(parts, event));
+      say(event.type === "letter" ? event.label : event.label.toLowerCase());
+    }
+
+    if (now - lastUiUpdate.current > 120 || events.length) {
+      lastUiUpdate.current = now;
+      const last = lastAuto.current && now - lastAuto.current.at < WORD_RESULT_MS ? lastAuto.current : null;
+      setAutoLive({ ...router.current!.live, letter, last });
+    }
+  };
+
   // --- Latihan ---
   const nextWord = () => {
     clearTimeout(nextWordTimer.current);
@@ -335,6 +390,10 @@ export default function SignLanguage() {
       onWordFrame(frame, now);
       return;
     }
+    if (latest.current.language === "otomatis") {
+      onAutoFrame(frame, now);
+      return;
+    }
 
     if (recordingUntil > 0) {
       recordFrame(frame, now);
@@ -359,7 +418,7 @@ export default function SignLanguage() {
     }
   };
 
-  const { status, error } = useHandTracking(videoRef, cameraOn, onFrame, language === "bisindo");
+  const { status, error } = useHandTracking(videoRef, cameraOn, onFrame, language !== "sibi");
 
   const startRecording = () => {
     recordingBuffer.current = [];
@@ -402,7 +461,9 @@ export default function SignLanguage() {
     clearTimeout(nextWordTimer.current);
     stabilizer.current.reset();
     segmenter.current.reset();
+    router.current!.reset();
     lastWord.current = null;
+    lastAuto.current = null;
     stopSpeech();
   };
 
@@ -426,9 +487,11 @@ export default function SignLanguage() {
         <PageHeader
           title="Isyarat"
           description={
-            language === "bisindo"
+            language === "otomatis"
+              ? "Peragakan kata BISINDO atau eja huruf SIBI tanpa berganti mode. Setiap hasil diberi label sistemnya, lalu disusun menjadi kalimat yang bisa diucapkan."
+              : language === "bisindo"
               ? "Lihat contoh kata dasar BISINDO di tab Kamus, lalu peragakan dengan dua tangan di depan kamera. Kamera mengenali katanya dan membacakannya."
-              : "Lihat contoh abjad dan angka SIBI di tab Kamus, lalu tirukan di depan kamera. Kamera mengenali huruf yang kamu peragakan dan membacakannya."
+              :"Lihat contoh abjad dan angka SIBI di tab Kamus, lalu tirukan di depan kamera. Kamera mengenali huruf yang kamu peragakan dan membacakannya."
           }
           art="isyarat"
           lively={cameraOn}
@@ -515,6 +578,46 @@ export default function SignLanguage() {
                 </div>
               )}
 
+              {cameraOn && status === "ready" && language === "otomatis" && model && wordModel && (
+                <div className="absolute top-3 left-3 border-[3px] border-white/70 bg-[#0a1a4f]/85 text-white px-4 py-3 max-w-[60%]" aria-hidden="true">
+                  {autoLive.last ? (
+                    autoLive.last.event.type === "unsure" ? (
+                      <>
+                        <p className="text-lg font-bold leading-tight">Belum yakin</p>
+                        <p className="text-sm text-white/80">
+                          Mirip {autoLive.last.event.label} (BISINDO, {Math.round(autoLive.last.event.confidence * 100)}%)
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="px-title text-2xl leading-tight">{autoLive.last.event.label}</p>
+                        <p className="text-sm mt-1">
+                          {SYSTEM_NAME[autoLive.last.event.system]} · Yakin {Math.round(autoLive.last.event.confidence * 100)}%
+                        </p>
+                      </>
+                    )
+                  ) : (
+                    <p className="text-sm">
+                      {autoLive.hands === 0
+                        ? "Tangan belum terlihat"
+                        : autoLive.spelling
+                        ? "Mengeja huruf SIBI…"
+                        : autoLive.still
+                        ? "Tahan untuk huruf SIBI"
+                        : "Membaca gerakan BISINDO…"}
+                    </p>
+                  )}
+                  {autoLive.letterState === "holding" && autoLive.letter && (
+                    <>
+                      <p className="text-sm mt-2">Huruf {autoLive.letter.label}? (SIBI)</p>
+                      <div className="mt-1 h-2 bg-white/25 overflow-hidden">
+                        <div className="h-full bg-amber-300 transition-all" style={{ width: `${autoLive.letterProgress * 100}%` }} />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
               {wordTarget && language === "bisindo" && mode === "latihan" && cameraOn && (
                 <div className="absolute top-3 right-3 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-center max-w-[40%]" aria-hidden="true">
                   <p className="text-xs font-bold">Peragakan</p>
@@ -577,6 +680,17 @@ export default function SignLanguage() {
                     : ""}
                 </p>
               )}
+              {status === "ready" && language === "otomatis" && model && wordModel && (
+                <p className="text-sm text-muted-foreground">
+                  {autoLive.last
+                    ? autoLive.last.event.type === "letter"
+                      ? `Terbaca huruf ${autoLive.last.event.label} (SIBI)`
+                      : autoLive.last.event.type === "word"
+                      ? `Terbaca kata ${autoLive.last.event.label} (BISINDO)`
+                      : "Isyarat belum yakin terbaca"
+                    : ""}
+                </p>
+              )}
             </div>
           </Card>
 
@@ -586,6 +700,7 @@ export default function SignLanguage() {
               {([
                 { id: "sibi", title: "SIBI", detail: "Abjad, satu tangan" },
                 { id: "bisindo", title: "BISINDO", detail: "Kata dasar, dua tangan" },
+                { id: "otomatis", title: "Otomatis", detail: "Huruf dan kata, eksperimen" },
               ] as const).map((option) => (
                 <Button
                   key={option.id}
@@ -600,7 +715,19 @@ export default function SignLanguage() {
               ))}
             </div>
 
-            {language === "bisindo" ? (
+            {language === "otomatis" ? (
+              <OtomatisPanel
+                parts={transcript}
+                preferred={preferred}
+                onPreferredChange={setPreferred}
+                modelsMissing={(modelChecked && !model) || (wordModelChecked && !wordModel)}
+                cameraOn={cameraOn}
+                onSpace={() => setTranscript(closeSpelling)}
+                onDeleteLast={() => setTranscript(removeLast)}
+                onClear={() => setTranscript([])}
+                onSpeak={() => speak(transcriptText(transcript), { volume, rate: speakingRate, aiVoice })}
+              />
+            ) : language === "bisindo" ? (
               <BisindoPanel
                 mode={mode}
                 onModeChange={changeMode}
