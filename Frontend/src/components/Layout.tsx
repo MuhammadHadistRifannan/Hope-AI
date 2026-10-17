@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client"; 
 import { 
   Home, Camera, MessageSquare, BookOpen, TrendingUp, 
-  Users, Bell, Settings, User, LogOut, Sparkles, Shield, GraduationCap, Hand, Menu, PanelLeftClose, PanelLeftOpen
+  Users, Bell, Settings, User, LogOut, Sparkles, Shield, GraduationCap, Hand, Menu, PanelLeftClose, PanelLeftOpen, MessageSquareHeart
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,8 @@ const secondaryNav = [
   { name: "Profil", href: "/profile", icon: User },
   { name: "Notifikasi", href: "/notifications", icon: Bell },
   { name: "Pengaturan", href: "/settings", icon: Settings },
+  // Halaman HTML terpisah (public/ueq.html), jadi dibuka sebagai halaman baru, bukan rute aplikasi
+  { name: "Kritik & Saran", href: "/ueq.html", icon: MessageSquareHeart },
 ];
 
 // Di layar ponsel menu pindah ke bilah bawah: dua menu di kiri, NeoTutor di
@@ -208,6 +210,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Link
                     key={item.name}
                     to={item.href}
+                    reloadDocument={item.href.endsWith(".html")}
                     aria-label={item.name}
                     aria-current={isActive ? "page" : undefined}
                     className={`px-nav-item justify-center px-2 ${wide("lg:justify-start lg:px-3")}`}
@@ -295,6 +298,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.name}
                   to={item.href}
+                  reloadDocument={item.href.endsWith(".html")}
                   onClick={() => setMoreOpen(false)}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(

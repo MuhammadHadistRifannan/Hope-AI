@@ -66,6 +66,11 @@
   .progress-track { flex: 1; height: 4px; background: var(--rule); }
   .progress-fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
 
+  /* Tautan kembali ke aplikasi; hanya tampil bila dibuka dari situs */
+  .back { display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0 16px; color: var(--ink-soft); text-decoration: none; font-size: 15px; }
+  .back:hover { color: var(--ink); text-decoration: underline; }
+  .back[hidden] { display: none; }
+
   /* Kepala halaman */
   .kicker { font: 13px/1.4 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
   h1 { font: 400 clamp(34px, 7vw, 52px)/1.05 var(--serif); letter-spacing: -.01em; margin: 0 0 20px; }
@@ -195,6 +200,7 @@
 </div>
 
 <main class="page">
+  <a class="back" id="back" href="/" hidden>&larr; Kembali ke Hope.Ai</a>
   <p class="kicker">Uji pengguna · Hope.Ai</p>
   <h1>Bagaimana rasanya <em>memakai</em> Hope.Ai?</h1>
   <p class="lede">
@@ -401,6 +407,9 @@
   }
 
   // Membuat 26 baris pasangan kata
+  // Tautan kembali hanya berguna bila halaman dibuka dari situs, bukan dari berkas lokal
+  if (/^https?:$/.test(location.protocol)) document.getElementById("back").hidden = false;
+
   var list = document.getElementById("ueq-items");
   ITEMS.forEach(function (item, i) {
     var n = i + 1, left = item[0], right = item[1];

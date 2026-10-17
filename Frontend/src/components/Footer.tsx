@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Github, MessageSquare } from "lucide-react";
+import { Github, MessageSquare, MessageSquareHeart } from "lucide-react";
 
 const REPO_URL = "https://github.com/MuhammadHadistRifannan/Hope-AI";
 
@@ -109,6 +109,14 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-6">Hubungi Kami</h4>
             <div className="flex flex-col gap-4">
+              {/* Kuesioner UEQ di public/ueq.html; jawaban masuk ke Google Sheet tim */}
+              <a
+                href="/ueq.html"
+                className="flex items-center gap-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors p-3 rounded-lg"
+              >
+                <MessageSquareHeart className="w-4 h-4" aria-hidden="true" />
+                Kritik & Saran
+              </a>
               <a
                 href={`${REPO_URL}/issues`}
                 target="_blank"
