@@ -579,7 +579,7 @@ export default function SignLanguage() {
               )}
 
               {cameraOn && status === "ready" && language === "otomatis" && model && wordModel && (
-                <div className="absolute top-3 left-3 border-[3px] border-white/70 bg-[#0a1a4f]/85 text-white px-4 py-3 max-w-[60%]" aria-hidden="true">
+                <div className="absolute top-3 left-3 rounded-xl bg-black/60 text-white px-4 py-3 max-w-[60%]" aria-hidden="true">
                   {autoLive.last ? (
                     autoLive.last.event.type === "unsure" ? (
                       <>

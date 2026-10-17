@@ -74,7 +74,7 @@ export default function OtomatisPanel({
               </span>
             ) : (
               parts.map((part, i) => (
-                <span key={i} className="inline-flex items-baseline gap-1 border-2 border-foreground bg-card px-2 py-1">
+                <span key={i} className="inline-flex items-baseline gap-1 rounded-lg border border-border bg-card px-2 py-1">
                   <span className="text-2xl font-bold">{part.text}</span>
                   <span className="text-xs font-bold text-muted-foreground">({SYSTEM_NAME[part.system]})</span>
                 </span>
