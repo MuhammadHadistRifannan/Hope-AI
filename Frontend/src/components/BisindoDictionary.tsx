@@ -41,7 +41,7 @@ export default function BisindoDictionary({ practicable, onPractice, onSpeak }: 
         <h2 id="kamus-bisindo-judul" className="px-title text-lg mb-3">
           {selected.label}
         </h2>
-        <div className="aspect-[4/3] border-[3px] border-foreground bg-black overflow-hidden">
+        <div className="aspect-[4/3] rounded-xl border border-border bg-black overflow-hidden">
           <video
             key={selected.slug}
             src={bisindoVideo(selected)}
@@ -60,7 +60,7 @@ export default function BisindoDictionary({ practicable, onPractice, onSpeak }: 
           <span className="text-muted-foreground">(ringkasan dari video; ikuti videonya untuk gerakan lengkap)</span>
         </p>
         {similarTo(selected.label).length > 0 && (
-          <div className="mt-3 border-2 border-foreground/40 p-3">
+          <div className="mt-3 border border-border/40 p-3">
             <p className="text-sm font-semibold mb-1">Mirip dengan</p>
             <ul className="space-y-2">
               {similarTo(selected.label).map((similar) => (
@@ -77,7 +77,7 @@ export default function BisindoDictionary({ practicable, onPractice, onSpeak }: 
 
         <div className="flex flex-wrap gap-2 mt-4">
           {practicable.has(selected.label) && (
-            <Button onClick={() => onPractice(selected.label)} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
+            <Button onClick={() => onPractice(selected.label)} className="px-btn">
               <Play className="w-4 h-4 mr-2" aria-hidden="true" /> Latih Kata Ini
             </Button>
           )}
@@ -118,7 +118,7 @@ export default function BisindoDictionary({ practicable, onPractice, onSpeak }: 
             size="sm"
             variant={selected.slug === word.slug ? "default" : "outline"}
             aria-pressed={selected.slug === word.slug}
-            className={`px-btn rounded-none border-2 border-foreground min-h-10 font-bold ${selected.slug === word.slug ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+            className={`px-btn border border-border min-h-10 font-bold ${selected.slug === word.slug ? "!bg-primary !text-primary-foreground" : ""}`}
             onClick={() => setSelected(word)}
           >
             {word.label}
@@ -136,7 +136,7 @@ export default function BisindoDictionary({ practicable, onPractice, onSpeak }: 
         </p>
         <ul className="space-y-2">
           {BISINDO_PHRASES.map((phrase) => (
-            <li key={phrase.text} className="border-2 border-foreground/40 p-3">
+            <li key={phrase.text} className="border border-border/40 p-3">
               <p className="font-semibold">{phrase.text}</p>
               <div className="flex flex-wrap items-center gap-1 mt-2">
                 {phrase.words.map((word, i) => (

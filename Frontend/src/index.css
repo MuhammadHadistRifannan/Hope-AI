@@ -260,12 +260,13 @@ All colors MUST be HSL.
 
 /* --- HURUF RAMAH DISLEKSIA (Aksesibilitas) --- */
 /* Diaktifkan saat class 'dyslexia-font' ditambahkan ke elemen HTML root */
-.dyslexia-font body,
-.dyslexia-font body * {
+/* Landing page, halaman masuk/daftar, dan layar pembuka ([data-landing]) tetap memakai
+   huruf aslinya; begitu juga logo Hope.Ai (.font-cherry) di semua halaman. */
+.dyslexia-font body *:not([data-landing], [data-landing] *, .font-cherry) {
   font-family: Verdana, 'Trebuchet MS', Arial, sans-serif !important;
 }
 
-.dyslexia-font body {
+.dyslexia-font body *:not([data-landing], [data-landing] *) {
   letter-spacing: 0.05em;
   word-spacing: 0.14em;
 }
@@ -383,111 +384,91 @@ All colors MUST be HSL.
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* --- GAYA PIXEL DI DALAM APLIKASI ---
-   Kartu, judul, dan navigasi bergaya pixel yang memakai warna tema (terang, gelap,
-   kontras tinggi), sehingga semua mode tampilan tetap berfungsi. Isi teks memakai
-   huruf biasa; hanya judul dan label pendek yang memakai huruf pixel, dan itu pun
-   ikut berganti saat Huruf Ramah Disleksia dinyalakan. */
+/* --- GAYA DI DALAM APLIKASI ---
+   Kartu, judul, tombol, dan navigasi yang bersih: sudut membulat, garis tipis, dan
+   bayangan halus. Semuanya memakai warna tema, jadi mode gelap dan kontras tinggi
+   tetap berfungsi. (Nama kelas px-* dipertahankan supaya halaman tidak perlu diubah.) */
 .px-card {
-  border-radius: 0;
+  border-radius: 1rem;
   background: hsl(var(--card));
   color: hsl(var(--card-foreground));
-  border: 3px solid hsl(var(--foreground));
-  box-shadow: 4px 4px 0 hsl(var(--foreground) / 0.22);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 2px hsl(222 47% 11% / 0.04), 0 4px 16px hsl(222 47% 11% / 0.05);
 }
 a.px-card,
 button.px-card,
 .px-card[role="button"] {
-  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, border-color 0.15s ease-out;
 }
 a.px-card:hover,
 button.px-card:hover,
 .px-card[role="button"]:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 hsl(var(--foreground) / 0.3);
-}
-a.px-card:active,
-button.px-card:active,
-.px-card[role="button"]:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 hsl(var(--foreground) / 0.3);
+  transform: translateY(-2px);
+  border-color: hsl(var(--primary) / 0.4);
+  box-shadow: 0 2px 4px hsl(222 47% 11% / 0.05), 0 10px 28px hsl(222 47% 11% / 0.09);
 }
 a.px-card:focus-visible,
 button.px-card:focus-visible,
 .px-card[role="button"]:focus-visible {
-  outline: 4px solid #f59e0b;
+  outline: 3px solid hsl(var(--ring));
   outline-offset: 3px;
 }
-/* Judul dan label pendek: huruf biasa yang tebal, bukan huruf pixel, supaya mudah dibaca.
-   Kesan pixel datang dari kotak, garis tebal, ilustrasi, dan warnanya. */
 .px-title {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
-/* Tombol di dalam aplikasi: sudut siku, garis tebal, dan bayangan pixel. Warnanya tetap
-   mengikuti varian tombol (utama, garis, bahaya), jadi tema dan kontras tinggi aman. */
 .px-btn {
-  border-radius: 0 !important;
-  border: 3px solid hsl(var(--foreground)) !important;
-  box-shadow: 3px 3px 0 hsl(var(--foreground) / 0.25);
+  border-radius: 0.75rem !important;
   font-weight: 600;
-  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
-}
-.px-btn:not(:disabled):active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 hsl(var(--foreground) / 0.25);
 }
 .px-btn:focus-visible {
-  outline: 4px solid #f59e0b;
+  outline: 3px solid hsl(var(--ring));
   outline-offset: 2px;
 }
-/* Tab bergaya pixel: yang aktif berwarna amber */
 .px-tabs {
   height: auto !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  border: 3px solid hsl(var(--foreground));
-  background: hsl(var(--card)) !important;
+  padding: 0.25rem !important;
+  border-radius: 0.875rem !important;
+  background: hsl(var(--muted)) !important;
 }
 .px-tab {
-  min-height: 2.75rem;
-  border-radius: 0 !important;
+  min-height: 2.5rem;
+  border-radius: 0.625rem !important;
   font-weight: 600;
-  color: hsl(var(--foreground));
+  color: hsl(var(--muted-foreground));
 }
 .px-tab[data-state="active"] {
-  background: #fcd34d !important;
-  color: #0a1a4f !important;
-  box-shadow: none !important;
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--primary)) !important;
+  box-shadow: 0 1px 3px hsl(222 47% 11% / 0.1) !important;
 }
 .px-tab:focus-visible {
-  outline: 4px solid #f59e0b;
-  outline-offset: -4px;
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: -3px;
 }
 /* Kotak isi di dalam kartu (hasil, daftar, pratinjau) */
 .px-well {
-  border: 3px solid hsl(var(--foreground) / 0.3);
+  border-radius: 0.875rem;
+  border: 1px solid hsl(var(--border));
   background: hsl(var(--muted) / 0.5);
 }
 
 /* Kotak kecil untuk ikon dan angka */
 .px-tile {
-  border: 3px solid hsl(var(--foreground));
-  background: #fcd34d;
-  color: #0a1a4f;
+  border-radius: 0.875rem;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
 }
-/* Sidebar dan kaki halaman di dalam aplikasi */
+/* Sidebar di dalam aplikasi: biru tema dengan teks putih */
 .px-sidebar {
-  background: #0a1a4f;
+  background: linear-gradient(to bottom, hsl(var(--primary)), #1e3a8a);
   color: #fff;
-  border-color: #060f33;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 .dark .px-sidebar {
-  background: #060f33;
-  border-color: #1b2a63;
+  background: linear-gradient(to bottom, #172554, #0b1437);
 }
 .high-contrast .px-sidebar {
   background: #000;
@@ -499,22 +480,22 @@ button.px-card:focus-visible,
   align-items: center;
   gap: 0.75rem;
   min-height: 2.75rem;
-  border: 3px solid transparent;
-  color: rgba(255, 255, 255, 0.82);
+  border-radius: 0.75rem;
+  color: rgba(255, 255, 255, 0.78);
+  transition: background-color 0.15s ease-out, color 0.15s ease-out;
 }
 .px-nav-item:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
 }
 .px-nav-item:focus-visible {
-  outline: 4px solid #fcd34d;
+  outline: 3px solid #fff;
   outline-offset: 2px;
 }
 .px-nav-item[aria-current="page"] {
-  background: #fcd34d;
-  color: #0a1a4f;
-  border-color: #060f33;
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-weight: 600;
 }
 .high-contrast .px-nav-item {
   color: hsl(60 100% 50%);

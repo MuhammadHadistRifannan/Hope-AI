@@ -90,7 +90,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
               <Button
                 size="sm"
                 variant={media === "image" ? "default" : "outline"}
-                className={`px-btn min-h-10 ${media === "image" ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+                className={`px-btn min-h-10 ${media === "image" ? "!bg-primary !text-primary-foreground" : ""}`}
                 aria-pressed={media === "image"}
                 onClick={() => setMedia("image")}
               >
@@ -99,7 +99,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
               <Button
                 size="sm"
                 variant={media === "video" ? "default" : "outline"}
-                className={`px-btn min-h-10 ${media === "video" ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+                className={`px-btn min-h-10 ${media === "video" ? "!bg-primary !text-primary-foreground" : ""}`}
                 aria-pressed={media === "video"}
                 onClick={() => setMedia("video")}
                 disabled={!selected.video}
@@ -109,7 +109,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
             </div>
           </div>
 
-          <div className="aspect-video border-[3px] border-foreground bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
+          <div className="aspect-video rounded-xl border border-border bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
             {media === "video" && selected.video ? (
               <video
                 key={selected.video}
@@ -137,7 +137,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
 
           <div className="flex flex-wrap gap-2 mt-4">
             {practicable.has(selected.slug) && (
-              <Button onClick={() => onPractice(selected.slug)} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
+              <Button onClick={() => onPractice(selected.slug)} className="px-btn">
                 <Play className="w-4 h-4 mr-2" aria-hidden="true" /> Latih {selected.category === "abjad" ? "Huruf" : "Angka"} Ini
               </Button>
             )}
@@ -181,7 +181,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
             key={item.id}
             size="sm"
             variant={category === item.id ? "default" : "outline"}
-            className={`px-btn min-h-10 px-5 ${category === item.id ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+            className={`px-btn min-h-10 px-5 ${category === item.id ? "!bg-primary !text-primary-foreground" : ""}`}
             aria-pressed={category === item.id}
             onClick={() => switchCategory(item.id)}
           >
@@ -198,7 +198,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
             variant={selected?.slug === entry.slug ? "default" : "outline"}
             aria-pressed={selected?.slug === entry.slug}
             aria-label={entry.title}
-            className={`px-btn rounded-none border-2 border-foreground min-h-10 px-0 font-bold ${selected?.slug === entry.slug ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+            className={`px-btn border-2 border-foreground min-h-10 px-0 font-bold ${selected?.slug === entry.slug ? "!bg-primary !text-primary-foreground" : ""}`}
             onClick={() => choose(entry)}
           >
             {entry.slug}

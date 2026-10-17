@@ -527,7 +527,7 @@ export default function EyeRead() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* CAMERA CARD */}
           <div className="px-card p-3 md:p-5">
-            <div className="aspect-[3/4] sm:aspect-video bg-muted overflow-hidden mb-4 relative flex items-center justify-center border-[3px] border-foreground">
+            <div className="aspect-[3/4] sm:aspect-video bg-muted overflow-hidden mb-4 relative flex items-center justify-center rounded-xl border border-border">
               {capturedImage ? (
                 <img
                   src={capturedImage}
@@ -548,10 +548,10 @@ export default function EyeRead() {
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     {/* Sudut bingkai bergaya pixel, seperti di ilustrasi */}
                     <div className="relative w-[85%] h-[85%]">
-                      <div className="absolute top-0 left-0 w-9 h-9 border-t-[5px] border-l-[5px] border-amber-300" />
-                      <div className="absolute top-0 right-0 w-9 h-9 border-t-[5px] border-r-[5px] border-amber-300" />
-                      <div className="absolute bottom-0 left-0 w-9 h-9 border-b-[5px] border-l-[5px] border-amber-300" />
-                      <div className="absolute bottom-0 right-0 w-9 h-9 border-b-[5px] border-r-[5px] border-amber-300" />
+                      <div className="absolute top-0 left-0 w-9 h-9 border-t-[5px] border-l-[5px] border-white" />
+                      <div className="absolute top-0 right-0 w-9 h-9 border-t-[5px] border-r-[5px] border-white" />
+                      <div className="absolute bottom-0 left-0 w-9 h-9 border-b-[5px] border-l-[5px] border-white" />
+                      <div className="absolute bottom-0 right-0 w-9 h-9 border-b-[5px] border-r-[5px] border-white" />
                     </div>
                   </div>
 
@@ -561,10 +561,10 @@ export default function EyeRead() {
                       <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className={`px-4 py-2 font-bold text-white flex items-center gap-2 border-[3px] border-[#0a1a4f] ${
+                        className={`px-4 py-2 font-bold text-white flex items-center gap-2 rounded-xl border-0 ${
                           guidanceMessage.includes("Pas")
                             ? "bg-green-600"
-                            : "bg-[#0a1a4f]/85"
+                            : "bg-black/60"
                         }`}
                       >
                         <span
@@ -591,7 +591,7 @@ export default function EyeRead() {
               {isProcessing && (
                 <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
                   <div className="text-center">
-                    <div className="animate-spin h-10 w-10 border-4 border-foreground border-t-amber-400 mx-auto mb-4" aria-hidden="true"></div>
+                    <div className="animate-spin h-10 w-10 rounded-2xl border-2 border-border border-t-amber-400 mx-auto mb-4" aria-hidden="true"></div>
                     <p className="px-title text-base" role="status">
                       Memproses teks…
                     </p>
@@ -631,7 +631,7 @@ export default function EyeRead() {
                 <>
                   <Button
                     onClick={startCamera}
-                    className="px-btn w-full bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
+                    className="px-btn w-full"
                     size="lg"
                   >
                     <Camera className="w-4 h-4 mr-2" /> Buka Kamera
@@ -657,7 +657,7 @@ export default function EyeRead() {
                 <div className="flex gap-3">
                   <Button
                     onClick={captureAndScan}
-                    className="px-btn flex-1 bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
+                    className="px-btn flex-1"
                     disabled={isProcessing}
                     size="lg"
                   >
@@ -748,7 +748,7 @@ export default function EyeRead() {
                           </Button>
                         </div>
                         {/* Teks ikut tampil dengan kata yang sedang dibacakan tersorot */}
-                        <div className="mt-6 max-h-56 overflow-y-auto bg-background p-3 text-left border-[3px] border-foreground/30">
+                        <div className="mt-6 max-h-56 overflow-y-auto bg-background p-3 text-left rounded-xl border border-border">
                           <HighlightedText text={scannedText} progress={readProgress} className="leading-relaxed" />
                         </div>
                       </>
@@ -780,7 +780,7 @@ export default function EyeRead() {
 
             {/* Lanjutkan dari hasil pindai: tanya tutor atau latihan soal */}
             {scannedText && (
-              <div className="flex flex-wrap gap-3 pt-4 mt-4 border-t-4 border-dotted border-foreground/25">
+              <div className="flex flex-wrap gap-3 pt-4 mt-4 border-t border-border">
                 <Button
                   variant="outline"
                   className="px-btn"
@@ -807,7 +807,7 @@ export default function EyeRead() {
               </div>
             )}
             <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-none border-[3px] border-foreground">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border">
                 <DialogTitle>Kuis dari hasil pindai</DialogTitle>
                 <DialogDescription>
                   Soal dibuat AI dari teks yang dipindai dan menyesuaikan dengan jawabanmu.

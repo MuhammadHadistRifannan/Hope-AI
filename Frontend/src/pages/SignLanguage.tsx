@@ -437,7 +437,7 @@ export default function SignLanguage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Kamera dan hasil pengenalan */}
           <Card className="px-card p-3 md:p-6">
-            <div className="relative aspect-[3/4] sm:aspect-[4/3] overflow-hidden bg-black border-[3px] border-foreground">
+            <div className="relative aspect-[3/4] sm:aspect-[4/3] overflow-hidden bg-black rounded-xl border border-border">
               {/* Ditampilkan seperti cermin agar gerakan terasa wajar */}
               <video
                 ref={videoRef}
@@ -461,7 +461,7 @@ export default function SignLanguage() {
 
               {/* Huruf yang terbaca, ditampilkan langsung di atas video */}
               {cameraOn && status === "ready" && language === "sibi" && model && mode !== "rekam" && (
-                <div className="absolute top-3 left-3 border-[3px] border-white/70 bg-[#0a1a4f]/85 text-white px-4 py-3 min-w-[7.5rem]" aria-hidden="true">
+                <div className="absolute top-3 left-3 rounded-xl bg-black/60 text-white px-4 py-3 min-w-[7.5rem]" aria-hidden="true">
                   {!live.hasHand ? (
                     <p className="text-sm">Tangan belum terlihat</p>
                   ) : confident ? (
@@ -488,7 +488,7 @@ export default function SignLanguage() {
               )}
 
               {cameraOn && status === "ready" && language === "bisindo" && wordModel && mode !== "rekam" && (
-                <div className="absolute top-3 left-3 border-[3px] border-white/70 bg-[#0a1a4f]/85 text-white px-4 py-3 max-w-[60%]" aria-hidden="true">
+                <div className="absolute top-3 left-3 rounded-xl bg-black/60 text-white px-4 py-3 max-w-[60%]" aria-hidden="true">
                   {wordLive.tooLong ? (
                     <p className="text-sm">Turunkan tangan setelah tiap isyarat</p>
                   ) : wordLive.poseMissing ? (
@@ -516,14 +516,14 @@ export default function SignLanguage() {
               )}
 
               {wordTarget && language === "bisindo" && mode === "latihan" && cameraOn && (
-                <div className="absolute top-3 right-3 border-[3px] border-[#0a1a4f] bg-amber-300 text-[#0a1a4f] px-4 py-3 text-center max-w-[40%]" aria-hidden="true">
+                <div className="absolute top-3 right-3 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-center max-w-[40%]" aria-hidden="true">
                   <p className="text-xs font-bold">Peragakan</p>
                   <p className="px-title text-xl leading-tight mt-1">{wordTarget}</p>
                 </div>
               )}
 
               {target && language === "sibi" && mode === "latihan" && cameraOn && (
-                <div className="absolute top-3 right-3 border-[3px] border-[#0a1a4f] bg-amber-300 text-[#0a1a4f] px-4 py-3 text-center" aria-hidden="true">
+                <div className="absolute top-3 right-3 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-center" aria-hidden="true">
                   <p className="text-xs font-bold">Peragakan</p>
                   <p className="px-title text-4xl leading-none mt-1">{target}</p>
                 </div>
@@ -540,7 +540,7 @@ export default function SignLanguage() {
               <Button
                 onClick={() => setCameraOn((on) => !on)}
                 variant={cameraOn ? "outline" : "default"}
-                className={cameraOn ? "px-btn" : "px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"}
+                className={cameraOn ? "px-btn" : "px-btn"}
               >
                 {cameraOn ? (
                   <CameraOff className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -592,7 +592,7 @@ export default function SignLanguage() {
                   variant={language === option.id ? "default" : "outline"}
                   aria-pressed={language === option.id}
                   onClick={() => changeLanguage(option.id)}
-                  className={`px-btn flex-1 h-auto py-2 flex-col items-center ${language === option.id ? "!bg-amber-300 !text-[#0a1a4f]" : ""}`}
+                  className={`px-btn flex-1 h-auto py-2 flex-col items-center ${language === option.id ? "!bg-primary !text-primary-foreground" : ""}`}
                 >
                   <span className="font-bold">{option.title}</span>
                   <span className="text-xs font-normal">{option.detail}</span>
@@ -640,7 +640,7 @@ export default function SignLanguage() {
                       Akan muncul satu kata acak. Peragakan hurufnya satu per satu di depan kamera dan
                       tahan sebentar sampai terbaca. Huruf J dan Z belum dipakai karena isyaratnya bergerak.
                     </p>
-                    <Button size="lg" onClick={nextWord} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
+                    <Button size="lg" onClick={nextWord} className="px-btn">
                       <Play className="w-5 h-5 mr-2" aria-hidden="true" /> Mulai Berlatih
                     </Button>
                   </div>
@@ -658,11 +658,11 @@ export default function SignLanguage() {
                         return (
                           <span
                             key={i}
-                            className={`px-title w-12 h-14 flex items-center justify-center text-3xl border-[3px] ${
+                            className={`px-title w-12 h-14 flex items-center justify-center text-3xl border ${
                               done
-                                ? "bg-[#1a8f43] border-foreground text-white"
+                                ? "bg-emerald-600 border-foreground text-white"
                                 : current
-                                ? "border-foreground bg-amber-300 text-[#0a1a4f]"
+                                ? "border-foreground bg-primary text-primary-foreground"
                                 : "border-foreground/30 text-muted-foreground"
                             }`}
                             aria-hidden="true"
@@ -690,7 +690,7 @@ export default function SignLanguage() {
                         <img
                           src={reference.image}
                           alt={`Contoh isyarat ${reference.title}: ${reference.description}`}
-                          className="w-36 h-36 object-contain mx-auto border-[3px] border-foreground bg-white"
+                          className="w-36 h-36 object-contain mx-auto rounded-xl border border-border bg-white"
                         />
                         <figcaption className="text-sm text-muted-foreground mt-2">{reference.description}</figcaption>
                       </figure>
@@ -766,7 +766,7 @@ export default function SignLanguage() {
                       <Label htmlFor="signer-name">Nama peraga</Label>
                       <Input
                         id="signer-name"
-                        className="h-11 rounded-none border-[3px] border-foreground bg-card"
+                        className="h-11 rounded-xl border border-border bg-card"
                         value={signer}
                         onChange={(e) => setSigner(e.target.value)}
                         placeholder="Contoh: peraga-1"
@@ -787,7 +787,7 @@ export default function SignLanguage() {
                           >
                             {letter}
                             {recordedPerLabel[letter] ? (
-                              <span className="absolute -top-1.5 -right-1.5 text-[10px] leading-none px-1 py-0.5 border border-foreground bg-[#1a8f43] text-white">
+                              <span className="absolute -top-1.5 -right-1.5 text-[10px] leading-none px-1 py-0.5 border border-foreground bg-emerald-600 text-white">
                                 {recordedPerLabel[letter]}
                               </span>
                             ) : null}
@@ -817,7 +817,7 @@ export default function SignLanguage() {
 
       {/* Pujian setelah satu kata selesai dieja; lanjut otomatis ke kata berikutnya */}
       <Dialog open={celebration !== null} onOpenChange={(open) => !open && nextWord()}>
-        <DialogContent className="text-center rounded-none border-[3px] border-foreground">
+        <DialogContent className="text-center rounded-xl border border-border">
           <DialogHeader>
             <DialogTitle className="px-title text-2xl text-center">{celebration?.praise}</DialogTitle>
             <DialogDescription className="text-lg text-center">
@@ -829,7 +829,7 @@ export default function SignLanguage() {
           </p>
           <p className="text-sm text-muted-foreground">Kata berikutnya muncul sebentar lagi.</p>
           <DialogFooter className="sm:justify-center">
-            <Button size="lg" onClick={nextWord} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
+            <Button size="lg" onClick={nextWord} className="px-btn">
               Kata Berikutnya <SkipForward className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </DialogFooter>

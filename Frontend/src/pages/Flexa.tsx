@@ -456,7 +456,7 @@ export default function Flexa() {
                 className="px-card p-6 cursor-pointer h-full flex flex-col items-center text-center"
                 {...clickable(() => handleLevelSelect(key))}
               >
-                <div className="mb-4 border-[3px] border-foreground bg-white p-3" aria-hidden="true">
+                <div className="mb-4 rounded-xl border border-border bg-white p-3" aria-hidden="true">
                   {learningPath[key].icon}
                 </div>
                 <h2 className="px-title text-lg mb-2">{learningPath[key].title}</h2>
@@ -485,7 +485,7 @@ export default function Flexa() {
                     Kamus dan latihannya ada di menu Isyarat.
                   </p>
                 </div>
-                <Button className="px-btn w-full bg-[#2f6fe4] text-white hover:bg-[#2f6fe4]/90">
+                <Button className="px-btn w-full bg-primary text-white hover:bg-primary/90">
                   Buka Kamus di Isyarat
                 </Button>
               </div>
@@ -515,7 +515,7 @@ export default function Flexa() {
               />
               <Button
                 variant="outline"
-                className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90 hover:text-white"
+                className="px-btn"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isProcessingUpload}
               >
@@ -588,7 +588,7 @@ export default function Flexa() {
         </Button>
         <div className="mb-8">
           <div
-            className={`inline-block border-[3px] border-foreground px-3 py-1 text-sm font-bold mb-4 ${levelData.color}`}
+            className={`inline-block rounded-xl border border-border px-3 py-1 text-sm font-bold mb-4 ${levelData.color}`}
           >
             {levelData.title}
           </div>
@@ -682,7 +682,7 @@ export default function Flexa() {
                 </label>
                 {!isSpeaking ? (
                   <Button
-                    className="px-btn w-full h-12 text-lg bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
+                    className="px-btn w-full h-12 text-lg"
                     onClick={() => {
                       // 1. Ambil teks asli (gunakan default string kosong jika null)
                       const rawContent = selectedChapter?.content || "";
@@ -738,7 +738,7 @@ export default function Flexa() {
               </div>
             </Card>
             <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-none border-[3px] border-foreground">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-border">
                 <DialogTitle>Kuis: {selectedChapter.title}</DialogTitle>
                 <DialogDescription>
                   Soal dibuat AI dari materi ini dan menyesuaikan dengan jawabanmu.
@@ -760,7 +760,7 @@ export default function Flexa() {
                 onValueChange={setActiveTab}
                 className="w-full flex flex-col flex-1"
               >
-                <div className="px-4 pt-5 md:px-6 border-b-[3px] border-foreground/25">
+                <div className="px-4 pt-5 md:px-6 border-b border-border/25">
                   <h1 className="text-2xl md:text-3xl font-bold mb-4">
                     {selectedChapter.title}
                   </h1>
@@ -804,8 +804,8 @@ export default function Flexa() {
                         className="h-full flex flex-col items-center justify-center text-center"
                       >
                         <div
-                          className={`w-32 h-32 border-[3px] border-foreground flex items-center justify-center mb-8 ${
-                            isSpeaking ? "bg-amber-300 text-[#0a1a4f] animate-pulse" : "bg-muted text-muted-foreground"
+                          className={`w-32 h-32 rounded-xl border border-border flex items-center justify-center mb-8 ${
+                            isSpeaking ? "bg-primary text-primary-foreground animate-pulse" : "bg-muted text-muted-foreground"
                           }`}
                         >
                           <Volume2 className="w-16 h-16" aria-hidden="true" />
@@ -817,7 +817,7 @@ export default function Flexa() {
                     )}
                     {activeTab === "simple" && (
                       <motion.div key="simple" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                        <div className="bg-sky-50 dark:bg-sky-900/10 border-[3px] border-foreground/30 p-4 md:p-6">
+                        <div className="bg-sky-50 dark:bg-sky-900/10 rounded-xl border border-border p-4 md:p-6">
                           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                             <h3 className="px-title text-lg text-sky-900 dark:text-sky-100">
                               Versi Bahasa Sederhana
@@ -871,7 +871,7 @@ export default function Flexa() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                       >
-                        <div className="bg-yellow-50 dark:bg-yellow-900/10 border-[3px] border-foreground/30 p-4 md:p-6">
+                        <div className="bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-border p-4 md:p-6">
                           <h3 className="px-title text-lg mb-4 text-yellow-900 dark:text-yellow-100">
                             Intisari Materi
                           </h3>

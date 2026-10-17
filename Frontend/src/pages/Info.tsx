@@ -8,7 +8,7 @@ import { ArrowLeft } from "lucide-react";
 
 export type InfoSlug = "privasi" | "aksesibilitas" | "kredit" | "ketentuan";
 
-const UPDATED = "11 Oktober 2026";
+const UPDATED = "14 Oktober 2026";
 const REPO_URL = "https://github.com/MuhammadHadistRifannan/Hope-AI";
 const SIBI_URL = "https://pkplk.kemendikdasmen.go.id/sibi/";
 const DATASET_URL = "https://www.kaggle.com/datasets/alvinbintang/sibi-dataset";
@@ -16,7 +16,7 @@ const BISINDO_DATASET_URL = "https://www.kaggle.com/datasets/anggiyohanespardede
 
 function External({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="text-amber-300 underline underline-offset-4 hover:text-amber-200 rounded focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline underline-offset-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
       {children}
       <span className="sr-only"> (membuka tab baru)</span>
     </a>
@@ -26,7 +26,7 @@ function External({ href, children }: { href: string; children: ReactNode }) {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mt-10">
-      <h2 className="font-pixel text-sm md:text-base leading-[1.7] text-amber-300">{title}</h2>
+      <h2 className="text-xl font-bold tracking-tight md:text-2xl">{title}</h2>
       <div className="mt-4 space-y-3">{children}</div>
     </section>
   );
@@ -48,14 +48,6 @@ const contactLine = (
     data pribadi di sana; cukup sampaikan permintaanmu, lalu kami lanjutkan lewat jalur yang lebih tertutup.
   </>
 );
-
-// Latar tiap halaman diambil dari adegan landing page, supaya tampilannya senada
-const scenes: Record<InfoSlug, { folder: string; layers: number }> = {
-  privasi: { folder: "s6", layers: 5 },
-  ketentuan: { folder: "s4", layers: 3 },
-  aksesibilitas: { folder: "s5", layers: 4 },
-  kredit: { folder: "s1", layers: 4 },
-};
 
 const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }> = {
   privasi: {
@@ -122,6 +114,10 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
               <>
                 <strong>Kamus SIBI Kemendikdasmen</strong> menyediakan gambar serta video isyarat. Media itu dimuat
                 langsung dari server mereka, sehingga mereka menerima alamat IP-mu.
+              </>,
+              <>
+                <strong>Google Fonts</strong> menyediakan huruf logo Hope.Ai, sehingga Google menerima alamat IP-mu saat
+                halaman dibuka.
               </>,
             ]}
           />
@@ -194,8 +190,6 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
               "Perintah suara bergantung pada browser: berjalan di Chrome dan Safari, belum di Firefox.",
               "Latihan Isyarat mengenali 24 huruf abjad jari SIBI. Huruf J dan Z (yang memakai gerakan) dan angka belum dikenali, dan hasilnya bisa keliru pada pencahayaan redup.",
               "Pengenal kata BISINDO baru mengenal 16 kata dasar dan dilatih dari video yang hampir semuanya diperagakan satu orang, sehingga bisa keliru untuk gaya isyarat orang lain atau isyarat dari daerah lain.",
-              "Halaman depan selalu memakai huruf pixel, walaupun huruf ramah disleksia diaktifkan. Pengaturan itu berlaku di semua halaman setelah masuk.",
-              "Teks di halaman depan berada di atas gambar; keterbacaannya dijaga dengan garis tepi gelap pada huruf.",
               "Jawaban NeoTutor dibuat oleh AI dan bisa salah.",
             ]}
           />
@@ -246,13 +240,13 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
         </Section>
 
         <Section title="Huruf">
-          <p>Semua teks memakai huruf bawaan perangkat, sehingga tidak ada huruf yang diunduh dari layanan lain.</p>
+          <p>Logo Hope.Ai memakai huruf <strong>Cherry Bomb One</strong> (SIL Open Font License) dari Google Fonts. Teks lainnya memakai huruf bawaan perangkat.</p>
         </Section>
 
         <Section title="Gambar di halaman depan">
           <p>
-            Ilustrasi tiap fitur, ikon di kaki halaman, tombol, dan animasi maskot di halaman depan digambar dengan kode khusus
-            untuk Hope.Ai.
+            Animasi ilustrasi fitur dan maskot penguin di halaman depan berasal dari karya pihak lain. Daftar sumber dan
+            lisensinya sedang kami lengkapi di halaman ini.
           </p>
         </Section>
 
@@ -333,27 +327,8 @@ export default function Info({ slug }: { slug: InfoSlug }) {
     };
   }, [page.title]);
 
-  const scene = scenes[slug];
-  const focusRing = "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300";
-
   return (
-    <div className="relative min-h-screen bg-[#7cc4e8]">
-      {/* Pemandangan pixel yang sama dengan landing page, diam di belakang isi */}
-      <div aria-hidden="true" className="scene-stage fixed inset-x-0 top-0 overflow-hidden">
-        {Array.from({ length: scene.layers }, (_, i) => (
-          <img
-            key={i}
-            src={`/parallax/${scene.folder}/${i + 1}.png`}
-            alt=""
-            width={576}
-            height={324}
-            draggable={false}
-            className="absolute inset-0 h-full w-full select-none object-cover"
-            style={{ imageRendering: "pixelated" }}
-          />
-        ))}
-      </div>
-
+    <div className="relative min-h-screen bg-slate-50 text-foreground dark:bg-background">
       <a
         href="#isi"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-white focus:text-black focus:shadow-lg"
@@ -361,36 +336,39 @@ export default function Info({ slug }: { slug: InfoSlug }) {
         Lompat ke isi halaman
       </a>
 
-      <div className="relative">
-        <header className="flex items-center justify-between gap-2 p-3 md:p-5">
-          <Link to="/landing" className={`flex shrink-0 items-center gap-2 md:gap-3 rounded-2xl font-pixel ${focusRing}`}>
-            <img src="/images/logo.png" alt="" width={72} height={72} className="w-11 h-11 md:w-[72px] md:h-[72px] object-contain drop-shadow-[3px_4px_0_rgba(10,26,79,0.6)]" />
-            <span className="pixel-text-lg hidden min-[440px]:inline text-xs sm:text-lg md:text-2xl" translate="no">
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3">
+          <Link to="/landing" className="flex items-center gap-2.5 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <img src="/images/logo.png" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
+            <span className="font-cherry text-2xl tracking-wide" translate="no">
               Hope.Ai
             </span>
           </Link>
-          <Link to="/landing" className="pixel-button pixel-button-blue pixel-text font-pixel gap-2">
+          <Link
+            to="/landing"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Kembali
           </Link>
-        </header>
+        </div>
+      </header>
 
-        {/* Lembar gelap bergaya pixel: teks panjang tetap terbaca di atas pemandangan */}
-        <main id="isi" className="px-3 pb-12 pt-4 md:px-5 md:pt-8">
-          <div className="pixel-sheet pixel-body-plain mx-auto max-w-3xl px-5 py-8 md:px-10 md:py-12 text-base md:text-lg leading-relaxed text-white">
-            <h1 className="font-pixel text-[clamp(1.7rem,6vw,2.6rem)] leading-[1.4] text-balance">{page.title}</h1>
-            <p className="mt-3 text-sm md:text-base text-amber-300">Terakhir diperbarui {UPDATED}</p>
-            <p className="mt-6 text-lg md:text-xl leading-relaxed text-pretty">{page.intro}</p>
+      <main id="isi" className="px-4 pb-16 pt-8 md:pt-12">
+        <article className="mx-auto max-w-3xl rounded-3xl border border-border bg-card px-5 py-8 text-base leading-relaxed shadow-sm md:px-12 md:py-12 md:text-lg">
+            <h1 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">{page.title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground md:text-base">Terakhir diperbarui {UPDATED}</p>
+            <p className="mt-6 text-lg leading-relaxed text-foreground/80 md:text-xl text-pretty">{page.intro}</p>
             {page.body}
 
-            <nav aria-label="Halaman informasi" className="mt-12 border-t-4 border-dotted border-white/25 pt-5">
+            <nav aria-label="Halaman informasi" className="mt-12 border-t border-border pt-5">
               <ul className="flex flex-wrap gap-x-6 gap-y-1">
                 {nav.map((item) => (
                   <li key={item.slug}>
                     <Link
                       to={`/${item.slug}`}
                       aria-current={item.slug === slug ? "page" : undefined}
-                      className={`inline-flex min-h-11 items-center rounded underline-offset-4 hover:underline ${focusRing} ${
-                        item.slug === slug ? "text-amber-300" : "text-white underline"
+                      className={`inline-flex min-h-11 items-center rounded font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        item.slug === slug ? "text-foreground" : "text-primary"
                       }`}
                     >
                       {item.label}
@@ -399,9 +377,8 @@ export default function Info({ slug }: { slug: InfoSlug }) {
                 ))}
               </ul>
             </nav>
-          </div>
-        </main>
-      </div>
+        </article>
+      </main>
     </div>
   );
 }

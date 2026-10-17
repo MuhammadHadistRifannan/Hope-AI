@@ -10,8 +10,8 @@ export default function AccessibilityBar() {
 
   // Tombol kotak bergaya pixel; yang sedang aktif berwarna amber dan ditandai centang
   const chip = (on = false) =>
-    `inline-flex min-h-11 items-center gap-2 border-[3px] border-foreground px-3 text-sm font-semibold disabled:opacity-40 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-500 ${
-      on ? "bg-amber-300 text-[#0a1a4f]" : "bg-card text-foreground hover:bg-muted"
+    `inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-3 text-sm font-semibold disabled:opacity-40 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-500 ${
+      on ? "bg-primary text-primary-foreground" : "bg-card text-foreground hover:bg-muted"
     }`;
 
   return (

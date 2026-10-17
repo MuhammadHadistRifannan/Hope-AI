@@ -1,110 +1,88 @@
-import { forwardRef, useEffect, useState, type InputHTMLAttributes, type ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, type LucideIcon } from "lucide-react";
-import { HopeMascot } from "@/components/LandingArt";
-import { TransitionLink } from "@/components/PixelTransition";
-import WaveText from "@/components/WaveText";
-import { useSettings } from "@/context/SettingsContext";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
+import { Sparkles, type LucideIcon } from "lucide-react";
+import { motion } from "framer-motion";
 
-// Kerangka halaman sebelum masuk (Masuk, Daftar, Lupa dan Atur Ulang Password),
-// bergaya sama dengan landing page: pemandangan pixel di belakang, maskot dan
-// slogan di kiri, dan lembar navy berisi formulir di kanan.
+// Kerangka halaman sebelum masuk (Masuk, Daftar, Lupa dan Atur Ulang Password):
+// maskot dan sambutan di kiri, kartu formulir di kanan.
 
 type Props = {
-  // Adegan dari landing page yang dipakai sebagai latar
-  scene?: { folder: string; layers: number };
   title: string;
   description: string;
-  // Kalimat ajakan di balon kata maskot; berganti tiap beberapa detik
-  greetings: string[];
   children: ReactNode;
 };
 
-// Latar bawaan: senja kecokelatan dari bagian penutup landing page
-export default function AuthShell({ scene = { folder: "s3", layers: 4 }, title, description, greetings, children }: Props) {
-  const { effectiveReduceMotion, screenReaderMode } = useSettings();
-  const animated = !effectiveReduceMotion && !screenReaderMode;
-  const focusRing = "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300";
-
-  // Balon kata maskot: kalimatnya berganti bergiliran. Saat daftar kalimat berubah
-  // (pindah dari Masuk ke Daftar), mulai lagi dari kalimat pertama.
-  const [turn, setTurn] = useState(0);
-  const list = greetings.join("|");
-  useEffect(() => {
-    setTurn(0);
-    if (!animated || greetings.length < 2) return;
-    const next = setInterval(() => setTurn((current) => current + 1), 4800);
-    return () => clearInterval(next);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list, animated]);
-  const greeting = greetings[turn % greetings.length];
-
+export default function AuthShell({ title, description, children }: Props) {
   return (
-    <div data-landing className="relative min-h-screen bg-[#b98a63] font-landing">
-      {/* Pemandangan pixel yang sama dengan landing page, diam di belakang isi */}
-      <div aria-hidden="true" className="scene-stage fixed inset-x-0 top-0 overflow-hidden">
-        {Array.from({ length: scene.layers }, (_, i) => (
-          <img
-            key={i}
-            src={`/parallax/${scene.folder}/${i + 1}.png`}
-            alt=""
-            width={576}
-            height={324}
-            draggable={false}
-            className="absolute inset-0 h-full w-full select-none object-cover"
-            style={{ imageRendering: "pixelated" }}
-          />
-        ))}
-      </div>
+    <div data-landing className="font-sans min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Hiasan latar */}
+      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-blue-600 via-blue-500 to-transparent -z-10 opacity-10" />
+      <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -z-10" />
+      <div className="absolute top-40 -left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-[100px] -z-10" />
 
-      <div className="relative flex min-h-screen flex-col">
-        <header className="flex items-center justify-between gap-2 p-3 md:p-5">
-          <Link to="/landing" className={`flex shrink-0 items-center gap-2 md:gap-3 rounded-2xl ${focusRing}`}>
-            <img src="/images/logo.png" alt="" width={72} height={72} className="w-11 h-11 md:w-[72px] md:h-[72px] object-contain drop-shadow-[3px_4px_0_rgba(10,26,79,0.6)]" />
-            <span className="pixel-text-lg font-pixel hidden min-[440px]:inline text-lg sm:text-xl md:text-3xl" translate="no">
-              Hope.Ai
-            </span>
-          </Link>
-          <TransitionLink to="/landing" className="pixel-button pixel-button-blue pixel-text gap-2">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Kembali
-          </TransitionLink>
-        </header>
-
-        <div className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-3 px-3 pb-8 pt-0 md:px-6 lg:grid-cols-2 lg:gap-12">
-          {/* Kiri: maskot dan slogan. Di ponsel hanya maskot kecil di atas formulir. */}
-          <div className="flex flex-col items-center text-center">
-            {/* Maskot menyapa lewat balon kata di sampingnya */}
-            <div className="flex items-end justify-center gap-3 lg:gap-4">
-              <HopeMascot animated={animated} className="h-auto w-14 shrink-0 drop-shadow-[4px_5px_0_rgba(10,26,79,0.45)] lg:w-40" />
-              <p key={greeting} aria-hidden="true" className={`pixel-bubble pixel-body-plain mb-3 lg:mb-16 ${animated ? "pixel-bubble-pop" : ""}`}>
-                {greeting}
-              </p>
-            </div>
-            <div className="hidden lg:block">
-              <p className="pixel-text mt-6 text-lg font-semibold !text-amber-300">AI untuk Pendidikan Inklusif</p>
-              {/* Huruf membesar bergiliran, sama seperti judul di landing page */}
-              <p className="pixel-text-lg font-pixel mt-4 text-[clamp(2.2rem,4vw,3.4rem)] leading-[1.2] text-balance">
-                <WaveText text="Belajar Tanpa Batasan." animated={animated} />
-              </p>
-              <p className="pixel-body mx-auto mt-5 max-w-md text-xl leading-[1.45] text-balance">
-                Belajar dengan cara yang paling cocok untukmu: suara, teks, bahasa sederhana, atau isyarat.
-              </p>
-            </div>
+      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center relative z-10">
+        {/* Kiri: maskot dan sambutan */}
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="hidden lg:flex flex-col items-center justify-center text-center space-y-8"
+        >
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full blur-3xl opacity-30 animate-pulse" />
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1, y: [0, -10, 0] }}
+              transition={{
+                scale: { duration: 0.5 },
+                y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+              }}
+              className="relative z-10"
+            >
+              <img src="/gif/animasi-login.gif" alt="" className="w-80 h-80 object-contain drop-shadow-2xl" />
+            </motion.div>
           </div>
 
-          {/* Kanan: lembar formulir */}
-          <main className="pixel-sheet pixel-reading mx-auto w-full max-w-md px-5 py-6 text-white md:px-9 md:py-8">
-            <h1 className="font-pixel text-[clamp(1.6rem,6vw,2.1rem)] leading-[1.2] text-balance">{title}</h1>
-            <p className="mt-2.5 text-base leading-snug text-white/85 md:text-lg">{description}</p>
-            {children}
+          <div className="space-y-4 max-w-md">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-white/10 shadow-sm border border-slate-200 dark:border-white/10"
+            >
+              <Sparkles className="w-4 h-4 text-yellow-500 fill-yellow-500" aria-hidden="true" />
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">AI untuk Pendidikan Inklusif</span>
+            </motion.div>
+
+            <p className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white">
+              Belajar Jadi Lebih <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Menyenangkan</span>
+            </p>
+
+            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+              Rasakan pengalaman belajar yang adaptif dan inklusif bersama Hope AI: lewat suara, teks, bahasa sederhana, atau isyarat.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Kanan: kartu formulir */}
+        <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
+          <main className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-slate-100 dark:border-slate-800 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-bl-[2.5rem]" />
+            <div className="relative z-10">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{title}</h1>
+                <p className="text-slate-500 dark:text-slate-400">{description}</p>
+              </div>
+              {children}
+            </div>
           </main>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 }
 
-// Kotak isian bergaya pixel, dengan ikon di kiri dan tempat untuk tombol kecil di kanan
+// Kotak isian dengan ikon di kiri dan tempat untuk tombol kecil di kanan
 type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   id: string;
   label: string;
@@ -112,29 +90,37 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   trailing?: ReactNode;
 };
 
-export const PixelField = forwardRef<HTMLInputElement, FieldProps>(function PixelField({ id, label, icon: Icon, trailing, ...input }, ref) {
+export const AuthField = forwardRef<HTMLInputElement, FieldProps>(function AuthField({ id, label, icon: Icon, trailing, ...input }, ref) {
   return (
-    <div>
-      <label htmlFor={id} className="block text-sm text-amber-200 md:text-base">
+    <div className="space-y-2">
+      <label htmlFor={id} className="block text-sm font-medium leading-none text-slate-700 dark:text-slate-300">
         {label}
       </label>
-      <div className="relative mt-1.5">
-        <Icon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#0a1a4f]/55" aria-hidden="true" />
+      <div className="relative">
+        <Icon className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" aria-hidden="true" />
         <input
           ref={ref}
           id={id}
           {...input}
           // 16px supaya Safari di ponsel tidak memperbesar halaman saat kotak disentuh
-          className={`h-12 w-full border-[3px] border-[#0a1a4f] bg-white pl-11 text-base text-[#0a1a4f] placeholder:text-[#0a1a4f]/45 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300 ${
+          className={`flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 md:text-sm ${
             trailing ? "pr-12" : "pr-3"
           }`}
         />
-        {trailing && <div className="absolute right-0.5 top-1/2 -translate-y-1/2">{trailing}</div>}
+        {trailing && <div className="absolute right-1 top-1/2 -translate-y-1/2">{trailing}</div>}
       </div>
     </div>
   );
 });
 
-// Tautan dan tombol teks di dalam lembar formulir
+// Tautan dan tombol teks di dalam kartu formulir
 export const authLink =
-  "inline-flex min-h-11 items-center rounded font-semibold text-amber-300 underline underline-offset-4 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300";
+  "inline-flex min-h-11 items-center rounded font-bold text-blue-600 dark:text-blue-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
+
+// Tombol utama formulir
+export const authSubmit =
+  "inline-flex w-full h-12 items-center justify-center gap-2 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/30 disabled:opacity-60 disabled:hover:scale-100";
+
+// Tombol kecil di dalam kotak isian (tampilkan password)
+export const authFieldButton =
+  "inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";

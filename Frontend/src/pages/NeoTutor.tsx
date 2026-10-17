@@ -2,10 +2,9 @@ import { API_URL, authHeaders } from "@/lib/api";
 import { speak, stopSpeech } from "@/lib/speech";
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Send, User, Volume2, Mic, MicOff, Plus, BookOpen, X } from "lucide-react";
+import { Send, User, Volume2, Mic, MicOff, Plus, BookOpen, X, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
-import { FeatureIcon } from "@/components/LandingArt";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
@@ -350,10 +349,10 @@ export default function NeoTutor() {
         {/* Pilih percakapan: tiap percakapan diingat terpisah */}
         <div className="flex gap-2 mb-3 md:mb-4">
           <Select value={sessionId ?? ""} onValueChange={openSession}>
-            <SelectTrigger className="flex-1 min-w-0 h-11 rounded-none border-[3px] border-foreground bg-card font-semibold" aria-label="Pilih percakapan">
+            <SelectTrigger className="flex-1 min-w-0 h-11 rounded-xl border border-border bg-card font-semibold" aria-label="Pilih percakapan">
               <SelectValue placeholder="Percakapan baru" />
             </SelectTrigger>
-            <SelectContent className="rounded-none border-[3px] border-foreground">
+            <SelectContent className="rounded-xl border border-border">
               {sessions.map((session) => (
                 <SelectItem key={session.id} value={session.id}>
                   {session.title}
@@ -375,7 +374,7 @@ export default function NeoTutor() {
 
         {/* Penanda bahwa jawaban NeoTutor didasarkan pada satu materi */}
         {materialTitle && (
-          <div className="flex items-center gap-3 mb-4 px-4 py-3 border-[3px] border-foreground bg-amber-300/30" role="status">
+          <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-border bg-primary/10" role="status">
             <BookOpen className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" />
             <p className="flex-1 min-w-0 text-sm">
               <span className="text-muted-foreground">Membahas materi: </span>
@@ -408,17 +407,17 @@ export default function NeoTutor() {
                   className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   {message.role === "assistant" && (
-                    <div className="w-9 h-9 border-[3px] border-foreground bg-[#0a1a4f] flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                      <FeatureIcon name="neotutor" className="w-5 h-5" />
+                    <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                      <Bot className="w-5 h-5 text-white" />
                     </div>
                   )}
 
                   <div className="flex flex-col gap-1 max-w-[85%] md:max-w-[80%]">
                     <div
-                      className={`border-[3px] border-foreground px-4 py-3 ${
+                      className={`rounded-2xl px-4 py-3 ${
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-card"
+                          ? "bg-primary text-primary-foreground rounded-br-md"
+                          : "bg-muted rounded-bl-md"
                       }`}
                     >
                       <p className="text-base leading-relaxed whitespace-pre-line">
@@ -427,7 +426,7 @@ export default function NeoTutor() {
                             <span className="sr-only">{message.content}</span>
                             <span aria-hidden="true">
                               {message.content.slice(0, flowing.shown)}
-                              <span className="ml-0.5 inline-block h-[1em] w-[0.45em] translate-y-[0.15em] animate-pulse bg-foreground/70" />
+                              <span className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.15em] animate-pulse bg-foreground/70" />
                             </span>
                           </>
                         ) : (
@@ -440,7 +439,7 @@ export default function NeoTutor() {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="self-start min-h-9 rounded-none px-2 text-sm font-semibold text-muted-foreground hover:text-primary"
+                        className="self-start min-h-9 px-2 text-sm font-semibold text-muted-foreground hover:text-primary"
                         onClick={() => speakText(message.content)}
                       >
                         <Volume2 className="w-4 h-4 mr-1" aria-hidden="true" /> Dengar
@@ -449,7 +448,7 @@ export default function NeoTutor() {
                   </div>
 
                   {message.role === "user" && (
-                    <div className="px-tile w-9 h-9 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                    <div className="px-tile rounded-full w-9 h-9 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                       <User className="w-5 h-5" />
                     </div>
                   )}
@@ -458,14 +457,14 @@ export default function NeoTutor() {
 
               {isTyping && (
                 <div className="flex gap-3" role="status" aria-label="NeoTutor sedang mengetik">
-                  <div className="w-9 h-9 border-[3px] border-foreground bg-[#0a1a4f] flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                    <FeatureIcon name="neotutor" className="w-5 h-5" />
+                  <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                    <Bot className="w-5 h-5 text-white" />
                   </div>
-                  <div className="border-[3px] border-foreground bg-card px-4 py-3">
+                  <div className="rounded-2xl rounded-bl-md bg-muted px-4 py-3">
                     <div className="flex gap-1.5 py-1">
-                      <div className="w-2.5 h-2.5 bg-foreground animate-bounce" />
-                      <div className="w-2.5 h-2.5 bg-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <div className="w-2.5 h-2.5 bg-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" />
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
                     </div>
                   </div>
                 </div>
@@ -529,10 +528,10 @@ export default function NeoTutor() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isListening ? "Sedang mendengarkan…" : "Tanyakan apa saja…"}
                 aria-label="Pertanyaan untuk NeoTutor"
-                className="flex-1 h-11 rounded-none border-[3px] border-foreground bg-card text-base"
+                className="flex-1 h-11 rounded-xl border border-border bg-card text-base"
               />
               
-              <Button type="submit" className="px-btn h-11 w-11 flex-shrink-0 bg-[#1a8f43] p-0 text-white hover:bg-[#1a8f43]/90" aria-label="Kirim pertanyaan">
+              <Button type="submit" className="px-btn h-11 w-11 flex-shrink-0 bg-emerald-600 p-0 text-white hover:bg-emerald-600/90" aria-label="Kirim pertanyaan">
                 <Send className="w-4 h-4" aria-hidden="true" />
               </Button>
             </form>

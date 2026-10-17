@@ -171,7 +171,7 @@ export default function BisindoPanel({
               Akan muncul satu kata beserta videonya. Peragakan isyaratnya di depan kamera dengan badan dan bahu
               terlihat, lalu turunkan tangan. Setelah tangan turun, gerakanmu dibaca.
             </p>
-            <Button size="lg" onClick={() => startWord()} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
+            <Button size="lg" onClick={() => startWord()} className="px-btn">
               <Play className="w-5 h-5 mr-2" aria-hidden="true" /> Mulai Berlatih
             </Button>
           </div>
@@ -198,7 +198,7 @@ export default function BisindoPanel({
                   loop
                   muted
                   playsInline
-                  className="w-full max-w-xs aspect-[4/3] object-contain mx-auto border-[3px] border-foreground bg-black"
+                  className="w-full max-w-xs aspect-[4/3] object-contain mx-auto rounded-xl border border-border bg-black"
                   aria-label={`Contoh isyarat ${targetWord.label}`}
                 />
                 <figcaption className="text-sm text-muted-foreground mt-2">{targetWord.movement}</figcaption>
@@ -261,7 +261,7 @@ export default function BisindoPanel({
               <Label htmlFor="bisindo-signer">Nama peraga</Label>
               <Input
                 id="bisindo-signer"
-                className="h-11 rounded-none border-[3px] border-foreground bg-card"
+                className="h-11 rounded-xl border border-border bg-card"
                 value={signer}
                 onChange={(e) => setSigner(e.target.value)}
                 placeholder="Contoh: peraga-1"
@@ -284,7 +284,7 @@ export default function BisindoPanel({
                   >
                     {word.label}
                     {perLabel[word.label] ? (
-                      <span className="absolute -top-1.5 -right-1.5 text-[10px] leading-none px-1 py-0.5 border border-foreground bg-[#1a8f43] text-white">
+                      <span className="absolute -top-1.5 -right-1.5 text-[10px] leading-none px-1 py-0.5 border border-foreground bg-emerald-600 text-white">
                         {perLabel[word.label]}
                       </span>
                     ) : null}
@@ -296,7 +296,7 @@ export default function BisindoPanel({
               <Label htmlFor="bisindo-custom">Atau kata baru</Label>
               <Input
                 id="bisindo-custom"
-                className="h-11 rounded-none border-[3px] border-foreground bg-card"
+                className="h-11 rounded-xl border border-border bg-card"
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value)}
                 placeholder="Contoh: Nama, Umur, Hobi"

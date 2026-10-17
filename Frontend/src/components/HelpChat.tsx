@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion, useDragControls, type PanInfo } from "framer-motion";
-import { ArrowRight, Send, X } from "lucide-react";
+import { ArrowRight, MessageCircle, Send, X } from "lucide-react";
 import { HELP_ENTRIES, HELP_FALLBACK, HELP_SCOPE, HELP_SCOPE_SHORT, HELP_SUGGESTIONS, findAnswer, type HelpLink } from "@/lib/helpChat";
 
 // "Tanya Hope": tombol obrolan di pojok kanan bawah landing page. Jawabannya sudah
@@ -16,19 +16,6 @@ type Message = { from: "hope" | "kamu"; text: string; link?: HelpLink };
 const WELCOME: Message = { from: "hope", text: HELP_SCOPE };
 // Pegas tanpa pantulan: lembar tiba dengan tenang
 const SPRING = { type: "spring", bounce: 0, duration: 0.38 } as const;
-
-// Ikon balon obrolan bergaya pixel
-function ChatIcon({ className }: { className?: string }) {
-  const rows = ["KKKKKKKKKKKK", "KWWWWWWWWWWK", "KWWWWWWWWWWK", "KWAAWAAWAAWK", "KWAAWAAWAAWK", "KWWWWWWWWWWK", "KWWWWWWWWWWK", "KKKWWKKKKKKK", "..KWWK......", "..KWK.......", "..KK........"];
-  const colors: Record<string, string> = { K: "#0a1a4f", W: "#ffffff", A: "#f59e0b" };
-  return (
-    <svg aria-hidden="true" viewBox="0 0 12 11" shapeRendering="crispEdges" className={className}>
-      {rows.flatMap((row, y) =>
-        Array.from(row).map((cell, x) => (cell === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width={1.02} height={1.02} fill={colors[cell]} />))
-      )}
-    </svg>
-  );
-}
 
 function useIsPhone() {
   const [phone, setPhone] = useState(() => window.matchMedia("(max-width: 639px)").matches);
@@ -108,7 +95,7 @@ export default function HelpChat() {
     if (info.offset.y > 110 || info.velocity.y > 600) setOpen(false);
   };
 
-  const ring = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#10245f]";
+  const ring = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
   const press = "transition-transform duration-100 active:scale-[0.97]";
 
   return (
@@ -121,9 +108,9 @@ export default function HelpChat() {
           onClick={() => setOpen(true)}
           aria-expanded={false}
           aria-label="Buka Tanya Hope, tanya-jawab tentang Hope.Ai"
-          className="pixel-button pixel-button-blue fixed bottom-3 right-3 z-[60] !min-h-0 !p-0 h-14 w-14 md:bottom-5 md:right-5 md:h-16 md:w-16"
+          className={`fixed bottom-4 right-4 z-[60] inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 md:bottom-6 md:right-6 ${press} ${ring}`}
         >
-          <ChatIcon className="h-8 w-8 md:h-9 md:w-9" />
+          <MessageCircle className="h-6 w-6" aria-hidden="true" />
         </button>
       )}
 
@@ -134,7 +121,7 @@ export default function HelpChat() {
             key="redup"
             aria-hidden="true"
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[59] bg-[#0a1a4f]/45"
+            className="fixed inset-0 z-[59] bg-slate-900/40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -163,10 +150,10 @@ export default function HelpChat() {
             dragElastic={{ top: 0.04, bottom: 0.9 }}
             onDragEnd={onDragEnd}
             style={phone ? { bottom: keyboard } : { transformOrigin: "100% 100%" }}
-            className={`help-chat fixed z-[60] flex flex-col bg-[#10245f] text-white ${
+            className={`fixed z-[60] flex flex-col overflow-hidden bg-card text-card-foreground ${
               phone
-                ? "inset-x-0 max-h-[min(68svh,34rem)] border-t-[3px] border-[#0a1a4f] pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_0_rgba(10,26,79,0.35)]"
-                : "bottom-5 right-5 max-h-[min(32rem,calc(100svh-2.5rem))] w-[22rem] border-[3px] border-[#0a1a4f] shadow-[5px_6px_0_rgba(10,26,79,0.45)]"
+                ? "inset-x-0 max-h-[min(68svh,34rem)] rounded-t-3xl pb-[env(safe-area-inset-bottom)] shadow-2xl"
+                : "bottom-6 right-6 max-h-[min(32rem,calc(100svh-3rem))] w-[22rem] rounded-2xl border border-border shadow-2xl"
             }`}
           >
             {/* Kepala: di ponsel sekaligus menjadi pegangan untuk menarik lembar turun */}
@@ -176,37 +163,37 @@ export default function HelpChat() {
               }}
               className={`shrink-0 ${phone ? "touch-none" : ""}`}
             >
-              {phone && <span aria-hidden="true" className="mx-auto mt-2 block h-1.5 w-11 bg-white/35" />}
+              {phone && <span aria-hidden="true" className="mx-auto mt-2 block h-1.5 w-10 rounded-full bg-muted-foreground/30" />}
               <div className="flex items-center justify-between gap-3 pl-4 pr-1.5">
-                <h2 className="flex items-center gap-2.5 text-base font-semibold text-amber-300">
-                  <ChatIcon className="h-5 w-5" /> Tanya Hope
+                <h2 className="flex items-center gap-2.5 text-base font-semibold">
+                  <MessageCircle className="h-5 w-5 text-primary" aria-hidden="true" /> Tanya Hope
                 </h2>
                 <button
                   ref={closeRef}
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label="Tutup Tanya Hope"
-                  className={`inline-flex h-11 w-11 items-center justify-center text-white/80 hover:text-white ${press} ${ring}`}
+                  className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground ${press} ${ring}`}
                 >
                   <X className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
               {/* Batas kemampuan, versi pendek: selalu terlihat */}
-              <p className="mx-4 mb-3 border-l-[3px] border-amber-300 pl-2.5 text-[0.8rem] leading-snug text-amber-100">{HELP_SCOPE_SHORT}</p>
+              <p className="mx-4 mb-3 rounded-lg bg-amber-50 px-3 py-2 text-[0.8rem] leading-snug text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">{HELP_SCOPE_SHORT}</p>
             </header>
 
             <div ref={logRef} role="log" aria-live="polite" aria-label="Percakapan" className="help-scroll flex min-h-[7rem] flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pb-4">
               {messages.map((message, i) => (
                 <div
                   key={i}
-                  className={`max-w-[85%] px-3 py-2.5 text-[0.9rem] leading-[1.5] text-[#0a1a4f] ${
-                    message.from === "hope" ? "self-start bg-white" : "self-end bg-[#cfe8ff]"
+                  className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[0.9rem] leading-[1.5] ${
+                    message.from === "hope" ? "self-start rounded-bl-md bg-muted" : "self-end rounded-br-md bg-primary text-primary-foreground"
                   }`}
                 >
                   <span className="sr-only">{message.from === "hope" ? "Hope: " : "Kamu: "}</span>
                   {message.text}
                   {message.link && (
-                    <Link to={message.link.to} className={`mt-1 flex min-h-11 items-center gap-1.5 font-semibold text-[#1d4ed8] underline underline-offset-4 ${ring}`}>
+                    <Link to={message.link.to} className={`mt-1 flex min-h-11 items-center gap-1.5 font-semibold text-primary underline underline-offset-4 ${ring}`}>
                       {message.link.label} <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
                     </Link>
                   )}
@@ -224,7 +211,7 @@ export default function HelpChat() {
                         <button
                           type="button"
                           onClick={() => ask(entry.question)}
-                          className={`min-h-11 border-2 border-white/45 px-3 text-left text-[0.84rem] leading-tight text-white hover:bg-white/10 ${press} ${ring}`}
+                          className={`min-h-11 rounded-full border border-primary/30 px-3.5 text-left text-[0.84rem] leading-tight text-primary hover:bg-primary/5 ${press} ${ring}`}
                         >
                           {entry.question}
                         </button>
@@ -236,7 +223,7 @@ export default function HelpChat() {
                 <button
                   type="button"
                   onClick={() => setShowList(true)}
-                  className={`min-h-11 self-start border-2 border-white/45 px-3 text-[0.84rem] text-white hover:bg-white/10 ${press} ${ring}`}
+                  className={`min-h-11 self-start rounded-full border border-primary/30 px-3.5 text-[0.84rem] text-primary hover:bg-primary/5 ${press} ${ring}`}
                 >
                   Lihat pertanyaan lain
                 </button>
@@ -244,7 +231,7 @@ export default function HelpChat() {
             </div>
 
             <form
-              className="flex shrink-0 gap-2 bg-[#0d1e55] px-4 py-3"
+              className="flex shrink-0 gap-2 border-t border-border px-4 py-3"
               onSubmit={(event) => {
                 event.preventDefault();
                 ask(draft);
@@ -262,12 +249,12 @@ export default function HelpChat() {
                 maxLength={200}
                 autoComplete="off"
                 enterKeyHint="send"
-                className={`h-11 min-w-0 flex-1 bg-white px-3 text-base text-[#0a1a4f] placeholder:text-[#0a1a4f]/50 sm:text-[0.9rem] ${ring}`}
+                className={`h-11 min-w-0 flex-1 rounded-full border border-input bg-background px-4 text-base placeholder:text-muted-foreground sm:text-[0.9rem] ${ring}`}
               />
               <button
                 type="submit"
                 aria-label="Kirim pertanyaan"
-                className={`inline-flex h-11 w-11 shrink-0 items-center justify-center bg-[#1a8f43] text-white hover:brightness-110 ${press} ${ring}`}
+                className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 ${press} ${ring}`}
               >
                 <Send className="h-4 w-4" aria-hidden="true" />
               </button>

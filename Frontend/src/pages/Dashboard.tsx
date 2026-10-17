@@ -11,7 +11,6 @@ import { useRoles } from "@/hooks/use-roles";
 import { requestVoiceInput } from "@/lib/voiceCommands";
 import AccessibilityBar from "@/components/AccessibilityBar";
 import FeatureCards, { features } from "@/components/FeatureCards";
-import { HopeMascot } from "@/components/LandingArt";
 
 type ContinueItem = { label: string; title: string; href: string; icon: typeof BookOpen };
 type Weekly = { quizzes: number; average: number | null; questions: number; activeDays: number };
@@ -139,14 +138,14 @@ export default function Dashboard() {
 
   const order = featureOrder(needs);
 
-  const heading = "px-title text-sm md:text-base mb-4";
+  const heading = "px-title text-lg md:text-xl mb-4";
 
   return (
     <div className="p-2 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 md:space-y-10">
       {/* Sapaan dan pengaturan cepat */}
       <header className="space-y-4">
         <div className="flex items-center gap-4">
-          {!linear && <HopeMascot animated={!effectiveReduceMotion} className="h-auto w-16 shrink-0 md:w-20" />}
+          {!linear && <img src={effectiveReduceMotion ? "/anim/penguin-still.webp" : "/anim/penguin.webp"} alt="" width={80} height={80} className="h-16 w-16 shrink-0 object-contain md:h-20 md:w-20" />}
           <div className="min-w-0">
             <p className="text-muted-foreground">{greeting()},</p>
             <h1 className="px-title text-2xl md:text-3xl text-foreground break-words">Halo, {name || "…"}</h1>
@@ -263,7 +262,7 @@ export default function Dashboard() {
                 { label: "Rata-rata nilai", value: weekly.average === null ? "–" : `${weekly.average}%`, icon: Star },
                 { label: "Pertanyaan ke NeoTutor", value: String(weekly.questions), icon: Sparkles },
               ].map((stat) => (
-                <div key={stat.label} className="border-[3px] border-foreground/25 bg-muted/50 p-3">
+                <div key={stat.label} className="rounded-xl border border-border bg-muted/50 p-3">
                   <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <stat.icon className="h-4 w-4 shrink-0" aria-hidden="true" /> {stat.label}
                   </dt>
@@ -292,7 +291,7 @@ export default function Dashboard() {
           ) : (
             <ul className="space-y-3">
               {posts.map((post) => (
-                <li key={post.id} className="border-[3px] border-foreground/25 bg-muted/50 p-3">
+                <li key={post.id} className="rounded-xl border border-border bg-muted/50 p-3">
                   <p className={`line-clamp-2 ${prose}`}>{post.content}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {post.author} · {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: idLocale })} ·{" "}

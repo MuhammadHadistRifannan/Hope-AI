@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
-import AuthShell, { PixelField, authLink } from "@/components/AuthShell";
+import AuthShell, { AuthField, authFieldButton, authLink, authSubmit } from "@/components/AuthShell";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { nextPath } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,33 +106,30 @@ export default function Auth() {
       submit: "Kirim Tautan",
       ask: "Sudah ingat password?",
       other: "Kembali ke halaman masuk",
-      greetings: ["Tenang, lupa itu biasa.", "Tautan barunya kukirim lewat email."],
     },
     masuk: {
       title: "Selamat Datang Kembali!",
-      description: "Masuk untuk melanjutkan belajarmu.",
+      description: "Masuk untuk melanjutkan progres belajar Anda",
       submit: "Masuk Sekarang",
       ask: "Belum punya akun?",
-      other: "Buat akun gratis",
-      greetings: ["Hai lagi! Siap lanjut belajar?", "Pelajaranmu masih menunggu.", "Satu langkah lagi, yuk masuk!"],
+      other: "Buat Akun Gratis",
     },
     daftar: {
       title: "Buat Akun Baru",
-      description: "Lengkapi data diri untuk mulai belajar. Gratis.",
+      description: "Lengkapi data diri untuk mulai belajar",
       submit: "Daftar Akun",
       ask: "Sudah punya akun?",
-      other: "Masuk ke akun saya",
-      greetings: ["Yuk gabung! Gratis, tanpa iklan.", "Cuma butuh satu menit.", "Belajar dengan caramu sendiri."],
+      other: "Masuk ke Akun Saya",
     },
   }[mode];
 
   return (
-    <AuthShell title={copy.title} description={copy.description} greetings={copy.greetings}>
-      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+    <AuthShell title={copy.title} description={copy.description}>
+      <form onSubmit={handleSubmit} className="space-y-5">
         {mode === "daftar" && (
-          <PixelField
+          <AuthField
             id="fullName"
-            label="Nama lengkap"
+            label="Nama Lengkap"
             icon={User}
             type="text"
             autoComplete="name"
@@ -143,7 +140,7 @@ export default function Auth() {
           />
         )}
 
-        <PixelField
+        <AuthField
           id="email"
           label="Email"
           icon={Mail}
@@ -158,7 +155,7 @@ export default function Auth() {
 
         {mode !== "lupa" && (
           <div>
-            <PixelField
+            <AuthField
               id="password"
               label="Password"
               icon={Lock}
@@ -174,7 +171,7 @@ export default function Auth() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                   aria-pressed={showPassword}
-                  className="inline-flex h-11 w-11 items-center justify-center text-[#0a1a4f]/60 hover:text-[#0a1a4f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+                  className={authFieldButton}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" aria-hidden="true" /> : <Eye className="h-5 w-5" aria-hidden="true" />}
                 </button>
@@ -182,7 +179,7 @@ export default function Auth() {
             />
             {mode === "masuk" && (
               <div className="text-right">
-                <button type="button" onClick={() => setIsForgot(true)} className={`${authLink} text-sm md:text-base`}>
+                <button type="button" onClick={() => setIsForgot(true)} className={`${authLink} text-sm`}>
                   Lupa password?
                 </button>
               </div>
@@ -190,26 +187,26 @@ export default function Auth() {
           </div>
         )}
 
-        <button type="submit" disabled={loading} className="pixel-button pixel-button-green pixel-button-md pixel-text w-full gap-3 disabled:opacity-60">
+        <button type="submit" disabled={loading} className={authSubmit}>
           {loading ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> Memproses…
             </>
           ) : (
             <>
-              {copy.submit} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              {copy.submit} <ArrowRight className="w-5 h-5" aria-hidden="true" />
             </>
           )}
         </button>
 
         {mode === "daftar" && (
-          <p className="text-sm leading-relaxed text-white/85 md:text-base">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             Dengan mendaftar, kamu menyetujui{" "}
-            <Link to="/ketentuan" className="text-amber-300 underline underline-offset-4 hover:text-amber-200">
+            <Link to="/ketentuan" className="font-medium text-primary underline underline-offset-4">
               Ketentuan Penggunaan
             </Link>{" "}
             dan{" "}
-            <Link to="/privasi" className="text-amber-300 underline underline-offset-4 hover:text-amber-200">
+            <Link to="/privasi" className="font-medium text-primary underline underline-offset-4">
               Kebijakan Privasi
             </Link>
             .
@@ -217,8 +214,8 @@ export default function Auth() {
         )}
       </form>
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-3 border-t-4 border-dotted border-white/25 pt-3 text-base md:text-lg">
-        <span className="text-white/85">{copy.ask}</span>
+      <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
+        <p className="text-slate-500 dark:text-slate-400">{copy.ask}</p>
         <button
           type="button"
           onClick={() => {

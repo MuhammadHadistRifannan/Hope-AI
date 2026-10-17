@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import Layout from "./components/Layout";
 import LoadingScreen from "./components/LoadingScreen";
-import PixelTransition from "./components/PixelTransition";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -74,8 +73,8 @@ function App() {
     return (
       <>
         {splashScreen}
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent">
-          <div className="text-white text-2xl font-bold animate-pulse">Memuat...</div>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-muted-foreground text-lg font-medium animate-pulse">Memuat…</div>
         </div>
       </>
     );
@@ -93,7 +92,6 @@ function App() {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <PixelTransition />
             <Routes>
               {/* Public Routes */}
               {/* Landing page bisa dibuka siapa saja; pengguna yang sudah masuk mendapat tombol ke Beranda */}

@@ -268,9 +268,9 @@ export default function Forum() {
             onChange={(e) => setNewPost(e.target.value)}
             placeholder="Bagikan pikiranmu, ajukan pertanyaan, atau mulai diskusi…"
             aria-label="Isi postingan baru"
-            className={`mb-4 min-h-[100px] rounded-none border-[3px] border-foreground bg-card text-base md:text-lg ${highContrast ? 'bg-black text-yellow-400 placeholder:text-yellow-700' : ''}`}
+            className={`mb-4 min-h-[100px] rounded-xl border border-border bg-card text-base md:text-lg ${highContrast ? 'bg-black text-yellow-400 placeholder:text-yellow-700' : ''}`}
           />
-          <Button onClick={handleCreatePost} disabled={isSubmitting || !newPost.trim()} className="px-btn bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90">
+          <Button onClick={handleCreatePost} disabled={isSubmitting || !newPost.trim()} className="px-btn">
             <Send className="w-4 h-4 mr-2" aria-hidden="true" />
             Posting
           </Button>
@@ -299,9 +299,9 @@ export default function Forum() {
             >
               <Card className="px-card p-4 md:p-6">
                 <div className="flex gap-4">
-                  <Avatar className="w-10 h-10 md:w-12 md:h-12 rounded-none border-[3px] border-foreground">
+                  <Avatar className="w-10 h-10 md:w-12 md:h-12 rounded-xl border border-border">
                     {post.avatarUrl && <AvatarImage src={post.avatarUrl} alt="" />}
-                    <AvatarFallback className="rounded-none bg-amber-300 font-bold text-[#0a1a4f]">
+                    <AvatarFallback className="bg-primary/10 font-bold text-primary">
                       {post.avatar}
                     </AvatarFallback>
                   </Avatar>
@@ -327,7 +327,7 @@ export default function Forum() {
                         size="sm"
                         onClick={() => handleLike(post.id)}
                         aria-pressed={post.likedByMe}
-                        className={`px-btn min-h-10 ${post.likedByMe ? '!bg-amber-300 !text-[#0a1a4f]' : ''}`}
+                        className={`px-btn min-h-10 ${post.likedByMe ? '!bg-primary !text-primary-foreground' : ''}`}
                       >
                         <ThumbsUp className={`w-4 h-4 mr-2 ${post.likedByMe ? 'fill-current' : ''}`} />
                         {post.likes} Suka
@@ -371,14 +371,14 @@ export default function Forum() {
                             onChange={(e) => setReplyContent(e.target.value)}
                             placeholder="Tulis komentarmu…"
                             aria-label={`Komentar untuk postingan ${post.author}`}
-                            className="mb-2 min-h-[80px] rounded-none border-[3px] border-foreground bg-card"
+                            className="mb-2 min-h-[80px] rounded-xl border border-border bg-card"
                           />
                           <div className="flex gap-2">
                             <Button
                               onClick={() => handleReply(post.id)}
                               disabled={isSubmitting || !replyContent.trim()}
                               size="sm"
-                              className="px-btn min-h-10 bg-[#1a8f43] text-white hover:bg-[#1a8f43]/90"
+                              className="px-btn min-h-10"
                             >
                               <Send className="w-3 h-3 mr-2" aria-hidden="true" />
                               Kirim Komentar
@@ -415,9 +415,9 @@ export default function Forum() {
                               animate={{ opacity: 1, x: 0 }}
                               className="flex gap-3 items-start"
                             >
-                              <Avatar className="w-9 h-9 mt-1 rounded-none border-2 border-foreground">
+                              <Avatar className="w-9 h-9 mt-1 border-2 border-foreground">
                                 {comment.avatarUrl && <AvatarImage src={comment.avatarUrl} alt="" />}
-                                <AvatarFallback className="rounded-none bg-[#cfe8ff] text-xs font-bold text-[#0a1a4f]">
+                                <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
                                   {comment.avatar}
                                 </AvatarFallback>
                               </Avatar>
