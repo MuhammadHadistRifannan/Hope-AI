@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uji Pengguna Hope.Ai</title>
+<meta name="description" content="Kuesioner User Experience Questionnaire (UEQ) versi Indonesia untuk uji pengguna Hope.Ai.">
+<style>
+  /*
+    WARNA DAN HURUF
+    Semua warna diatur di sini. Ganti nilainya bila ingin tampilan lain.
+  */
+  :root {
+    --paper: #f3efe6;      /* latar, seperti kertas */
+    --sheet: #fbf9f4;      /* latar kotak isian */
+    --ink: #1a1a1a;        /* teks utama */
+    --ink-soft: #55524b;   /* teks keterangan */
+    --rule: #d8d2c4;       /* garis pemisah */
+    --accent: #2343c9;     /* warna pilihan */
+    --accent-ink: #ffffff;
+    --ok: #1d6b3a;
+    --ok-bg: #e3f1e6;
+    --bad: #a8261b;
+    --bad-bg: #f8e4e1;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #16171a;
+      --sheet: #1e1f23;
+      --ink: #ecebe7;
+      --ink-soft: #a9a7a0;
+      --rule: #34353a;
+      --accent: #8fa6ff;
+      --accent-ink: #10131f;
+      --ok: #8fd6a6;
+      --ok-bg: #16301f;
+      --bad: #ff9c90;
+      --bad-bg: #3a1a17;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 17px/1.55 var(--sans);
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 48px 16px 96px; }
+
+  /* Bilah kemajuan di atas layar */
+  .progress {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+  .progress-inner {
+    max-width: 720px; margin: 0 auto; padding: 10px 16px;
+    display: flex; align-items: center; gap: 14px;
+    font: 13px/1 var(--mono); color: var(--ink-soft);
+  }
+  .progress-track { flex: 1; height: 4px; background: var(--rule); }
+  .progress-fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+
+  /* Kepala halaman */
+  .kicker { font: 13px/1.4 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 18px; }
+  h1 { font: 400 clamp(34px, 7vw, 52px)/1.05 var(--serif); letter-spacing: -.01em; margin: 0 0 20px; }
+  h1 em { font-style: italic; }
+  .lede { font-size: 19px; color: var(--ink-soft); margin: 0 0 28px; max-width: 34em; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; padding: 18px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+  .facts div { display: flex; flex-direction: column; }
+  .facts dt { font: 12px/1.4 var(--mono); text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); }
+  .facts dd { margin: 0; font-weight: 600; }
+
+  /* Bagian */
+  section { margin-top: 64px; }
+  .section-head { display: grid; grid-template-columns: auto 1fr; gap: 0 16px; align-items: baseline; border-bottom: 1px solid var(--ink); padding-bottom: 10px; margin-bottom: 24px; }
+  .section-no { font: 14px/1 var(--mono); color: var(--ink-soft); }
+  h2 { font: 400 28px/1.15 var(--serif); margin: 0; }
+  .section-note { grid-column: 2; margin: 8px 0 0; color: var(--ink-soft); font-size: 15px; }
+
+  /* Isian data partisipan */
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 20px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.wide { grid-column: 1 / -1; }
+  label.field-label { font-weight: 600; font-size: 15px; }
+  input[type="text"], select, textarea {
+    font: inherit; color: var(--ink);
+    background: var(--sheet);
+    border: 1px solid var(--rule); border-bottom: 2px solid var(--ink);
+    border-radius: 0; padding: 11px 12px; min-height: 48px; width: 100%;
+  }
+  select {
+    appearance: none; -webkit-appearance: none; padding-right: 40px;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 21px, calc(100% - 14px) 21px;
+    background-size: 6px 6px; background-repeat: no-repeat;
+  }
+  textarea { min-height: 112px; resize: vertical; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 2px;
+  }
+
+  .consent { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; margin-top: 28px; padding: 16px; background: var(--sheet); border: 1px solid var(--rule); font-size: 15px; }
+  .consent input { width: 24px; height: 24px; margin: 1px 0 0; accent-color: var(--accent); }
+
+  /* Petunjuk dan contoh */
+  .howto { margin: 0 0 8px; }
+  .example { margin: 20px 0 28px; padding: 18px 16px; border: 1px dashed var(--ink-soft); }
+  .example p { margin: 0; font-size: 15px; color: var(--ink-soft); }
+  .example .item { border: 0; padding: 0; margin: 0 0 12px; pointer-events: none; }
+
+  /* Satu pasang kata UEQ */
+  .item {
+    border: 0; margin: 0; padding: 14px 8px;
+    scroll-margin-top: 64px; /* tidak tertutup bilah kemajuan saat browser menggulir ke isian kosong */
+    border-bottom: 1px solid var(--rule);
+    display: grid; grid-template-columns: 36px 1fr auto 1fr; align-items: center; gap: 8px;
+    min-width: 0;
+  }
+  .item legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .item-no { font: 13px/1 var(--mono); color: var(--ink-soft); }
+  .item:has(input:checked) .item-no { color: var(--accent); font-weight: 700; }
+  .word { font: 400 19px/1.2 var(--serif); }
+  .word.left { text-align: right; }
+  .word.right { text-align: left; }
+  .scale { display: flex; align-items: center; }
+
+  .dot { position: relative; display: grid; place-items: center; width: 40px; height: 44px; cursor: pointer; }
+  .dot input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+  .dot span {
+    display: block; border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: var(--sheet);
+    transition: transform .12s ease, background-color .12s ease;
+  }
+  /* Lingkaran di ujung lebih besar: makin ke ujung, makin kuat kesannya */
+  .dot.d1 span, .dot.d7 span { width: 28px; height: 28px; }
+  .dot.d2 span, .dot.d6 span { width: 22px; height: 22px; }
+  .dot.d3 span, .dot.d5 span { width: 17px; height: 17px; }
+  .dot.d4 span { width: 13px; height: 13px; border-color: var(--ink-soft); }
+  .dot:hover span { transform: scale(1.12); }
+  .dot input:checked + span { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--accent); }
+  .dot input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 5px; }
+
+  /* Pasangan kata yang belum dijawab setelah menekan Kirim */
+  .tried .item:not(:has(input:checked)) { background: var(--bad-bg); box-shadow: inset 4px 0 0 var(--bad); }
+  .tried .item:not(:has(input:checked)) .item-no { color: var(--bad); font-weight: 700; }
+
+  /* Tombol kirim dan pesan */
+  .submit-area { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--ink); }
+  button[type="submit"] {
+    font: 600 18px/1 var(--sans);
+    color: var(--accent-ink); background: var(--accent);
+    border: 0; border-radius: 0; padding: 18px 28px; min-height: 56px;
+    cursor: pointer; width: 100%;
+  }
+  button[type="submit"]:hover { filter: brightness(1.08); }
+  button[type="submit"]:disabled { opacity: .55; cursor: progress; }
+  .status { margin-top: 16px; padding: 0; font-weight: 600; }
+  .status:empty { display: none; }
+  .status.ok { color: var(--ok); background: var(--ok-bg); padding: 16px; border-left: 4px solid var(--ok); }
+  .status.bad { color: var(--bad); background: var(--bad-bg); padding: 16px; border-left: 4px solid var(--bad); }
+  .fine { font-size: 14px; color: var(--ink-soft); margin-top: 14px; }
+
+  /* Layar sempit: kata di atas, lingkaran di bawah selebar layar */
+  @media (max-width: 600px) {
+    .page { padding-top: 32px; }
+    .fields { grid-template-columns: 1fr; }
+    .item { grid-template-columns: 28px 1fr 1fr; grid-template-areas: "no left right" "scale scale scale"; row-gap: 6px; }
+    .item-no { grid-area: no; }
+    .word.left { grid-area: left; text-align: left; }
+    .word.right { grid-area: right; text-align: right; }
+    .scale { grid-area: scale; justify-content: space-between; }
+    .dot { width: auto; flex: 1; }
+    .word { font-size: 17px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" aria-hidden="true">
+  <div class="progress-inner">
+    <span id="progress-text">0 / 26</span>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+</div>
+
+<main class="page">
+  <p class="kicker">Uji pengguna · Hope.Ai</p>
+  <h1>Bagaimana rasanya <em>memakai</em> Hope.Ai?</h1>
+  <p class="lede">
+    Terima kasih sudah mencoba aplikasinya. Isian ini membantu kami tahu bagian mana yang sudah nyaman dan mana yang
+    perlu diperbaiki. Tidak ada jawaban yang benar atau salah.
+  </p>
+  <dl class="facts">
+    <div><dt>Waktu</dt><dd>± 5 menit</dd></div>
+    <div><dt>Isian</dt><dd>3 bagian</dd></div>
+    <div><dt>Kuesioner</dt><dd>UEQ, 26 pasang kata</dd></div>
+  </dl>
+
+  <form id="ueq-form" novalidate>
+
+    <!-- BAGIAN 1 -->
+    <section aria-labelledby="s1">
+      <div class="section-head">
+        <span class="section-no">01</span>
+        <h2 id="s1">Data partisipan</h2>
+      </div>
+
+      <div class="fields">
+        <div class="field wide">
+          <label class="field-label" for="nama">Nama lengkap</label>
+          <input type="text" id="nama" name="nama" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label class="field-label" for="usia">Usia</label>
+          <select id="usia" name="usia" required>
+            <option value="">Pilih</option>
+            <option>Di bawah 15 tahun</option>
+            <option>15–17 tahun</option>
+            <option>18–24 tahun</option>
+            <option>25–34 tahun</option>
+            <option>35–44 tahun</option>
+            <option>45 tahun ke atas</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="jk">Jenis kelamin</label>
+          <select id="jk" name="jk" required>
+            <option value="">Pilih</option>
+            <option>Perempuan</option>
+            <option>Laki-laki</option>
+            <option>Tidak ingin menyebutkan</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="pekerjaan">Pekerjaan atau status</label>
+          <select id="pekerjaan" name="pekerjaan" required>
+            <option value="">Pilih</option>
+            <option>Pelajar SD/SMP</option>
+            <option>Pelajar SMA/SMK/SLB</option>
+            <option>Mahasiswa</option>
+            <option>Guru atau pendamping</option>
+            <option>Bekerja</option>
+            <option>Belum atau tidak bekerja</option>
+            <option>Lainnya</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="freq">Memakai HP atau komputer per hari</label>
+          <select id="freq" name="freq" required>
+            <option value="">Pilih</option>
+            <option>Kurang dari 1 jam</option>
+            <option>1–3 jam</option>
+            <option>3–6 jam</option>
+            <option>Lebih dari 6 jam</option>
+          </select>
+        </div>
+        <div class="field wide">
+          <label class="field-label" for="familiar">Pernah memakai aplikasi belajar atau aplikasi aksesibilitas sejenis?</label>
+          <select id="familiar" name="familiar" required>
+            <option value="">Pilih</option>
+            <option>Belum pernah</option>
+            <option>Pernah mencoba sekali-dua kali</option>
+            <option>Cukup sering</option>
+            <option>Sangat sering</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="consent">
+        <input type="checkbox" name="setuju" value="Ya" required>
+        <span>
+          Saya setuju jawaban ini disimpan dan dipakai tim Hope.Ai untuk menilai dan memperbaiki aplikasi. Nama tidak
+          akan ditampilkan di laporan.
+        </span>
+      </label>
+    </section>
+
+    <!-- BAGIAN 2 -->
+    <section aria-labelledby="s2">
+      <div class="section-head">
+        <span class="section-no">02</span>
+        <h2 id="s2">Kesan Anda</h2>
+        <p class="section-note">User Experience Questionnaire (UEQ) versi Indonesia</p>
+      </div>
+
+      <p class="howto">
+        Tiap baris berisi dua kata yang berlawanan. Pilih lingkaran yang paling dekat dengan kesan Anda. Makin dekat ke
+        sebuah kata, makin kuat kesan itu. Lingkaran tengah berarti di antara keduanya. Jawab dengan cepat; kesan
+        pertama Anda yang paling penting.
+      </p>
+
+      <div class="example" aria-hidden="true">
+        <div class="item">
+          <span class="item-no"></span>
+          <span class="word left">tidak menarik</span>
+          <span class="scale">
+            <span class="dot d1"><span></span></span><span class="dot d2"><span></span></span>
+            <span class="dot d3"><span></span></span><span class="dot d4"><span></span></span>
+            <span class="dot d5"><span></span></span>
+            <span class="dot d6"><input type="radio" checked tabindex="-1"><span></span></span>
+            <span class="dot d7"><span></span></span>
+          </span>
+          <span class="word right">menarik</span>
+        </div>
+        <p>Pilihan ini berarti: aplikasinya cukup menarik.</p>
+      </div>
+
+      <div id="ueq-items"></div>
+    </section>
+
+    <!-- BAGIAN 3 -->
+    <section aria-labelledby="s3">
+      <div class="section-head">
+        <span class="section-no">03</span>
+        <h2 id="s3">Komentar</h2>
+        <p class="section-note">Boleh dikosongkan</p>
+      </div>
+      <div class="fields">
+        <div class="field wide">
+          <label class="field-label" for="komentar1">Apa yang paling Anda sukai dari Hope.Ai?</label>
+          <textarea id="komentar1" name="komentar1"></textarea>
+        </div>
+        <div class="field wide">
+          <label class="field-label" for="komentar2">Bagian mana yang membingungkan atau menyulitkan?</label>
+          <textarea id="komentar2" name="komentar2"></textarea>
+        </div>
+        <div class="field wide">
+          <label class="field-label" for="komentar3">Apa yang perlu ditambah atau diubah?</label>
+          <textarea id="komentar3" name="komentar3"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="submit-area">
+      <button type="submit" id="submit">Kirimkan Jawaban</button>
+      <p class="status" id="status" role="status" aria-live="polite" tabindex="-1"></p>
+      <p class="fine">Jawaban dikirim langsung ke lembar Google milik tim Hope.Ai.</p>
+    </div>
+  </form>
+</main>
+
+<script>
+  /*
+    ALAMAT PENYIMPANAN
+    Tempel URL Web App dari Google Apps Script di antara tanda kutip.
+    Lihat SETUP.md langkah 3.
+  */
+  var WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzEUrVCVIHsOz8bwXEAkUGmAfeaHixrvEKSurJ4d42GucgxQk1ZYZ9HMhfu7mlkBb7o/exec";
+
+  /*
+    26 PASANGAN KATA UEQ (versi Indonesia)
+    Urutan dan arah kiri-kanan mengikuti UEQ resmi. Jangan diubah, karena
+    alat analisis UEQ membaca jawaban menurut urutan ini (ueq1 sampai ueq26).
+    Beberapa pasangan sengaja terbalik (kata positif di kiri); alat analisis
+    sudah memperhitungkannya.
+    Kolom ketiga hanya catatan skala untuk tim, tidak tampil di formulir.
+  */
+  var ITEMS = [
+    ["menyusahkan", "menyenangkan", "Daya tarik"],
+    ["tak dapat dipahami", "dapat dipahami", "Kejelasan"],
+    ["kreatif", "monoton", "Kebaruan"],
+    ["mudah dipelajari", "sulit dipelajari", "Kejelasan"],
+    ["bermanfaat", "kurang bermanfaat", "Stimulasi"],
+    ["membosankan", "mengasyikkan", "Stimulasi"],
+    ["tidak menarik", "menarik", "Stimulasi"],
+    ["tak dapat diprediksi", "dapat diprediksi", "Ketepatan"],
+    ["cepat", "lambat", "Efisiensi"],
+    ["berdaya cipta", "konvensional", "Kebaruan"],
+    ["menghalangi", "mendukung", "Ketepatan"],
+    ["baik", "buruk", "Daya tarik"],
+    ["rumit", "sederhana", "Kejelasan"],
+    ["tidak disukai", "menggembirakan", "Daya tarik"],
+    ["lazim", "terdepan", "Kebaruan"],
+    ["tidak nyaman", "nyaman", "Daya tarik"],
+    ["aman", "tidak aman", "Ketepatan"],
+    ["memotivasi", "tidak memotivasi", "Stimulasi"],
+    ["memenuhi ekspektasi", "tidak memenuhi ekspektasi", "Ketepatan"],
+    ["tidak efisien", "efisien", "Efisiensi"],
+    ["jelas", "membingungkan", "Kejelasan"],
+    ["tidak praktis", "praktis", "Efisiensi"],
+    ["terorganisasi", "berantakan", "Efisiensi"],
+    ["atraktif", "tidak atraktif", "Daya tarik"],
+    ["ramah pengguna", "tidak ramah pengguna", "Daya tarik"],
+    ["konservatif", "inovatif", "Kebaruan"]
+  ];
+
+  // Nama tiap lingkaran untuk pembaca layar, dari kata kiri ke kata kanan
+  function dotLabel(value, left, right) {
+    return ["sangat " + left, left, "agak " + left, "netral", "agak " + right, right, "sangat " + right][value - 1];
+  }
+
+  // Membuat 26 baris pasangan kata
+  var list = document.getElementById("ueq-items");
+  ITEMS.forEach(function (item, i) {
+    var n = i + 1, left = item[0], right = item[1];
+    var set = document.createElement("fieldset");
+    set.className = "item";
+    var dots = "";
+    for (var v = 1; v <= 7; v++) {
+      dots += '<label class="dot d' + v + '">' +
+        '<input type="radio" name="ueq' + n + '" value="' + v + '" required aria-label="' + dotLabel(v, left, right) + '">' +
+        "<span></span></label>";
+    }
+    set.innerHTML =
+      "<legend>" + n + " dari 26: " + left + " atau " + right + "</legend>" +
+      '<span class="item-no" aria-hidden="true">' + String(n).padStart(2, "0") + "</span>" +
+      '<span class="word left" aria-hidden="true">' + left + "</span>" +
+      '<span class="scale">' + dots + "</span>" +
+      '<span class="word right" aria-hidden="true">' + right + "</span>";
+    list.appendChild(set);
+  });
+
+  var form = document.getElementById("ueq-form");
+  var button = document.getElementById("submit");
+  var statusBox = document.getElementById("status");
+
+  // Bilah kemajuan: berapa pasang kata yang sudah dijawab
+  function updateProgress() {
+    var done = 0;
+    for (var n = 1; n <= ITEMS.length; n++) {
+      if (form.querySelector('input[name="ueq' + n + '"]:checked')) done++;
+    }
+    document.getElementById("progress-text").textContent = done + " / " + ITEMS.length;
+    document.getElementById("progress-fill").style.width = (done / ITEMS.length) * 100 + "%";
+  }
+  form.addEventListener("change", updateProgress);
+
+  function showStatus(kind, message) {
+    statusBox.className = "status " + kind;
+    statusBox.textContent = message;
+    statusBox.focus();
+  }
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    // Isian wajib yang kosong: tandai, lalu biarkan browser menunjukkannya
+    if (!form.checkValidity()) {
+      form.classList.add("tried");
+      form.reportValidity();
+      return;
+    }
+    if (!/^https:\/\/script\.google\.com\//.test(WEB_APP_URL)) {
+      showStatus("bad", "Formulir belum terhubung ke Google Sheet. Isi WEB_APP_URL di berkas ini (lihat SETUP.md).");
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Mengirim…";
+    statusBox.className = "status";
+    statusBox.textContent = "";
+
+    // Dibatalkan bila tidak ada jawaban dalam 30 detik (kiriman pertama setelah lama diam bisa ±10 detik)
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 30000);
+
+    fetch(WEB_APP_URL, { method: "POST", body: new FormData(form), signal: controller.signal })
+      .then(function (response) {
+        return response.text().then(function (text) { return { ok: response.ok, text: text.trim() }; });
+      })
+      .then(function (result) {
+        if (result.ok && result.text === "OK") {
+          form.reset();
+          form.classList.remove("tried");
+          updateProgress();
+          showStatus("ok", "Terima kasih! Jawaban Anda telah tersimpan.");
+        } else {
+          // Halaman HTML berarti URL salah atau Web App belum dibuka untuk "Anyone"
+          var detail = result.text.charAt(0) === "<" ? "Alamat penyimpanan tidak menjawab dengan benar." : result.text;
+          showStatus("bad", "Jawaban belum tersimpan. " + detail + " Jawaban Anda masih ada di halaman ini; coba kirim lagi.");
+        }
+      })
+      .catch(function () {
+        showStatus("bad", "Tidak bisa terhubung ke Google. Periksa internet, lalu tekan Kirimkan Jawaban lagi. Jawaban Anda masih ada di halaman ini.");
+      })
+      .finally(function () {
+        clearTimeout(timer);
+        button.disabled = false;
+        button.textContent = "Kirimkan Jawaban";
+      });
+  });
+</script>
+</body>
+</html>
