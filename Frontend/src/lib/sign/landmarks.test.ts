@@ -46,20 +46,30 @@ describe("model SIBI", () => {
   const columns = header.split(",");
   const firstX = columns.indexOf("x0");
 
-  it("mengenali landmark data latih dengan akurasi seperti di notebook", () => {
-    // Satu dari tiap 5 baris, agar tes tetap cepat
+  // Satu dari tiap 5 baris, agar tes tetap cepat
+  const accuracy = (mirrored: boolean) => {
     const sample = lines.filter((_, i) => i % 5 === 0);
     let correct = 0;
     for (const line of sample) {
       const cells = line.split(",");
       const values = cells.slice(firstX, firstX + 63).map(Number);
       const points = Array.from({ length: 21 }, (_, i) => ({
-        x: values[i * 3],
+        x: mirrored ? -values[i * 3] : values[i * 3],
         y: values[i * 3 + 1],
         z: values[i * 3 + 2],
       }));
       if (predict(model, normalizeLandmarks(points)!).label === cells[0]) correct++;
     }
-    expect(correct / sample.length).toBeGreaterThan(0.93);
+    return correct / sample.length;
+  };
+
+  it("mengenali landmark data latih dengan akurasi seperti di notebook", () => {
+    expect(accuracy(false)).toBeGreaterThan(0.93);
+  });
+
+  // Tangan kiri, atau kamera yang dicerminkan: x dibalik. Model dilatih dengan
+  // augmentasi cermin, jadi akurasinya minimal 90% dari akurasi tangan kanan.
+  it("mengenali isyarat yang dicerminkan (tangan kiri)", () => {
+    expect(accuracy(true)).toBeGreaterThan(0.9 * accuracy(false));
   });
 });

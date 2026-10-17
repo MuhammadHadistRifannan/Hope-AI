@@ -95,6 +95,7 @@ Di aplikasi, SIBI dan BISINDO selalu diberi label masing-masing supaya pengguna 
 Kondisi sekarang:
 - Model sudah dilatih di Colab (`models/sibi-abjad.json`, salinannya di `Frontend/public/models/`): 24 huruf tanpa J dan Z, belum termasuk angka.
 - Halaman Isyarat memakai normalisasi yang identik dengan notebook (`src/lib/sign/landmarks.ts`), dan tes otomatis menjalankan model pada landmark data latih untuk memastikannya.
+- Tangan kiri / kamera dicerminkan (17 Oktober): pada data latih, akurasi model terpasang 96,5% biasa dan 95,7% bila x dibalik (99% dari akurasi biasa). Kedua model sudah dilatih dengan augmentasi cermin, jadi pembalikan berdasarkan label kiri/kanan MediaPipe tidak dipakai: label itu bergantung pada apakah gambar kamera dicerminkan, dan BISINDO butuh posisi kedua tangan terhadap tubuh. Tes `landmarks.test.ts` menjaga akurasi cermin SIBI ≥ 90% dari akurasi biasa; notebook kini mencetak akurasi dan F1 cermin. Angka tangan kiri dari orang sungguhan belum ada.
 - Akurasi yang dihasilkan notebook memakai pembagian acak, jadi terlalu optimistis. Angka untuk proposal harus dari pengujian pada orang yang tidak ikut dilatih.
 
 | # | Butir | Selesai bila | Status |
