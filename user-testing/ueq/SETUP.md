@@ -38,7 +38,7 @@ Lembar ini berisi nama penguji, jadi jangan dibagikan untuk umum. Bagikan hanya 
 ## 4. Hubungkan formulir
 
 1. Buka `index.html` dengan Notepad (klik kanan → Open with → Notepad) atau VS Code.
-2. Cari baris ini (sekitar baris 365):
+2. Cari baris ini (sekitar baris 488):
    ```js
    var WEB_APP_URL = "PASTE_WEB_APP_URL_HERE";
    ```
