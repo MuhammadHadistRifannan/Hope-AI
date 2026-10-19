@@ -21,6 +21,10 @@ namespace MyApp.Namespace
         const int MaxQuizTextLength = 30000;
         const int QuizQuestionCount = 9;
         const int MaxSimplifyLength = 15000;
+        // "Jelaskan dengan suaramu": materi dipotong bila sangat panjang; penjelasan siswa dibatasi
+        const int MaxExplainMaterialLength = 15000;
+        const int MinExplanationLength = 20;
+        const int MaxExplanationLength = 3000;
         // Teks panjang dipotong di frontend; satu permintaan untuk satu potongan
         const int MaxTtsLength = 1200;
 
@@ -202,6 +206,37 @@ namespace MyApp.Namespace
                 return Unavailable("Versi sederhana belum bisa dibuat: " + e.Message);
             }
         }
+
+        // Teknik Feynman: siswa menjelaskan ulang materi dengan suara (sudah jadi teks),
+        // AI menilai bagian yang dipahami, yang terlewat, dan yang keliru
+        [HttpPost("explain-check")]
+        [EndpointSummary("Menilai penjelasan ulang siswa atas materi")]
+        [EndpointDescription("Untuk fitur Jelaskan dengan suaramu di Flexa. Mengembalikan skor 0-100, gagasan yang dipahami, terlewat, keliru, dan umpan balik singkat.")]
+        public async Task<IActionResult> ExplainCheck([FromBody] ExplainRequest request)
+        {
+            string material = (request.material ?? "").Trim();
+            string explanation = (request.explanation ?? "").Trim();
+            if (material.Length == 0) return BadRequest("Materi tidak boleh kosong");
+            if (explanation.Length < MinExplanationLength) return BadRequest("Penjelasan terlalu singkat. Coba jelaskan dengan beberapa kalimat.");
+            if (explanation.Length > MaxExplanationLength) return BadRequest("Penjelasan terlalu panjang");
+            if (material.Length > MaxExplainMaterialLength) material = material[..MaxExplainMaterialLength];
+
+            try
+            {
+                var result = await _client.CekPemahaman(_model, material, explanation);
+                return Ok(result);
+            }
+            catch (ExplainCheckException e)
+            {
+                _logger.LogWarning("Penilaian penjelasan gagal dibaca: {Message}", e.Message);
+                return Unavailable(e.Message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Penilaian penjelasan gagal");
+                return Unavailable("Penilaian belum bisa dibuat: " + e.Message);
+            }
+        }
     }
 
 
@@ -210,6 +245,12 @@ namespace MyApp.Namespace
         // "document" (dokumen milik pengguna) atau "material" (bab materi)
         public string? type{get;set;}
         public string? id{get;set;}
+    }
+
+    public class ExplainRequest
+    {
+        public string? material{get;set;}
+        public string? explanation{get;set;}
     }
 
     public struct Message

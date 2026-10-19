@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { MessageSquare, ListChecks } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import DocumentQuiz from "@/components/DocumentQuiz";
-import { Camera, Volume2, Type, FileText, Upload } from "lucide-react";
+import { Camera, Volume2, Type, FileText, Upload, Radar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { useSettings } from "@/context/SettingsContext"; // Import Settings Context
 import { useVoiceCommands } from "@/lib/voiceCommands";
 import HighlightedText from "@/components/HighlightedText";
+import { useLiveOcr } from "@/hooks/use-live-ocr";
+import { LIVE_STATE_TEXT } from "@/lib/liveOcr";
 
 declare global {
   interface Window {
@@ -43,6 +45,8 @@ export default function EyeRead() {
 
   // --- STATE TAMBAHAN (GUIDANCE) ---
   const [guidanceMessage, setGuidanceMessage] = useState("");
+  // Mode Langsung: kamera terus membaca tanpa perlu menekan tombol foto
+  const [liveMode, setLiveMode] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -81,12 +85,21 @@ export default function EyeRead() {
         .play()
         .catch((err) => console.error("Error playing video:", err));
 
-      // MULAI PANDUAN
-      startVoiceGuidance();
+      // MULAI PANDUAN (Mode Langsung punya panduannya sendiri)
+      if (!liveMode) startVoiceGuidance();
     } else {
       stopVoiceGuidance();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isScanning]);
+
+  // Panduan posisi lama dimatikan selama Mode Langsung, supaya suaranya tidak memotong bacaan
+  useEffect(() => {
+    if (!isScanning) return;
+    if (liveMode) stopVoiceGuidance();
+    else startVoiceGuidance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveMode]);
 
   useEffect(() => {
     if (
@@ -449,6 +462,36 @@ export default function EyeRead() {
     setIsProcessing(false);
   };
 
+  // Mode Langsung: foto dari kamera dikirim ke OCR Gemini tanpa mematikan kamera,
+  // lalu hasilnya ditampilkan, disimpan, dan langsung dibacakan.
+  const readLive = async (image: Blob) => {
+    try {
+      const form = new FormData();
+      form.append("image", image, "langsung.jpg");
+      const response = await fetch(`${API_URL}/scan/ocr`, {
+        method: "POST",
+        headers: await authHeaders(),
+        body: form,
+      });
+      if (!response.ok) throw new Error(response.statusText);
+      const text = (await response.text()).trim();
+      if (!text) return null;
+      setScannedText(text);
+      setSummaryText("");
+      setActiveOutput("text");
+      saveScan(text);
+      speakText(text);
+      return text;
+    } catch (error) {
+      console.error("OCR Mode Langsung gagal:", error);
+      toast({ title: "Belum bisa membaca", description: "Server OCR tidak merespons. Mode Langsung akan mencoba lagi.", variant: "destructive" });
+      return null;
+    }
+  };
+
+  const live = useLiveOcr({ videoRef, enabled: isScanning && liveMode, paused: isSpeaking || isProcessing, onRead: readLive });
+  const liveStatus = live.state === "menyiapkan" ? "Menyiapkan pengenal teks…" : LIVE_STATE_TEXT[live.state];
+
   const retakePhoto = () => {
     setCapturedImage(null);
     setScannedText("");
@@ -479,6 +522,16 @@ export default function EyeRead() {
   // Logic Summary Sederhana Asli
   // Perintah suara di halaman pindai
   useVoiceCommands((command) => {
+    // "mode langsung" menyalakan kamera sekaligus pembacaan otomatis
+    if (/^(mode langsung|baca otomatis|baca langsung)$/.test(command)) {
+      setLiveMode(true);
+      if (!isScanning) startCamera();
+      return true;
+    }
+    if (/^(matikan mode langsung|berhenti baca otomatis|hentikan mode langsung)$/.test(command)) {
+      setLiveMode(false);
+      return true;
+    }
     if (/^(mulai kamera|buka kamera|nyalakan kamera|mulai pindai|pindai)$/.test(command)) {
       startCamera();
       return true;
@@ -544,6 +597,31 @@ export default function EyeRead() {
                     className="w-full h-full object-cover transform scale-x-[-1]"
                   />
 
+                  {/* Mode Langsung: kotak di setiap kata yang terbaca di perangkat. viewBox memakai
+                      ukuran asli video dan "slice" meniru object-cover, jadi kotaknya pas di kata. */}
+                  {liveMode && live.boxes.length > 0 && (
+                    <svg
+                      aria-hidden="true"
+                      viewBox={`0 0 ${live.frame.width} ${live.frame.height}`}
+                      preserveAspectRatio="xMidYMid slice"
+                      className="absolute inset-0 w-full h-full pointer-events-none transform scale-x-[-1]"
+                    >
+                      {live.boxes.map((box, i) => (
+                        <rect
+                          key={i}
+                          x={box.x}
+                          y={box.y}
+                          width={box.w}
+                          height={box.h}
+                          rx={4}
+                          fill="rgba(250, 204, 21, 0.18)"
+                          stroke="rgb(250, 204, 21)"
+                          strokeWidth={Math.max(2, live.frame.width / 400)}
+                        />
+                      ))}
+                    </svg>
+                  )}
+
                   {/* Frame Guide */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     {/* Sudut bingkai bergaya pixel, seperti di ilustrasi */}
@@ -557,7 +635,23 @@ export default function EyeRead() {
 
                   {/* VISUAL & AUDIO GUIDANCE INDICATOR */}
                   <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-full flex justify-center">
-                    {guidanceMessage && (
+                    {liveMode && (
+                      <div
+                        role="status"
+                        aria-live="polite"
+                        className={`px-4 py-2 font-bold text-white flex items-center gap-2 rounded-xl ${
+                          live.state === "dibacakan" || live.state === "terdeteksi"
+                            ? "bg-green-600"
+                            : live.state === "mengirim"
+                            ? "bg-primary"
+                            : "bg-black/60"
+                        }`}
+                      >
+                        <Radar className={`w-4 h-4 ${live.state === "mengirim" || live.state === "membaca" ? "animate-spin" : ""}`} aria-hidden="true" />
+                        {liveStatus}
+                      </div>
+                    )}
+                    {!liveMode && guidanceMessage && (
                       <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -654,6 +748,22 @@ export default function EyeRead() {
                   </div>
                 </>
               ) : (
+                <div className="flex flex-col gap-3">
+                <Button
+                  onClick={() => setLiveMode((on) => !on)}
+                  variant={liveMode ? "default" : "outline"}
+                  aria-pressed={liveMode}
+                  className={`px-btn w-full ${liveMode ? "bg-green-600 hover:bg-green-600/90 text-white" : ""}`}
+                  size="lg"
+                >
+                  <Radar className="w-4 h-4 mr-2" aria-hidden="true" />
+                  {liveMode ? "Mode Langsung aktif — ketuk untuk berhenti" : "Mode Langsung: baca otomatis"}
+                </Button>
+                {liveMode && live.preview && (
+                  <p className="text-sm text-muted-foreground line-clamp-2" aria-hidden="true">
+                    <span className="font-semibold">Pratinjau:</span> {live.preview}
+                  </p>
+                )}
                 <div className="flex gap-3">
                   <Button
                     onClick={captureAndScan}
@@ -672,6 +782,7 @@ export default function EyeRead() {
                   >
                     Hentikan
                   </Button>
+                </div>
                 </div>
               )}
             </div>

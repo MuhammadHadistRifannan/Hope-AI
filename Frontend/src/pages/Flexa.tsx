@@ -1,5 +1,6 @@
 import { API_URL, authHeaders } from "@/lib/api";
 import { speak, stopSpeech } from "@/lib/speech";
+import { isExplainCommand, useVoiceCommands } from "@/lib/voiceCommands";
 import { clickable } from "@/lib/a11y";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
@@ -7,10 +8,12 @@ import { useNavigate } from "react-router-dom";
 import { MessageSquare, ListChecks } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import DocumentQuiz from "@/components/DocumentQuiz";
+import ExplainBack from "@/components/ExplainBack";
 import {
   BookOpen,
   Volume2,
   Type,
+  Mic,
   FileText,
   ChevronRight,
   ArrowLeft,
@@ -111,6 +114,16 @@ export default function Flexa() {
   );
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeTab, setActiveTab] = useState("text");
+  // Bertambah setiap kali siswa berkata "jelaskan materi ini": tab Jelaskan langsung merekam
+  const [explainVoiceStart, setExplainVoiceStart] = useState(0);
+
+  useVoiceCommands((command) => {
+    if (!selectedChapter || !isExplainCommand(command)) return false;
+    stopSpeech();
+    setActiveTab("explain");
+    setExplainVoiceStart((count) => count + 1);
+    return true;
+  });
 
   // Settings
   const { volume, speakingRate, autoPlayAudio, aiVoice, needs } = useSettings();
@@ -764,7 +777,7 @@ export default function Flexa() {
                   <h1 className="text-2xl md:text-3xl font-bold mb-4">
                     {selectedChapter.title}
                   </h1>
-                  <TabsList className="px-tabs grid w-full grid-cols-2 sm:grid-cols-4 mb-5">
+                  <TabsList className="px-tabs grid w-full grid-cols-2 sm:grid-cols-5 mb-5">
                     <TabsTrigger value="text" className="px-tab">
                       <Type className="w-4 h-4 mr-2" /> Bacaan
                     </TabsTrigger>
@@ -776,6 +789,9 @@ export default function Flexa() {
                     </TabsTrigger>
                     <TabsTrigger value="summary" className="px-tab">
                       <FileText className="w-4 h-4 mr-2" /> Ringkasan
+                    </TabsTrigger>
+                    <TabsTrigger value="explain" className="px-tab col-span-2 sm:col-span-1">
+                      <Mic className="w-4 h-4 mr-2" /> Jelaskan
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -881,6 +897,20 @@ export default function Flexa() {
                               : summaries[summaryKey]}
                           </p>
                         </div>
+                      </motion.div>
+                    )}
+                    {activeTab === "explain" && (
+                      <motion.div
+                        key={`explain-${selectedChapter.id}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <ExplainBack
+                          title={selectedChapter.title}
+                          material={selectedChapter.content}
+                          speakText={speakText}
+                          voiceStart={explainVoiceStart}
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>

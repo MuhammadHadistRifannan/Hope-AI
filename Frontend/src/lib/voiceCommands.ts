@@ -12,6 +12,28 @@ export const VOICE_RUN_EVENT = "hopeai:voice-run";
 export const runVoiceCommand = (text: string) =>
   window.dispatchEvent(new CustomEvent<string>(VOICE_RUN_EVENT, { detail: text }));
 
+// Meminta asisten suara diam sementara karena mikrofon sedang dipakai fitur lain,
+// misalnya saat siswa merekam penjelasan di Flexa. Mode dengar terus menunggu
+// sampai jeda dilepas.
+export const VOICE_HOLD_EVENT = "hopeai:voice-hold";
+export const holdVoiceAssistant = (hold: boolean) =>
+  window.dispatchEvent(new CustomEvent<boolean>(VOICE_HOLD_EVENT, { detail: hold }));
+
+// "Jelaskan dengan suaramu" di Flexa: perintah untuk mulai menjelaskan, dan kata
+// penutup yang menandai penjelasan sudah selesai sehingga langsung dinilai.
+export const isExplainCommand = (command: string) =>
+  /^(jelaskan|jelaskan (materi|bab) ini|jelaskan lagi|menjelaskan|mulai menjelaskan|(cek|uji|tes) pemahaman( (ku|saya))?)$/.test(
+    command
+  );
+
+const FINISH_WORDS = /\s*(sekian( penjelasan (saya|ku|dari saya))?|(sudah |aku |saya )?selesai|nilai penjelasan ?(ku|saya)?)[.!]?\s*$/i;
+
+// Mengembalikan penjelasan tanpa kata penutupnya, atau null bila belum ditutup
+export const stripFinishWord = (text: string) => {
+  if (!FINISH_WORDS.test(text)) return null;
+  return text.replace(FINISH_WORDS, "").trim();
+};
+
 // Pengenalan perintah suara untuk pengguna baru. Disimpan di perangkat ini saja:
 // "used" = pernah memberi perintah suara, "intro" = perkenalannya sudah ditutup.
 const VOICE_FLAGS = { used: "hopeVoiceUsed", intro: "hopeVoiceIntroSeen" } as const;
@@ -216,9 +238,9 @@ export const findControl = (spoken: string, minimumScore: number): Control | nul
 // Petunjuk singkat sesuai halaman yang sedang terbuka
 export const pageHelp: Record<string, string> = {
   "/": "Ini Beranda. Katakan buka, lalu nama fitur: EyeRead, NeoTutor, Flexa, Pathly, Isyarat, atau Forum.",
-  "/eyeread": "Di EyeRead, katakan mulai kamera, ambil gambar, baca hasil, atau buat kuis.",
+  "/eyeread": "Di EyeRead, katakan mode langsung supaya tulisan dibaca otomatis saat kamera diarahkan, atau mulai kamera, ambil gambar, baca hasil, dan buat kuis.",
   "/neotutor": "Di NeoTutor, langsung ucapkan pertanyaanmu. Katakan percakapan baru untuk memulai dari awal.",
-  "/flexa": "Di Flexa, katakan pilih lalu nama materi atau tombol. Di dalam materi, katakan pilih sederhana, pilih ringkasan, atau baca halaman.",
+  "/flexa": "Di Flexa, katakan pilih lalu nama materi atau tombol. Di dalam materi, katakan pilih sederhana, pilih ringkasan, atau baca halaman. Setelah membaca, katakan jelaskan materi ini, lalu jelaskan dengan kata-katamu sendiri dan tutup dengan kata selesai.",
   "/pathly": "Di Pathly, katakan pilih lalu nama level. Di materi, katakan mulai kuis. Saat kuis, katakan A, B, C, atau D.",
   "/forum": "Di Forum, katakan baca halaman untuk mendengar postingan, atau pilih lalu nama tombol.",
   "/isyarat": "Di halaman Isyarat, katakan nyalakan kamera, lalu pilih latihan, pilih eja ke suara, atau pilih kamus untuk melihat contoh isyarat.",
@@ -232,5 +254,6 @@ export const helpText =
   "lalu pilih dan nama tombolnya untuk menekannya. Katakan kembali untuk mundur. " +
   "Katakan dengar terus agar tidak perlu menekan tombol mikrofon setiap kali, dan berhenti mendengar untuk mematikannya. " +
   "Untuk bertanya ke tutor, katakan tanya, lalu pertanyaanmu. " +
-  "Di EyeRead, katakan mulai kamera, lalu ambil gambar. " +
+  "Di EyeRead, katakan mulai kamera, lalu ambil gambar, atau mode langsung. " +
+  "Di materi Flexa, katakan jelaskan materi ini untuk menguji pemahamanmu. " +
   "Saat kuis, katakan A, B, C, atau D untuk menjawab, lalu lanjut.";

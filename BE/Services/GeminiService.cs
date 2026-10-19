@@ -156,6 +156,50 @@ TEKS:
 
     }
 
+    // "Jelaskan dengan suaramu" (teknik Feynman): siswa menjelaskan ulang materi dengan
+    // kata-katanya sendiri, lalu AI menilai pemahamannya terhadap isi materi.
+    public async Task<ExplainResult> CekPemahaman(ModelAi model, string material, string explanation)
+    {
+        string prompt = @"
+Kamu guru yang sabar dan ramah. Seorang siswa baru saja membaca MATERI di bawah, lalu menjelaskan ulang
+isinya dengan kata-katanya sendiri secara lisan. Penjelasannya diubah menjadi teks oleh pengenal suara,
+jadi abaikan salah ketik, ejaan, tanda baca, dan kata yang terdengar mirip. Nilai PEMAHAMAN, bukan tata bahasa.
+
+Nilai hanya berdasarkan MATERI. Jangan menuntut hal yang tidak ada di materi.
+
+Kembalikan HANYA satu objek JSON tanpa teks lain dan tanpa blok kode, dengan bentuk:
+{""skor"": 0-100,
+ ""dipahami"": [""gagasan dari materi yang sudah dijelaskan dengan benar""],
+ ""terlewat"": [""gagasan penting dari materi yang belum disebut""],
+ ""keliru"": [""bagian penjelasan yang salah, ditulis sebagai koreksi singkat yang benar""],
+ ""umpan_balik"": ""2 sampai 3 kalimat pendek untuk siswa""}
+
+Aturan:
+- Tiap daftar paling banyak 3 butir, tiap butir satu kalimat pendek (paling banyak 12 kata).
+- Daftar boleh kosong bila memang tidak ada.
+- umpan_balik memakai bahasa sederhana, menyapa dengan ""kamu"", dimulai dengan hal yang sudah bagus,
+  lalu satu saran paling penting. Jangan pakai markdown atau tanda bintang.
+- Bila penjelasan tidak berhubungan dengan materi atau terlalu singkat, beri skor rendah dan minta
+  siswa mencoba lagi dengan ramah.
+
+MATERI:
+" + material + @"
+
+PENJELASAN SISWA:
+" + explanation;
+
+        var content = new GenerateContentRequest
+        {
+            Model = model.nameModel,
+            Contents = new List<Content> { TextContent("user", prompt) }
+        };
+
+        var response = await client.V1.Models.GenerateContentAsync(model.nameModel, content);
+        var parts = response.Candidates?.FirstOrDefault()?.Content?.Parts;
+        var raw = parts == null ? "" : string.Concat(parts.Select(part => part.Text ?? ""));
+        return ExplainParser.Parse(raw);
+    }
+
     // Menulis ulang materi dengan bahasa yang mudah dipahami, untuk siswa dengan
     // hambatan belajar atau yang baru belajar membaca. Isi tidak boleh berubah.
     public async Task<string> Sederhanakan(ModelAi model, string text)

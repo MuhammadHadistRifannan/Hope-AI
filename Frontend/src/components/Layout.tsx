@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import Footer from "./Footer"; 
 import { Gamepad2 } from "lucide-react";
 import { useRoles } from "@/hooks/use-roles";
 import OnboardingDialog from "./OnboardingDialog";
@@ -244,8 +243,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
 
-        {/* Footer */}
-        <Footer />
       </main>
 
       {/* Bilah menu bawah: hanya di ponsel */}

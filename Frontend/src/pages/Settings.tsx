@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Ear, Eye, Volume2, UserCheck } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -321,6 +322,24 @@ export default function Settings() {
           <Button className="w-full bg-primary h-12 text-lg" size="lg" onClick={saveSettings}>
             Simpan Pengaturan
           </Button>
+
+          {/* Footer hanya ada di landing page, jadi halaman informasi ditautkan di sini */}
+          <nav aria-label="Informasi Hope.Ai" className="pt-2 text-center text-sm text-muted-foreground">
+            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1">
+              {[
+                { to: "/aksesibilitas", label: "Pernyataan Aksesibilitas" },
+                { to: "/privasi", label: "Kebijakan Privasi" },
+                { to: "/ketentuan", label: "Ketentuan Penggunaan" },
+                { to: "/kredit", label: "Kredit dan Sumber" },
+              ].map((item) => (
+                <li key={item.to}>
+                  <Link to={item.to} className="inline-flex min-h-11 items-center underline-offset-4 hover:text-primary hover:underline">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </motion.div>
     </div>

@@ -16,6 +16,7 @@ import {
   VOICE_TOGGLE_EVENT,
   VOICE_RUN_EVENT,
   VOICE_FLAG_EVENT,
+  VOICE_HOLD_EVENT,
   readVoiceFlag,
   setVoiceFlag,
 } from "@/lib/voiceCommands";
@@ -49,6 +50,8 @@ export default function VoiceAssistant() {
   const [continuous, setContinuous] = useState(false);
   const continuousRef = useRef(false);
   continuousRef.current = continuous;
+  // Jeda selama mikrofon dipakai fitur lain (misalnya merekam penjelasan di Flexa)
+  const heldRef = useRef(false);
   // Kotak perintah ketik, untuk browser tanpa pengenalan suara
   const [typing, setTyping] = useState(false);
   const [typed, setTyped] = useState("");
@@ -134,6 +137,11 @@ export default function VoiceAssistant() {
 
       // "tanya apa itu fotosintesis" membuka NeoTutor dan langsung mengirim pertanyaannya
       const question = command.match(/^(tanya|tanyakan|tolong jelaskan|jelaskan)\s+(.+)/);
+      // "jelaskan materi ini" di Flexa adalah perintah halaman, bukan pertanyaan untuk tutor
+      if (question && question[1] !== "tanya" && question[1] !== "tanyakan" && dispatchVoiceCommand(command)) {
+        setStatus(`Perintah: ${command}`);
+        return;
+      }
       if (question) {
         const text = question[1].startsWith("tanya") ? question[2] : command;
         setStatus(`Bertanya: ${text}`);
@@ -346,7 +354,7 @@ export default function VoiceAssistant() {
       if (continuousRef.current && !failed) {
         const resume = () => {
           if (!continuousRef.current || recognitionRef.current) return;
-          if (isSpeaking()) {
+          if (isSpeaking() || heldRef.current) {
             restartTimer.current = setTimeout(resume, 300);
             return;
           }
@@ -377,7 +385,7 @@ export default function VoiceAssistant() {
   useEffect(() => {
     if (continuous && !recognitionRef.current) {
       restartTimer.current = setTimeout(() => {
-        if (!isSpeaking() && !recognitionRef.current) latestStart.current(true);
+        if (!isSpeaking() && !recognitionRef.current && !heldRef.current) latestStart.current(true);
       }, 4500);
     }
     if (!continuous) clearTimeout(restartTimer.current);
@@ -419,6 +427,33 @@ export default function VoiceAssistant() {
       window.removeEventListener(VOICE_TOGGLE_EVENT, toggle);
     };
   }, [toggle]);
+
+  // Fitur lain meminjam mikrofon: hentikan mendengarkan, lalu lanjutkan mode dengar
+  // terus setelah dilepas (resume menunggu selama heldRef masih true)
+  useEffect(() => {
+    const onHold = (event: Event) => {
+      const hold = (event as CustomEvent<boolean>).detail;
+      heldRef.current = hold;
+      if (hold) {
+        clearTimeout(restartTimer.current);
+        recognitionRef.current?.abort?.();
+        return;
+      }
+      if (continuousRef.current && !recognitionRef.current) {
+        const resume = () => {
+          if (!continuousRef.current || recognitionRef.current || heldRef.current) return;
+          if (isSpeaking()) {
+            restartTimer.current = setTimeout(resume, 300);
+            return;
+          }
+          latestStart.current(true);
+        };
+        restartTimer.current = setTimeout(resume, 400);
+      }
+    };
+    window.addEventListener(VOICE_HOLD_EVENT, onHold);
+    return () => window.removeEventListener(VOICE_HOLD_EVENT, onHold);
+  }, []);
 
   // Perintah dari tombol contoh (misalnya di Beranda) dijalankan seperti ucapan
   useEffect(() => {

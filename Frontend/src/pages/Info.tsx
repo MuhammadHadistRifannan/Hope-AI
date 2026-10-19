@@ -91,11 +91,17 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
               </>,
               <>
                 <strong>EyeRead:</strong> foto yang kamu ambil atau unggah dikirim ke server kami untuk dibaca tulisannya. Yang
-                disimpan di akunmu adalah teks hasilnya.
+                disimpan di akunmu adalah teks hasilnya. Di <em>Mode Langsung</em>, gambar kamera diperiksa di perangkatmu
+                (pengenal teks Tesseract, yang data bahasanya diunduh sekali dari CDN). Satu foto baru dikirim ke server hanya
+                saat terdeteksi halaman yang belum dibaca.
               </>,
               <>
                 <strong>Perintah suara:</strong> pengenalan suara dikerjakan oleh browsermu (layanan Google di Chrome, Apple di
                 Safari). Hope.Ai hanya menerima teks hasilnya dan tidak menyimpan rekaman suara.
+              </>,
+              <>
+                <strong>Flexa, Jelaskan dengan suaramu:</strong> teks penjelasanmu dikirim bersama isi materi ke Gemini untuk
+                dinilai. Penjelasan dan hasil penilaiannya tidak disimpan.
               </>,
             ]}
           />

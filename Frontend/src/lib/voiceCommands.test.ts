@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { editDistance, findDestination, isAppCommand, labelScore, normalizeCommand } from "./voiceCommands";
+import {
+  editDistance,
+  findDestination,
+  isAppCommand,
+  isExplainCommand,
+  labelScore,
+  normalizeCommand,
+  stripFinishWord,
+} from "./voiceCommands";
 
 describe("normalizeCommand", () => {
   it("membuang basa-basi di awal dan akhir", () => {
@@ -82,5 +90,22 @@ describe("isAppCommand", () => {
     expect(isAppCommand("kenapa langit berwarna biru")).toBe(false);
     expect(isAppCommand("apa itu fotosintesis")).toBe(false);
     expect(isAppCommand("apa saja planet di tata surya")).toBe(false);
+  });
+});
+
+describe("Jelaskan dengan suaramu", () => {
+  it("mengenali permintaan untuk mulai menjelaskan", () => {
+    expect(isExplainCommand(normalizeCommand("Tolong jelaskan materi ini"))).toBe(true);
+    expect(isExplainCommand(normalizeCommand("aku mau menjelaskan"))).toBe(true);
+    expect(isExplainCommand("cek pemahaman")).toBe(true);
+    expect(isExplainCommand("jelaskan fotosintesis")).toBe(false);
+  });
+
+  it("memotong kata penutup dan menandai penjelasan selesai", () => {
+    expect(stripFinishWord("Angka dipakai untuk menghitung benda. Sudah selesai.")).toBe(
+      "Angka dipakai untuk menghitung benda."
+    );
+    expect(stripFinishWord("nol artinya tidak ada sekian penjelasan saya")).toBe("nol artinya tidak ada");
+    expect(stripFinishWord("angka dipakai untuk menghitung")).toBeNull();
   });
 });
