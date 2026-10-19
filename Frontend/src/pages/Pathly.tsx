@@ -26,6 +26,8 @@ import {
   Gamepad2,
   ArrowRight,
   ChevronRight,
+  Target,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -69,6 +71,9 @@ const moduleColors = new Set([
   "bg-blue-500", "bg-cyan-500", "bg-emerald-500", "bg-green-600", "bg-indigo-600",
   "bg-orange-500", "bg-pink-500", "bg-purple-500", "bg-red-500", "bg-yellow-500",
 ]);
+// XP yang didapat untuk tiap jawaban benar di kuis Peta Belajar
+const XP_PER_CORRECT = 10;
+
 const moduleColor = (color: string) => (moduleColors.has(color) ? color : "bg-blue-500");
 
 const fruitIcons = [
@@ -152,6 +157,8 @@ export default function Pathly() {
   const [qIndex, setQIndex] = useState(0);
   const [pathScore, setPathScore] = useState(0);
   const [isPathCompleted, setIsPathCompleted] = useState(false);
+  // Hasil kuis terakhir: modul baru dianggap selesai bila semua soal dijawab benar
+  const [lastResult, setLastResult] = useState<{ score: number; total: number; passed: boolean; xp: number } | null>(null);
   const [modulesState, setModulesState] = useState<PathModule[]>([]);
   const [isLoadingModules, setIsLoadingModules] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -252,7 +259,10 @@ export default function Pathly() {
     // Level terbuka bila itu level pertama atau level sebelumnya sudah selesai
     let previousCompleted = true;
     const built: PathModule[] = modulesRes.data.map((mod) => {
-      const completed = progress.get(mod.id)?.status === "completed";
+      const total = questionsRes.data.filter((question) => question.module_id === mod.id).length;
+      const record = progress.get(mod.id);
+      // Selesai hanya bila pernah menjawab semua soal dengan benar
+      const completed = record?.status === "completed" && (record.best_score ?? 0) >= total;
       const status = completed
         ? "completed"
         : previousCompleted
@@ -320,7 +330,8 @@ export default function Pathly() {
     setStreak(newStreak);
   };
 
-  const saveQuizResult = async (mod: PathModule, score: number) => {
+  // Setiap percobaan dicatat, tetapi modul baru tercatat selesai bila semua soal benar
+  const saveQuizResult = async (mod: PathModule, score: number, passed: boolean) => {
     if (!userId) return;
 
     const [attemptRes, progressRes] = await Promise.all([
@@ -330,13 +341,15 @@ export default function Pathly() {
         score,
         total: mod.quiz.length,
       }),
-      supabase.from("module_progress").upsert({
-        user_id: userId,
-        module_id: mod.id,
-        status: "completed",
-        best_score: Math.max(mod.bestScore, score),
-        completed_at: new Date().toISOString(),
-      }),
+      passed
+        ? supabase.from("module_progress").upsert({
+            user_id: userId,
+            module_id: mod.id,
+            status: "completed",
+            best_score: Math.max(mod.bestScore, score),
+            completed_at: new Date().toISOString(),
+          })
+        : Promise.resolve({ error: null }),
     ]);
 
     if (attemptRes.error || progressRes.error) {
@@ -349,7 +362,7 @@ export default function Pathly() {
       return;
     }
 
-    await recordActivity(score * 10);
+    await recordActivity(score * XP_PER_CORRECT);
   };
 
   const saveGameScore = async (game: "memory" | "math", score: number, xpGain: number) => {
@@ -693,7 +706,9 @@ export default function Pathly() {
       speak(
         qIndex < total - 1
           ? `${feedback} ${questionText(activeModule.quiz[qIndex + 1], qIndex + 2, total)}`
-          : `${feedback} Kuis selesai. Nilaimu ${finalScore} dari ${total}.`
+          : `${feedback} Kuis selesai. Nilaimu ${finalScore} dari ${total}. ${
+              finalScore === total ? "Modul selesai!" : "Jawab semua soal dengan benar untuk menyelesaikan modul ini. Katakan coba lagi."
+            }`
       );
     }
     visualCue(isCorrect ? "Benar!" : "Kurang tepat", isCorrect ? "success" : "error");
@@ -711,18 +726,23 @@ export default function Pathly() {
       setQIndex((prev) => prev + 1);
     } else {
       setIsPathCompleted(true);
-      confetti();
       const finalScore = pathScore + (isCorrect ? 1 : 0);
-      saveQuizResult(activeModule, finalScore);
+      const total = activeModule.quiz.length;
+      const passed = finalScore === total;
+      setLastResult({ score: finalScore, total, passed, xp: finalScore * XP_PER_CORRECT });
+      if (passed) confetti();
+      saveQuizResult(activeModule, finalScore, passed);
 
-      // Unlock next level
+      // Level berikutnya baru terbuka bila modul ini selesai
       const idx = modulesState.findIndex((m) => m.id === activeModule.id);
       setModulesState(
         modulesState.map((m, i) => {
           if (i === idx) {
-            return { ...m, status: "completed", bestScore: Math.max(m.bestScore, finalScore) };
+            return passed
+              ? { ...m, status: "completed", bestScore: Math.max(m.bestScore, finalScore) }
+              : { ...m, bestScore: Math.max(m.bestScore, finalScore) };
           }
-          if (i === idx + 1 && m.status === "locked") {
+          if (passed && i === idx + 1 && m.status === "locked") {
             return { ...m, status: "unlocked" };
           }
           return m;
@@ -737,11 +757,25 @@ export default function Pathly() {
     setQIndex(0);
     setPathScore(0);
     setIsPathCompleted(false);
+    setLastResult(null);
+  };
+
+  // Mengulang kuis modul yang sama dari soal pertama
+  const retryQuiz = () => {
+    setQIndex(0);
+    setPathScore(0);
+    setIsPathCompleted(false);
+    setLastResult(null);
+    startQuiz(autoPlayAudio);
   };
 
   // Perintah suara di Pathly: "baca materi", "mulai kuis", "ulangi", lalu
   // "A" sampai "D" (atau isi pilihannya) untuk menjawab.
   useVoiceCommands((command) => {
+    if (activeModule && isPathCompleted && lastResult && !lastResult.passed && /^(coba lagi|ulangi kuis|ulang)$/.test(command)) {
+      retryQuiz();
+      return true;
+    }
     if (!activeModule || isPathCompleted) return false;
 
     if (pathView === "material") {
@@ -952,30 +986,63 @@ export default function Pathly() {
               description="Mau belajar bertahap atau bermain sambil mengasah otak? Kamu yang menentukan."
               art="pathly"
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-4xl">
-              {/* CARD: AYO BELAJAR */}
-              <Card
-                {...clickable(() => setMainMode("path"))}
-                className="px-card cursor-pointer p-6 min-h-56 flex flex-col items-center justify-center text-center"
+            {/* Sertifikat: muncul di sini setelah semua modul Peta Belajar selesai */}
+            {modulesState.length > 0 && modulesState.every((m) => m.status === "completed") && (
+              <section
+                aria-labelledby="judul-sertifikat"
+                className="mb-8 flex flex-col sm:flex-row items-center gap-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-xl shadow-emerald-500/20 text-center sm:text-left"
               >
-                <div className="px-tile p-4 mb-5" aria-hidden="true">
-                  <MapPin className="w-10 h-10" />
+                <span aria-hidden="true" className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white/20">
+                  <Crown className="h-8 w-8" />
+                </span>
+                <div className="flex-1">
+                  <h2 id="judul-sertifikat" className="px-title text-xl md:text-2xl">
+                    Semua modul selesai!
+                  </h2>
+                  <p className="mt-1 text-white/90">Kamu sudah menjawab semua soal di Peta Belajar dengan benar. Sertifikatmu siap diunduh.</p>
                 </div>
-                <h2 className="px-title text-xl mb-2">Ayo Belajar</h2>
-                <p className="text-muted-foreground text-lg">Ikuti peta materi dan kuis terstruktur.</p>
-              </Card>
+                <Button size="lg" onClick={handleDownloadCertificate} className="rounded-full bg-white text-emerald-700 hover:bg-emerald-50 px-6">
+                  <Download className="w-5 h-5 mr-2" aria-hidden="true" /> Unduh Sertifikat
+                </Button>
+              </section>
+            )}
 
-              {/* CARD: AYO BERMAIN */}
-              <Card
-                {...clickable(() => setMainMode("arena"))}
-                className="px-card cursor-pointer p-6 min-h-56 flex flex-col items-center justify-center text-center"
-              >
-                <div className="px-tile p-4 mb-5" aria-hidden="true">
-                  <Gamepad2 className="w-10 h-10" />
-                </div>
-                <h2 className="px-title text-xl mb-2">Ayo Bermain</h2>
-                <p className="text-muted-foreground text-lg">Asah otak dengan mini-games seru.</p>
-              </Card>
+            {/* Dua pilihan berupa ikon besar berwarna, tanpa kartu */}
+            <div className="flex flex-wrap justify-center gap-10 sm:gap-20 py-6 md:py-10">
+              {[
+                {
+                  mode: "path" as const,
+                  label: "Ayo Belajar",
+                  hint: "Ikuti peta materi dan kuis terstruktur.",
+                  icon: MapPin,
+                  color: "from-sky-400 to-blue-600 shadow-blue-500/40",
+                },
+                {
+                  mode: "arena" as const,
+                  label: "Ayo Bermain",
+                  hint: "Asah otak dengan mini-games seru.",
+                  icon: Gamepad2,
+                  color: "from-amber-400 to-orange-500 shadow-orange-500/40",
+                },
+              ].map((option) => (
+                <motion.button
+                  key={option.mode}
+                  type="button"
+                  onClick={() => setMainMode(option.mode)}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="group flex w-44 flex-col items-center text-center rounded-3xl p-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-32 w-32 md:h-36 md:w-36 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-xl ring-8 ring-white dark:ring-slate-900 ${option.color}`}
+                  >
+                    <option.icon className="h-14 w-14 md:h-16 md:w-16" />
+                  </span>
+                  <span className="px-title mt-5 text-xl md:text-2xl">{option.label}</span>
+                  <span className="mt-1 text-muted-foreground">{option.hint}</span>
+                </motion.button>
+              ))}
             </div>
           </div>
         )}
@@ -1072,14 +1139,15 @@ export default function Pathly() {
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleNodeClick(mod)}
+                            aria-label={`${mod.title}, ${mod.status === "completed" ? "selesai" : mod.status === "locked" ? "terkunci" : "terbuka"}`}
                             className={`
-                              w-24 h-24 md:w-28 md:h-28 flex flex-col items-center justify-center rounded-2xl border-2 border-border shadow-sm relative focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-amber-500
+                              w-24 h-24 md:w-28 md:h-28 flex flex-col items-center justify-center rounded-full ring-8 ring-background shadow-lg relative focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-amber-500
                               ${
                                 mod.status === "locked"
-                                  ? "bg-slate-200 text-slate-500"
+                                  ? "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300 shadow-none"
                                   : mod.status === "completed"
-                                  ? "bg-primary text-primary-foreground"
-                                  : `${moduleColor(mod.color)} text-white`
+                                  ? "bg-emerald-500 text-white shadow-emerald-500/40"
+                                  : "bg-primary text-primary-foreground shadow-primary/40"
                               }
                             `}
                           >
@@ -1121,7 +1189,7 @@ export default function Pathly() {
                   </Button>
                   <div className="text-center space-y-6 mt-4">
                     <div
-                      className={`w-20 h-20 mx-auto rounded-xl border border-border flex items-center justify-center text-white ${moduleColor(activeModule.color)}`}
+                      className={`w-20 h-20 mx-auto rounded-full shadow-lg flex items-center justify-center text-white ${moduleColor(activeModule.color)}`}
                     >
                       <BookOpen className="w-10 h-10" />
                     </div>
@@ -1222,22 +1290,57 @@ export default function Pathly() {
                 animate={{ scale: 1 }}
                 className="max-w-md mx-auto pt-20 text-center"
               >
-                {/* Logika Pengecekan Tamat */}
-                {modulesState.every((m) => m.status === "completed") ? (
+                {lastResult && !lastResult.passed ? (
                   <>
-                    <div className="px-tile w-32 h-32 flex items-center justify-center mx-auto mb-6">
+                    <div className="w-32 h-32 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300 flex items-center justify-center mx-auto mb-6">
+                      <Target className="w-16 h-16" aria-hidden="true" />
+                    </div>
+                    <h1 className="px-title text-2xl md:text-3xl mb-3">Hampir!</h1>
+                    <p className="text-lg mb-2">
+                      {lastResult.score} dari {lastResult.total} soal benar.
+                    </p>
+                    <p className="text-muted-foreground mb-2">
+                      Jawab semua soal dengan benar untuk menyelesaikan modul ini dan membuka level berikutnya.
+                    </p>
+                    <p className="font-semibold text-primary mb-8">
+                      {lastResult.xp > 0 ? `+${lastResult.xp} XP` : "Belum ada XP kali ini"}
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      <Button size="lg" className="px-btn w-full h-14 text-lg" onClick={retryQuiz}>
+                        <RefreshCcw className="w-5 h-5 mr-2" aria-hidden="true" /> Coba Lagi
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="px-btn w-full h-14 text-lg"
+                        onClick={() => {
+                          setQIndex(0);
+                          setPathScore(0);
+                          setIsPathCompleted(false);
+                          setLastResult(null);
+                          setPathView("material");
+                          if (autoPlayAudio) readMaterial(activeModule);
+                        }}
+                      >
+                        <BookOpen className="w-5 h-5 mr-2" aria-hidden="true" /> Baca Materi Lagi
+                      </Button>
+                      <Button variant="ghost" size="lg" className="w-full" onClick={resetPath}>
+                        Kembali ke Peta
+                      </Button>
+                    </div>
+                  </>
+                ) : modulesState.every((m) => m.status === "completed") ? (
+                  <>
+                    <div className="px-tile w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
                       <Crown className="w-16 h-16 animate-bounce" aria-hidden="true" />
                     </div>
                     <h1 className="px-title text-2xl md:text-3xl mb-3">Selamat! Kamu Tamat!</h1>
-                    <p className="text-muted-foreground mb-8 text-lg">
+                    <p className="text-muted-foreground mb-2 text-lg">
                       Luar biasa! Kamu telah menyelesaikan semua tantangan.
                     </p>
+                    {lastResult && <p className="font-semibold text-primary mb-8">+{lastResult.xp} XP</p>}
                     <div className="flex flex-col gap-3">
-                      <Button
-                        size="lg"
-                        className="px-btn w-full h-14 text-lg"
-                        onClick={handleDownloadCertificate}
-                      >
+                      <Button size="lg" className="px-btn w-full h-14 text-lg" onClick={handleDownloadCertificate}>
                         Unduh Sertifikat
                       </Button>
                       <Button
@@ -1258,18 +1361,13 @@ export default function Pathly() {
                   </>
                 ) : (
                   <>
-                    <div className="px-tile w-32 h-32 flex items-center justify-center mx-auto mb-6">
+                    <div className="px-tile w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
                       <Trophy className="w-16 h-16 animate-bounce" aria-hidden="true" />
                     </div>
                     <h1 className="px-title text-2xl md:text-3xl mb-3">Level Selesai!</h1>
-                    <p className="text-muted-foreground mb-8 text-lg">
-                      Kamu mendapatkan +100 XP
-                    </p>
-                    <Button
-                      size="lg"
-                      className="px-btn w-full h-14 text-lg"
-                      onClick={resetPath}
-                    >
+                    <p className="text-muted-foreground mb-2 text-lg">Semua soal benar. Level berikutnya sudah terbuka.</p>
+                    {lastResult && <p className="font-semibold text-primary mb-8">+{lastResult.xp} XP</p>}
+                    <Button size="lg" className="px-btn w-full h-14 text-lg" onClick={resetPath}>
                       Kembali ke Peta
                     </Button>
                   </>

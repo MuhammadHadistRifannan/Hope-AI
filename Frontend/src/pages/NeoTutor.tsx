@@ -394,7 +394,7 @@ export default function NeoTutor() {
           </div>
         )}
 
-        <div className="px-card h-[calc(100dvh-13.5rem)] min-h-[20rem] md:h-[600px] flex flex-col">
+        <div className="px-card h-[calc(100dvh-12rem)] min-h-[22rem] md:h-[600px] flex flex-col overflow-hidden">
           {/* Chat Messages */}
           <ScrollArea className="flex-1 p-3 md:p-6">
             <div className="space-y-4" role="log" aria-live="polite" aria-label="Percakapan dengan NeoTutor">
@@ -475,7 +475,8 @@ export default function NeoTutor() {
           </ScrollArea>
 
           {/* Quick Questions */}
-          <div className="px-3 md:px-6 py-2 md:py-3 border-t-[3px] border-foreground/25">
+          {/* Saran pertanyaan: di ponsel hanya tampil sebelum percakapan dimulai, supaya ruang obrolan lega */}
+          <div className={`px-3 md:px-6 py-2 md:py-3 border-t border-border ${messages.some((m) => m.role === "user") ? "hidden md:block" : ""}`}>
             <div className="flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible md:mb-3">
               {quickQuestions.map((question) => (
                 <Button
@@ -492,7 +493,7 @@ export default function NeoTutor() {
           </div>
 
           {/* Input Area */}
-          <div className="p-3 pr-20 md:p-6 border-t-[3px] border-foreground/25">
+          <div className="p-2 md:p-6 border-t border-border">
             {/* Indikator Mendengarkan */}
             {isListening && (
                <div role="status" className="text-center text-sm text-primary animate-pulse mb-2 font-bold">
@@ -505,7 +506,7 @@ export default function NeoTutor() {
                 e.preventDefault();
                 sendMessage(input);
               }}
-              className="flex gap-2"
+              className="flex gap-1.5 md:gap-2"
             >
               {/* Mikrofon disembunyikan bagi pengguna yang lebih nyaman mengetik */}
               {!needs.includes("wicara") && (
@@ -516,7 +517,7 @@ export default function NeoTutor() {
                 onClick={startListening}
                 className={`px-btn h-11 w-11 flex-shrink-0 ${isListening ? "bg-red-100 text-red-600" : ""}`}
                 title="Bicara untuk bertanya"
-                aria-label={isListening ? "Hentikan input suara" : "Mulai input suara"}
+                aria-label={isListening ? "Berhenti mengucapkan pertanyaan" : "Ucapkan pertanyaan"}
                 aria-pressed={isListening}
               >
                 {isListening ? <MicOff className="w-5 h-5" aria-hidden="true" /> : <Mic className="w-5 h-5" aria-hidden="true" />}
@@ -531,7 +532,7 @@ export default function NeoTutor() {
                 className="flex-1 h-11 rounded-xl border border-border bg-card text-base"
               />
               
-              <Button type="submit" className="px-btn h-11 w-11 flex-shrink-0 bg-emerald-600 p-0 text-white hover:bg-emerald-600/90" aria-label="Kirim pertanyaan">
+              <Button type="submit" className="px-btn h-11 w-11 flex-shrink-0 p-0" aria-label="Kirim pertanyaan">
                 <Send className="w-4 h-4" aria-hidden="true" />
               </Button>
             </form>

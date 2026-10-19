@@ -124,3 +124,40 @@ INSERT INTO public.sign_items (category, slug, sort_order, title, description, i
   ('angka', '8', 8, 'Angka 8', 'Tempelkan jari tengah dengan ibu jari.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/8%40InForward.jpg/500px-8%40InForward.jpg', 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/08.webm'),
   ('angka', '9', 9, 'Angka 9', 'Tempelkan jari telunjuk dengan ibu jari.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/9%40InForward.jpg/500px-9%40InForward.jpg', 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/09.webm')
 ON CONFLICT (category, slug) DO NOTHING;
+
+-- Isyarat angka SIBI lengkap dari Kamus SIBI Kemendikdasmen
+-- (https://pkplk.kemendikdasmen.go.id/sibi/kosakata/angka): 10-20, puluhan, 100, 1.000,
+-- dan kata bilangan. Kamus hanya menyediakan video, jadi image_url dikosongkan.
+INSERT INTO public.sign_items (category, slug, sort_order, title, description, image_url, video_url) VALUES
+  ('angka', '10', 10, 'Angka 10', 'Isyarat angka 10. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/10.webm'),
+  ('angka', '11', 11, 'Angka 11', 'Isyarat angka 11. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/11.webm'),
+  ('angka', '12', 12, 'Angka 12', 'Isyarat angka 12. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/12.webm'),
+  ('angka', '13', 13, 'Angka 13', 'Isyarat angka 13. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/13.webm'),
+  ('angka', '14', 14, 'Angka 14', 'Isyarat angka 14. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/14.webm'),
+  ('angka', '15', 15, 'Angka 15', 'Isyarat angka 15. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/15.webm'),
+  ('angka', '16', 16, 'Angka 16', 'Isyarat angka 16. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/16.webm'),
+  ('angka', '17', 17, 'Angka 17', 'Isyarat angka 17. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/17.webm'),
+  ('angka', '18', 18, 'Angka 18', 'Isyarat angka 18. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/18.webm'),
+  ('angka', '19', 19, 'Angka 19', 'Isyarat angka 19. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/19.webm'),
+  ('angka', '20', 20, 'Angka 20', 'Isyarat angka 20. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/20.webm'),
+  ('angka', '30', 21, 'Angka 30', 'Isyarat angka 30. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/30.webm'),
+  ('angka', '40', 22, 'Angka 40', 'Isyarat angka 40. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/40.webm'),
+  ('angka', '50', 23, 'Angka 50', 'Isyarat angka 50. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/50.webm'),
+  ('angka', '60', 24, 'Angka 60', 'Isyarat angka 60. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/60.webm'),
+  ('angka', '70', 25, 'Angka 70', 'Isyarat angka 70. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/70.webm'),
+  ('angka', '80', 26, 'Angka 80', 'Isyarat angka 80. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/80.webm'),
+  ('angka', '90', 27, 'Angka 90', 'Isyarat angka 90. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/90.webm'),
+  ('angka', '100', 28, 'Angka 100', 'Isyarat angka 100. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/100.webm'),
+  ('angka', '1000', 29, 'Angka 1.000', 'Isyarat angka 1.000. Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/1000.webm'),
+  ('angka', 'satuan', 30, 'Satuan', 'Kata bilangan "satuan". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Satuan.webm'),
+  ('angka', 'puluh', 31, 'Puluh', 'Kata bilangan "puluh". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Puluh.webm'),
+  ('angka', 'puluhan', 32, 'Puluhan', 'Kata bilangan "puluhan". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Puluhan.webm'),
+  ('angka', 'ratus', 33, 'Ratus', 'Kata bilangan "ratus". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Ratus.webm'),
+  ('angka', 'ratusan', 34, 'Ratusan', 'Kata bilangan "ratusan". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Ratusan.webm'),
+  ('angka', 'ribuan', 35, 'Ribuan', 'Kata bilangan "ribuan". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Ribuan.webm'),
+  ('angka', 'juta', 36, 'Juta', 'Kata bilangan "juta". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Juta.webm'),
+  ('angka', 'jutaan', 37, 'Jutaan', 'Kata bilangan "jutaan". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Jutaan.webm'),
+  ('angka', 'miliar', 38, 'Miliar', 'Kata bilangan "miliar". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Miliyar.webm'),
+  ('angka', 'biliun', 39, 'Biliun', 'Kata bilangan "biliun". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Biliun.webm'),
+  ('angka', 'triliun', 40, 'Triliun', 'Kata bilangan "triliun". Perhatikan gerakannya di video dari Kamus SIBI.', NULL, 'https://pkplk.kemendikdasmen.go.id/sibi/SIBI/angka/Triliun.webm')
+ON CONFLICT (category, slug) DO NOTHING;

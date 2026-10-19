@@ -201,10 +201,10 @@ export default function BisindoPanel({
                   className="w-full max-w-xs aspect-[4/3] object-contain mx-auto rounded-xl border border-border bg-black"
                   aria-label={`Contoh isyarat ${targetWord.label}`}
                 />
-                <figcaption className="text-sm text-muted-foreground mt-2">{targetWord.movement}</figcaption>
+                <figcaption className="text-sm text-muted-foreground mt-2">{targetWord.movement || "Ikuti gerakan di video contoh."}</figcaption>
               </figure>
             )}
-            {targetWord && <BisindoCredit className="mt-2" />}
+            {targetWord && <BisindoCredit source={targetWord.source} className="mt-2" />}
 
             <div className="flex flex-wrap justify-center gap-2 mt-5">
               <Button className="px-btn" variant="outline" onClick={() => say(target.toLowerCase())}>

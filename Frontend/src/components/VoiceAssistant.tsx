@@ -405,8 +405,20 @@ export default function VoiceAssistant() {
     };
   }, [toggle]);
 
+  // Di ponsel, kolom ketik NeoTutor ada di bawah layar. Tombol perintah suara pindah ke
+  // pojok kanan atas (sejajar judul) supaya tidak menutupinya; balon status muncul di bawahnya.
+  const topOnPhone = location.pathname === "/neotutor";
+  const size = topOnPhone ? "w-12 h-12 md:w-14 md:h-14" : "w-14 h-14";
+
   return (
-    <div data-voice-ignore className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 flex flex-col items-end gap-2">
+    <div
+      data-voice-ignore
+      className={`fixed z-50 flex items-end gap-2 ${
+        topOnPhone
+          ? "top-[max(0.5rem,env(safe-area-inset-top))] right-3 flex-col-reverse md:top-auto md:bottom-6 md:right-6 md:flex-col"
+          : "bottom-24 md:bottom-6 right-4 md:right-6 flex-col"
+      }`}
+    >
       <p
         role="status"
         aria-live="polite"
@@ -452,7 +464,7 @@ export default function VoiceAssistant() {
           onClick={() => setTyping(true)}
           aria-label="Ketik perintah, misalnya buka flexa"
           title="Ketik perintah"
-          className="w-14 h-14 flex items-center justify-center rounded-xl border border-border shadow-sm text-white bg-primary hover:brightness-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400"
+          className={`${size} flex items-center justify-center rounded-xl border border-border shadow-sm text-white bg-primary hover:brightness-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400`}
         >
           <Keyboard className="w-6 h-6" aria-hidden="true" />
         </button>
@@ -468,7 +480,7 @@ export default function VoiceAssistant() {
             : "Perintah suara. Tekan lalu bicara, atau tekan Alt M atau Ctrl M. Katakan bantuan untuk daftar perintah."
         }
         title="Perintah suara (Alt+M atau Ctrl+M)"
-        className={`w-14 h-14 flex items-center justify-center rounded-xl border border-border shadow-sm text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400 ${
+        className={`${size} flex items-center justify-center rounded-xl border border-border shadow-sm text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400 ${
           isListening ? "bg-red-600 animate-pulse" : "bg-primary hover:brightness-110"
         }`}
       >

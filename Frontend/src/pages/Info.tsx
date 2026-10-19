@@ -13,6 +13,7 @@ const REPO_URL = "https://github.com/MuhammadHadistRifannan/Hope-AI";
 const SIBI_URL = "https://pkplk.kemendikdasmen.go.id/sibi/";
 const DATASET_URL = "https://www.kaggle.com/datasets/alvinbintang/sibi-dataset";
 const BISINDO_DATASET_URL = "https://www.kaggle.com/datasets/anggiyohanespardede/bisindo-40-kata-mp4";
+const WL_BISINDO_URL = "https://github.com/AceKinnn/WL-BISINDO";
 
 function External({ href, children }: { href: string; children: ReactNode }) {
   return (
@@ -168,7 +169,7 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
               "Teks pendamping suara dan penanda visual sebagai pengganti bunyi.",
               "Pilihan Kurangi Gerakan, yang juga mengikuti pengaturan sistem operasimu.",
               "Seluruh halaman bisa dijalankan dengan keyboard, dengan penanda fokus yang terlihat.",
-              "Kamus dan latihan abjad jari SIBI, serta 16 kata dasar BISINDO dengan dua tangan.",
+              "Kamus dan latihan abjad jari SIBI, serta 43 kata sehari-hari BISINDO dengan dua tangan.",
             ]}
           />
         </Section>
@@ -188,8 +189,9 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
           <List
             items={[
               "Perintah suara bergantung pada browser: berjalan di Chrome dan Safari, belum di Firefox.",
-              "Latihan Isyarat mengenali 24 huruf abjad jari SIBI. Huruf J dan Z (yang memakai gerakan) dan angka belum dikenali, dan hasilnya bisa keliru pada pencahayaan redup.",
-              "Pengenal kata BISINDO baru mengenal 16 kata dasar dan dilatih dari video yang hampir semuanya diperagakan satu orang, sehingga bisa keliru untuk gaya isyarat orang lain atau isyarat dari daerah lain.",
+              "Latihan Isyarat mengenali 24 huruf abjad jari SIBI. Huruf J dan Z (yang memakai gerakan) belum dikenali, dan hasilnya bisa keliru pada pencahayaan redup.",
+              "Pengenalan angka SIBI 1 sampai 9 masih tahap Beta: modelnya baru dilatih dari video satu peraga di Kamus SIBI, sehingga bisa keliru untuk gaya tangan orang lain. Angka 0, angka dua digit, dan kata bilangan baru tersedia di Kamus.",
+              "Pengenal kata BISINDO mengenal 43 kata. Saat diuji pada peraga yang tidak ikut dilatih, tebakannya benar sekitar 81% (antara 52% dan 95% tergantung peraganya). Kata yang gerakannya mirip, seperti Pagi, Siang, dan Sore, atau Apa, Dimana, dan Cari, lebih sering tertukar. Sebagian besar kata berasal dari varian Banten, jadi isyarat dari daerah lain bisa tidak dikenali.",
               "Jawaban NeoTutor dibuat oleh AI dan bisa salah.",
             ]}
           />
@@ -220,9 +222,19 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
                 dipakai dengan izin pembuatnya.
               </>,
               <>
+                Model pengenal angka 1 sampai 9 dilatih dari posisi titik tangan yang dibaca dari video angka di{" "}
+                <External href={SIBI_URL}>Kamus SIBI</External>. Yang disimpan hanya koordinat titik tangan, bukan videonya.
+              </>,
+              <>
                 Video contoh dan model pengenal kata BISINDO memakai{" "}
                 <External href={BISINDO_DATASET_URL}>BISINDO 40 Kata karya Anggi Yohanes Pardede</External> (lisensi MIT).
                 Enam belas video contohnya disalin ke Hope.Ai.
+              </>,
+              <>
+                Dua puluh tujuh kata BISINDO lainnya, termasuk video contohnya, berasal dari{" "}
+                <External href={WL_BISINDO_URL}>WL-BISINDO</External> (varian Banten, lima peraga) dengan lisensi CC BY-NC 4.0,
+                sehingga hanya dipakai untuk keperluan non-komersial. Videonya diperkecil dan suaranya dihapus. Model kata dilatih
+                ulang dari kedua dataset itu.
               </>,
               <>
                 Posisi tangan dideteksi dengan <strong>MediaPipe</strong> dari Google (lisensi Apache 2.0), dijalankan di

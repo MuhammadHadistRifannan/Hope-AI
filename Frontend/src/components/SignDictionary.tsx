@@ -62,7 +62,8 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
   const choose = (entry: SignEntry | undefined) => {
     if (!entry) return;
     setSelected(entry);
-    setMedia("image");
+    // Sebagian angka hanya punya video di Kamus SIBI
+    setMedia(entry.image ? "image" : "video");
   };
 
   const switchCategory = (next: "abjad" | "angka") => {
@@ -93,6 +94,7 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
                 className={`px-btn min-h-10 ${media === "image" ? "!bg-primary !text-primary-foreground" : ""}`}
                 aria-pressed={media === "image"}
                 onClick={() => setMedia("image")}
+                disabled={!selected.image}
               >
                 <ImageIcon className="w-4 h-4 mr-1" aria-hidden="true" /> Gambar
               </Button>
@@ -190,7 +192,12 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
         ))}
       </div>
 
-      <div className="grid grid-cols-7 sm:grid-cols-9 gap-1 mb-5" role="group" aria-label={`Daftar ${category}`}>
+      {/* Abjad: kotak huruf rapat. Angka: label bisa panjang (1.000, Triliun), jadi tombolnya melebar */}
+      <div
+        className={category === "abjad" ? "grid grid-cols-7 sm:grid-cols-9 gap-1 mb-5" : "flex flex-wrap gap-1.5 mb-5"}
+        role="group"
+        aria-label={`Daftar ${category}`}
+      >
         {shown.map((entry) => (
           <Button
             key={entry.slug}
@@ -198,10 +205,10 @@ export default function SignDictionary({ practicable, onPractice, onSpeak }: Pro
             variant={selected?.slug === entry.slug ? "default" : "outline"}
             aria-pressed={selected?.slug === entry.slug}
             aria-label={entry.title}
-            className={`px-btn border-2 border-foreground min-h-10 px-0 font-bold ${selected?.slug === entry.slug ? "!bg-primary !text-primary-foreground" : ""}`}
+            className={`px-btn border border-border min-h-10 font-bold ${category === "abjad" ? "px-0" : "min-w-11 px-3"} ${selected?.slug === entry.slug ? "!bg-primary !text-primary-foreground" : ""}`}
             onClick={() => choose(entry)}
           >
-            {entry.slug}
+            {category === "abjad" ? entry.slug : entry.title.replace(/^Angka /, "")}
           </Button>
         ))}
       </div>

@@ -1,3 +1,22 @@
+Video di folder ini berasal dari dua dataset:
+
+1. BISINDO 40 Kata mp4 (Anggi Yohanes Pardede), lisensi MIT. Enam belas video
+   (apa-kabar, baik, berapa, dimana, halo, kamu, makan, membaca, menulis, minum,
+   saya, selamat-pagi, senang, siapa, terima-kasih, tidur) disalin tanpa perubahan.
+   Teks lisensinya ada di bagian bawah berkas ini.
+
+2. WL-BISINDO (Word-Level BISINDO) oleh AceKinnn dkk., lisensi Creative Commons
+   Attribution-NonCommercial 4.0 (CC BY-NC 4.0):
+   https://github.com/AceKinnn/WL-BISINDO
+   https://www.kaggle.com/datasets/glennleonali/wl-bisindo
+   https://creativecommons.org/licenses/by-nc/4.0/
+   Dua puluh tujuh video kata lainnya diambil dari peraga 1, sampel 1, lalu
+   diperkecil ke tinggi 480 piksel dan suaranya dihapus. Hanya untuk penggunaan
+   non-komersial. Makalah: Word-Level BISINDO: A Novel Video Indonesian Sign
+   Language Dataset and Baseline Methods (doi:10.1016/j.procs.2025.08.277).
+
+----------------------------------------------------------------------------
+
 Video di folder ini disalin tanpa perubahan dari dataset "BISINDO 40 Kata mp4"
 karya Anggi Yohanes Pardede:
 https://www.kaggle.com/datasets/anggiyohanespardede/bisindo-40-kata-mp4

@@ -35,6 +35,8 @@ import { readSignPreference, saveSignPreference, type SignLanguage as Language }
 import { useSearchParams } from "react-router-dom";
 
 const MODEL_URL = "/models/sibi-abjad.json";
+// Angka dikenali model terpisah: beberapa angka berbentuk sama dengan huruf (2 dan V, 6 dan W, 9 dan F)
+const DIGIT_MODEL_URL = "/models/sibi-angka.json";
 const WORD_MODEL_URL = "/models/bisindo-kata.json";
 // Lama hasil kata BISINDO ditampilkan di atas video
 const WORD_RESULT_MS = 2500;
@@ -121,6 +123,7 @@ export default function SignLanguage() {
   useEffect(() => saveSignPreference({ language, preferred }), [language, preferred]);
   const [cameraOn, setCameraOn] = useState(false);
   const [model, setModel] = useState<SignModel | null>(null);
+  const [digitModel, setDigitModel] = useState<SignModel | null>(null);
   const [modelChecked, setModelChecked] = useState(false);
   const [references, setReferences] = useState<Record<string, Reference>>({});
 
@@ -181,8 +184,8 @@ export default function SignLanguage() {
     const usable = PRACTICE_WORDS.filter(
       (word) => [...word].every((letter) => known.has(letter)) && !/(.)\1/.test(word)
     );
-    // Bila model juga mengenal angka, latihan bisa berupa angka acak
-    const digits = model.labels.filter((label) => /^\d$/.test(label));
+    // Bila model angka terpasang, latihan bisa berupa angka acak
+    const digits = digitModel?.labels.filter((label) => /^\d$/.test(label)) ?? [];
     if (digits.length >= 3) {
       for (let i = 0; i < 8; i++) {
         const first = pick(digits);
@@ -191,17 +194,18 @@ export default function SignLanguage() {
       }
     }
     return usable;
-  }, [model]);
+  }, [model, digitModel]);
 
   // Nilai terbaru untuk dipakai di dalam callback kamera
-  const latest = useRef({ mode, practice, words, celebration, language, wordModel });
-  latest.current = { mode, practice, words, celebration, language, wordModel };
+  const latest = useRef({ mode, practice, words, celebration, language, wordModel, digitModel });
+  latest.current = { mode, practice, words, celebration, language, wordModel, digitModel };
 
   useEffect(() => {
     loadSignModel(MODEL_URL).then((loaded) => {
       setModel(loaded);
       setModelChecked(true);
     });
+    loadSignModel(DIGIT_MODEL_URL).then(setDigitModel);
     loadWordModel(WORD_MODEL_URL).then((loaded) => {
       setWordModel(loaded);
       setWordModelChecked(true);
@@ -401,8 +405,12 @@ export default function SignLanguage() {
       return;
     }
 
-    const features = frame && model ? toFeatures(frame.landmarks, frame.width, frame.height) : null;
-    const prediction = features && model ? predict(model, features) : null;
+    // Saat latihan meminta angka, kamera memakai model angka; selain itu model huruf
+    const { practice: current, mode: currentMode, digitModel: digits } = latest.current;
+    const expected = currentMode === "latihan" && current ? current.word[current.index] : undefined;
+    const active = expected && /^\d$/.test(expected) && digits ? digits : model;
+    const features = frame && active ? toFeatures(frame.landmarks, frame.width, frame.height) : null;
+    const prediction = features && active ? predict(active, features) : null;
 
     const accepted = stabilizer.current.push(prediction?.label ?? null, prediction?.confidence ?? 0, now);
     if (accepted) handleAccepted(accepted);
@@ -629,6 +637,7 @@ export default function SignLanguage() {
                 <div className="absolute top-3 right-3 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-center" aria-hidden="true">
                   <p className="text-xs font-bold">Peragakan</p>
                   <p className="px-title text-4xl leading-none mt-1">{target}</p>
+                  {/^\d$/.test(target) && <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide opacity-80">Beta</p>}
                 </div>
               )}
 
@@ -698,7 +707,7 @@ export default function SignLanguage() {
           <Card className="px-card p-3 md:p-6">
             <div className="flex gap-1.5 mb-4" role="group" aria-label="Bahasa isyarat">
               {([
-                { id: "sibi", title: "SIBI", detail: "Abjad, satu tangan" },
+                { id: "sibi", title: "SIBI", detail: "Abjad dan angka" },
                 { id: "bisindo", title: "BISINDO", detail: "Kata dasar, dua tangan" },
                 { id: "otomatis", title: "Otomatis", detail: "Huruf dan kata, eksperimen" },
               ] as const).map((option) => (
@@ -762,10 +771,11 @@ export default function SignLanguage() {
               <TabsContent value="latihan">
                 {model && !practice && (
                   <div className="text-center py-6">
-                    <p className="text-lg font-medium mb-2">Latihan mengeja kata dengan abjad jari</p>
+                    <p className="text-lg font-medium mb-2">Latihan mengeja kata dan angka</p>
                     <p className="text-muted-foreground mb-6">
-                      Akan muncul satu kata acak. Peragakan hurufnya satu per satu di depan kamera dan
-                      tahan sebentar sampai terbaca. Huruf J dan Z belum dipakai karena isyaratnya bergerak.
+                      Akan muncul satu kata atau angka acak. Peragakan isyaratnya satu per satu di depan kamera
+                      dan tahan sebentar sampai terbaca. Huruf J dan Z belum dipakai karena isyaratnya bergerak.
+                      {digitModel && " Pengenalan angka 1 sampai 9 masih tahap Beta."}
                     </p>
                     <Button size="lg" onClick={nextWord} className="px-btn">
                       <Play className="w-5 h-5 mr-2" aria-hidden="true" /> Mulai Berlatih
@@ -874,7 +884,7 @@ export default function SignLanguage() {
 
               <TabsContent value="kamus">
                 <SignDictionary
-                  practicable={new Set(model?.labels ?? [])}
+                  practicable={new Set([...(model?.labels ?? []), ...(digitModel?.labels ?? [])])}
                   onPractice={practiceSign}
                   onSpeak={(text) => speak(text, { volume, rate: speakingRate, aiVoice })}
                 />

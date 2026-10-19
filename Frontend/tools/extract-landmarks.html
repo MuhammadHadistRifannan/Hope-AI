@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id">
+<head><meta charset="utf-8" /><title>Ekstrak titik tangan dari video</title></head>
+<body>
+<!-- Alat pengembang (tidak ikut build): membaca video frame demi frame dan
+     mengambil 21 titik tangan dengan MediaPipe yang sama seperti aplikasi.
+     Hasil ada di window.__result. Pakai: ?videos=label:url,label:url -->
+<video id="v" muted playsinline crossorigin="anonymous"></video>
+<canvas id="c"></canvas>
+<script type="module">
+import { FilesetResolver, HandLandmarker } from "@mediapipe/tasks-vision";
+const params = new URLSearchParams(location.search);
+const jobs = (params.get("videos") ?? "").split(",").filter(Boolean).map((item) => {
+  const [label, ...rest] = item.split(":");
+  return { label, url: rest.join(":") };
+});
+const step = Number(params.get("step") ?? 1 / 30);
+const video = document.getElementById("v");
+const canvas = document.getElementById("c");
+const context = canvas.getContext("2d");
+const fileset = await FilesetResolver.forVisionTasks("/mediapipe");
+const landmarker = await HandLandmarker.createFromOptions(fileset, {
+  baseOptions: { modelAssetPath: "/mediapipe/hand_landmarker.task", delegate: "CPU" },
+  runningMode: "IMAGE",
+  numHands: 1,
+});
+const seek = (t) => new Promise((resolve) => { video.onseeked = () => resolve(); video.currentTime = t; });
+const rows = [];
+for (const job of jobs) {
+  video.src = job.url;
+  await new Promise((resolve, reject) => { video.onloadeddata = resolve; video.onerror = reject; });
+  // Durasi webm kadang tidak terbaca; lompat jauh ke depan untuk memaksanya
+  if (!isFinite(video.duration)) { await seek(1e6); await seek(0); }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  let frames = 0;
+  for (let t = 0; t <= video.duration; t += step) {
+    await seek(t);
+    context.drawImage(video, 0, 0);
+    const result = landmarker.detect(canvas);
+    frames++;
+    const points = result.landmarks?.[0];
+    if (!points) continue;
+    rows.push({
+      label: job.label,
+      t: Number(t.toFixed(3)),
+      handedness: result.handedness?.[0]?.[0]?.categoryName ?? "",
+      pixels: points.map((p) => [p.x * canvas.width, p.y * canvas.height, p.z * canvas.width]),
+    });
+  }
+  console.log(job.label, frames, "frame");
+}
+window.__result = { rows, width: canvas.width, height: canvas.height };
+</script>
+</body>
+</html>

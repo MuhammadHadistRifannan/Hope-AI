@@ -73,3 +73,39 @@ describe("model SIBI", () => {
     expect(accuracy(true)).toBeGreaterThan(0.9 * accuracy(false));
   });
 });
+
+// Model angka dilatih dengan ml/sibi/train-angka.mjs. Tes ini memastikan
+// normalisasi di skrip itu sama dengan landmarks.ts di browser.
+describe("model angka SIBI", () => {
+  const root = resolve(__dirname, "../../../..");
+  const model: SignModel = JSON.parse(readFileSync(resolve(root, "models/sibi-angka.json"), "utf8"));
+  const [header, ...lines] = readFileSync(resolve(root, "ml/sibi/data/kamus-sibi-angka.csv"), "utf8")
+    .trim()
+    .split("\n");
+  const columns = header.split(",");
+  const firstX = columns.indexOf("x0");
+
+  const predictLine = (line: string, mirrored: boolean) => {
+    const values = line.split(",").slice(firstX, firstX + 63).map(Number);
+    const points = Array.from({ length: 21 }, (_, i) => ({
+      x: mirrored ? -values[i * 3] : values[i * 3],
+      y: values[i * 3 + 1],
+      z: values[i * 3 + 2],
+    }));
+    return predict(model, normalizeLandmarks(points)!).label;
+  };
+
+  it("hanya berisi angka", () => {
+    expect(model.labels.every((label) => /^\d$/.test(label))).toBe(true);
+  });
+
+  it("mengenali pose tengah tiap angka, juga dengan tangan kiri", () => {
+    // Pose tengah: frame di pertengahan tiap video, setelah tangan naik dan sebelum turun
+    for (const label of model.labels) {
+      const rows = lines.filter((line) => line.split(",")[0] === label);
+      const middle = rows[Math.floor(rows.length / 2)];
+      expect(predictLine(middle, false)).toBe(label);
+      expect(predictLine(middle, true)).toBe(label);
+    }
+  });
+});
