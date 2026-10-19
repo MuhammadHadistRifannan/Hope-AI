@@ -442,7 +442,7 @@ export default function Flexa() {
   // ==================================================================================
   if (currentView === "levels") {
     return (
-      <div className="min-h-screen p-3 md:p-8 max-w-6xl mx-auto">
+      <div className="min-h-screen p-3 md:p-8 w-full max-w-[1680px] mx-auto">
         <PageHeader
           title="Flexa"
           description="Pilih materi, buka kamus isyarat, atau unggah dokumenmu sendiri."
@@ -582,7 +582,7 @@ export default function Flexa() {
   if (currentView === "chapters" && selectedLevel) {
     const levelData = learningPath[selectedLevel];
     return (
-      <div className="min-h-screen p-3 md:p-8 max-w-4xl mx-auto">
+      <div className="min-h-screen p-3 md:p-8 w-full max-w-[1680px] mx-auto">
         <Button variant="outline" onClick={goBack} className="px-btn mb-6">
           <ArrowLeft className="mr-2 h-5 w-5" aria-hidden="true" /> Kembali
         </Button>
@@ -594,7 +594,7 @@ export default function Flexa() {
           </div>
           <h1 className="px-title text-2xl md:text-3xl">Daftar Materi</h1>
         </div>
-        <div className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {chaptersByLevel[selectedLevel].length === 0 && (
             <p className="text-muted-foreground" role="status">Memuat materi…</p>
           )}
@@ -632,12 +632,12 @@ export default function Flexa() {
       extra: "text-4xl leading-tight font-bold",
     };
     return (
-      <div className="min-h-screen p-3 md:p-12 max-w-5xl mx-auto">
+      <div className="min-h-screen p-3 md:p-8 w-full max-w-[1680px] mx-auto">
         <Button variant="outline" onClick={goBack} className="px-btn mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Kembali
         </Button>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 xl:col-span-3 space-y-6">
             <Card className="px-card p-5 sticky top-8">
               <h3 className="px-title text-lg mb-6 flex items-center gap-2">
                 <BrainCircuit className="w-5 h-5 shrink-0" aria-hidden="true" /> Mode Belajar
@@ -753,7 +753,7 @@ export default function Flexa() {
               </DialogContent>
             </Dialog>
           </div>
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-8 xl:col-span-9">
             <Card className="px-card min-h-[60vh] flex flex-col">
               <Tabs
                 value={activeTab}
@@ -789,7 +789,7 @@ export default function Flexa() {
                       >
                         <ScrollArea className="h-[500px] pr-4">
                           <p
-                            className={`${fontSizeClass[textSize]} leading-loose text-slate-700 dark:text-slate-200 transition-all duration-300`}
+                            className={`${fontSizeClass[textSize]} leading-loose text-slate-700 dark:text-slate-200 transition-all duration-300 max-w-[75ch]`}
                           >
                             {selectedChapter.content}
                           </p>
@@ -837,7 +837,7 @@ export default function Flexa() {
                             {simpleTexts[summaryKey] ? (
                               <>
                                 <p
-                                  className={`${fontSizeClass[textSize]} leading-loose whitespace-pre-line text-slate-800 dark:text-slate-100`}
+                                  className={`${fontSizeClass[textSize]} leading-loose whitespace-pre-line text-slate-800 dark:text-slate-100 max-w-[75ch]`}
                                 >
                                   {simpleTexts[summaryKey].text}
                                 </p>

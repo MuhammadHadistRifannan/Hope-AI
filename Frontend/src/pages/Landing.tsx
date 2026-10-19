@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Sparkles, ArrowRight, Star, Zap, CheckCircle2, Gamepad2, Hand } from "lucide-react";
+import { Sparkles, ArrowRight, Star, Zap, CheckCircle2, Gamepad2, Hand, Mic, Keyboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useCallback, useRef, useState } from "react";
@@ -436,6 +436,79 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
             </div>
           </motion.div>
         ))}
+      </section>
+
+      {/* --- BISA DIPAKAI DENGAN SUARA --- */}
+      <section className="px-6 md:px-12 py-20 max-w-7xl mx-auto w-full" aria-labelledby="judul-suara">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7 }}
+          className="flex flex-col md:flex-row items-center gap-12 lg:gap-20"
+        >
+          <div className="flex-1 space-y-6 text-center md:text-left">
+            <div className="inline-block px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-semibold tracking-wide uppercase">
+              Aksesibilitas
+            </div>
+            <h2 id="judul-suara" className="text-3xl md:text-4xl font-bold leading-tight">
+              Bisa dipakai hanya dengan suara
+            </h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Tekan tombol mikrofon atau <kbd className="rounded-md border border-border bg-muted px-1.5 py-0.5 text-base font-semibold">Alt+M</kbd>, lalu
+              ucapkan perintah. Siswa tunanetra atau yang sulit memakai tangan bisa pindah halaman, menekan tombol, dan
+              mendengar isi halaman tanpa menyentuh layar.
+            </p>
+            <ul className="space-y-3 pt-2">
+              {[
+                "Pindah halaman: \"buka EyeRead\", \"buka NeoTutor\"",
+                "Mendengar isi halaman: \"bacakan halaman ini\"",
+                "Menjawab kuis Pathly dengan suara: \"A\", \"B\", atau isi jawabannya",
+              ].map((point) => (
+                <li key={point} className="flex items-center gap-3 justify-center md:justify-start">
+                  <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" aria-hidden="true" />
+                  <span className="text-foreground/80 font-medium">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Ilustrasi: tombol mikrofon dan contoh perintah yang diucapkan */}
+          <div className="flex-1 relative w-full flex justify-center" aria-hidden="true">
+            <div className="absolute inset-[10%] rounded-full bg-gradient-to-tr from-blue-500/20 to-sky-400/20 blur-3xl" />
+            <div className="relative w-full max-w-md rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-2xl">
+              <div className="flex items-center gap-4">
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                >
+                  <Mic className="h-8 w-8" />
+                </motion.div>
+                <div>
+                  <p className="font-bold text-lg">Mendengarkan…</p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    <Keyboard className="h-4 w-4" /> atau tekan Alt+M
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 space-y-3">
+                {["\"buka EyeRead\"", "\"bacakan halaman ini\"", "\"bantuan\""].map((said, i) => (
+                  <motion.p
+                    key={said}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + i * 0.25 }}
+                    className="ml-auto w-fit rounded-2xl rounded-br-md bg-blue-50 dark:bg-blue-900/30 px-4 py-2.5 font-medium text-blue-700 dark:text-blue-300"
+                  >
+                    {said}
+                  </motion.p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* --- CARA PANDANG --- */}

@@ -1,33 +1,22 @@
-// Pilihan bahasa isyarat terakhir, disimpan di perangkat ini saja.
-// language: tombol yang terakhir dipilih. preferred: sistem yang diutamakan
-// mode Otomatis saat ragu (SIBI atau BISINDO terakhir yang dipakai, atau
-// pilihan langsung di mode Otomatis).
+// Pilihan bahasa isyarat terakhir (SIBI atau BISINDO), disimpan di perangkat ini saja.
+// Pilihan lama "otomatis" dari versi sebelumnya kembali ke SIBI.
 
-import type { SignSystem } from "./router";
-
-export type SignLanguage = SignSystem | "otomatis";
-export type SignPreference = { language: SignLanguage; preferred: SignSystem };
+export type SignLanguage = "sibi" | "bisindo";
 
 const KEY = "hopeAiSignLanguage";
-const LANGUAGES: SignLanguage[] = ["sibi", "bisindo", "otomatis"];
 
-export const readSignPreference = (): SignPreference => {
+export const readSignPreference = (): SignLanguage => {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) ?? "{}");
-    const language: SignLanguage = LANGUAGES.includes(saved.language) ? saved.language : "sibi";
-    const preferred: SignSystem =
-      saved.preferred === "sibi" || saved.preferred === "bisindo"
-        ? saved.preferred
-        : language === "bisindo" ? "bisindo" : "sibi";
-    return { language, preferred };
+    return saved.language === "bisindo" ? "bisindo" : "sibi";
   } catch {
-    return { language: "sibi", preferred: "sibi" };
+    return "sibi";
   }
 };
 
-export const saveSignPreference = (preference: SignPreference) => {
+export const saveSignPreference = (language: SignLanguage) => {
   try {
-    localStorage.setItem(KEY, JSON.stringify(preference));
+    localStorage.setItem(KEY, JSON.stringify({ language }));
   } catch {
     // Penyimpanan perangkat tidak tersedia (mode privat); pilihan berlaku selama halaman terbuka
   }

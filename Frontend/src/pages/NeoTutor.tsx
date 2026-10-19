@@ -2,7 +2,7 @@ import { API_URL, authHeaders } from "@/lib/api";
 import { speak, stopSpeech } from "@/lib/speech";
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Send, User, Volume2, Mic, MicOff, Plus, BookOpen, X, Bot } from "lucide-react";
+import { Send, User, Volume2, Mic, MicOff, Plus, BookOpen, X, Bot, MessageSquare, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
@@ -336,7 +336,7 @@ export default function NeoTutor() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto"
+        className="w-full max-w-[1680px] mx-auto"
       >
         <PageHeader
           title="NeoTutor"
@@ -346,8 +346,69 @@ export default function NeoTutor() {
           compact
         />
 
-        {/* Pilih percakapan: tiap percakapan diingat terpisah */}
-        <div className="flex gap-2 mb-3 md:mb-4">
+        {/* Layar lebar: daftar percakapan dan contoh pertanyaan di kiri, obrolan di kanan */}
+        <div className="xl:grid xl:grid-cols-[320px_minmax(0,1fr)] xl:gap-6 xl:items-start">
+        <aside aria-label="Percakapan" className="hidden xl:flex px-card h-[calc(100dvh-12rem)] min-h-[600px] flex-col overflow-hidden">
+          <div className="p-4 border-b border-border">
+            <Button onClick={startNewSession} disabled={isTyping} className="px-btn w-full h-11">
+              <Plus className="w-4 h-4 mr-2" aria-hidden="true" /> Percakapan Baru
+            </Button>
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto p-3">
+            <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Riwayat</p>
+            {sessions.length === 0 ? (
+              <p className="px-2 text-sm text-muted-foreground">Belum ada percakapan tersimpan.</p>
+            ) : (
+              <ul className="space-y-1">
+                {sessions.map((session) => {
+                  const active = session.id === sessionId;
+                  return (
+                    <li key={session.id}>
+                      <button
+                        type="button"
+                        onClick={() => openSession(session.id)}
+                        aria-current={active ? "true" : undefined}
+                        disabled={isTyping}
+                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60 ${
+                          active ? "bg-primary/10 font-semibold text-primary" : "hover:bg-muted"
+                        }`}
+                      >
+                        {session.hasMaterial ? (
+                          <BookOpen className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        ) : (
+                          <MessageSquare className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        )}
+                        <span className="truncate">{session.title}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+          <div className="border-t border-border p-4">
+            <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <Lightbulb className="h-4 w-4" aria-hidden="true" /> Contoh pertanyaan
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {quickQuestions.map((question) => (
+                <button
+                  key={question}
+                  type="button"
+                  onClick={() => sendMessage(question)}
+                  disabled={isTyping}
+                  className="rounded-xl border border-border px-3 py-2 text-left text-sm hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0">
+        {/* Pilih percakapan: tiap percakapan diingat terpisah (di layar lebar ada di panel kiri) */}
+        <div className="flex gap-2 mb-3 md:mb-4 xl:hidden">
           <Select value={sessionId ?? ""} onValueChange={openSession}>
             <SelectTrigger className="flex-1 min-w-0 h-11 rounded-xl border border-border bg-card font-semibold" aria-label="Pilih percakapan">
               <SelectValue placeholder="Percakapan baru" />
@@ -372,29 +433,29 @@ export default function NeoTutor() {
           </Button>
         </div>
 
-        {/* Penanda bahwa jawaban NeoTutor didasarkan pada satu materi */}
-        {materialTitle && (
-          <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-border bg-primary/10" role="status">
-            <BookOpen className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" />
-            <p className="flex-1 min-w-0 text-sm">
-              <span className="text-muted-foreground">Membahas materi: </span>
-              <span className="font-medium">{materialTitle}</span>
-            </p>
-            {pendingContext && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 flex-shrink-0"
-                onClick={startNewSession}
-                aria-label="Batalkan pembahasan materi ini"
-              >
-                <X className="w-4 h-4" aria-hidden="true" />
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="px-card h-[calc(100dvh-12rem)] min-h-[22rem] md:h-[600px] xl:h-[calc(100dvh-12rem)] xl:min-h-[600px] flex flex-col overflow-hidden">
+          {/* Penanda bahwa jawaban NeoTutor didasarkan pada satu materi */}
+          {materialTitle && (
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-primary/10" role="status">
+              <BookOpen className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" />
+              <p className="flex-1 min-w-0 text-sm">
+                <span className="text-muted-foreground">Membahas materi: </span>
+                <span className="font-medium">{materialTitle}</span>
+              </p>
+              {pendingContext && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 flex-shrink-0"
+                  onClick={startNewSession}
+                  aria-label="Batalkan pembahasan materi ini"
+                >
+                  <X className="w-4 h-4" aria-hidden="true" />
+                </Button>
+              )}
+            </div>
+          )}
 
-        <div className="px-card h-[calc(100dvh-12rem)] min-h-[22rem] md:h-[600px] flex flex-col overflow-hidden">
           {/* Chat Messages */}
           <ScrollArea className="flex-1 p-3 md:p-6">
             <div className="space-y-4" role="log" aria-live="polite" aria-label="Percakapan dengan NeoTutor">
@@ -412,7 +473,7 @@ export default function NeoTutor() {
                     </div>
                   )}
 
-                  <div className="flex flex-col gap-1 max-w-[85%] md:max-w-[80%]">
+                  <div className="flex flex-col gap-1 max-w-[85%] md:max-w-[80%] xl:max-w-[min(80%,72ch)]">
                     <div
                       className={`rounded-2xl px-4 py-3 ${
                         message.role === "user"
@@ -476,7 +537,7 @@ export default function NeoTutor() {
 
           {/* Quick Questions */}
           {/* Saran pertanyaan: di ponsel hanya tampil sebelum percakapan dimulai, supaya ruang obrolan lega */}
-          <div className={`px-3 md:px-6 py-2 md:py-3 border-t border-border ${messages.some((m) => m.role === "user") ? "hidden md:block" : ""}`}>
+          <div className={`px-3 md:px-6 py-2 md:py-3 border-t border-border xl:hidden ${messages.some((m) => m.role === "user") ? "hidden md:block" : ""}`}>
             <div className="flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible md:mb-3">
               {quickQuestions.map((question) => (
                 <Button
@@ -537,6 +598,8 @@ export default function NeoTutor() {
               </Button>
             </form>
           </div>
+        </div>
+        </div>
         </div>
       </motion.div>
     </div>

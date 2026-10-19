@@ -7,6 +7,30 @@ export const VOICE_EVENT = "hopeai:voice";
 // Meminta asisten suara mulai mendengarkan, dari tombol mana pun di aplikasi
 export const VOICE_TOGGLE_EVENT = "hopeai:voice-toggle";
 export const requestVoiceInput = () => window.dispatchEvent(new Event(VOICE_TOGGLE_EVENT));
+// Menjalankan perintah seolah-olah diucapkan, misalnya dari tombol contoh perintah di Beranda
+export const VOICE_RUN_EVENT = "hopeai:voice-run";
+export const runVoiceCommand = (text: string) =>
+  window.dispatchEvent(new CustomEvent<string>(VOICE_RUN_EVENT, { detail: text }));
+
+// Pengenalan perintah suara untuk pengguna baru. Disimpan di perangkat ini saja:
+// "used" = pernah memberi perintah suara, "intro" = perkenalannya sudah ditutup.
+const VOICE_FLAGS = { used: "hopeVoiceUsed", intro: "hopeVoiceIntroSeen" } as const;
+export const VOICE_FLAG_EVENT = "hopeai:voice-flag";
+export const readVoiceFlag = (flag: keyof typeof VOICE_FLAGS) => {
+  try {
+    return localStorage.getItem(VOICE_FLAGS[flag]) === "1";
+  } catch {
+    return false;
+  }
+};
+export const setVoiceFlag = (flag: keyof typeof VOICE_FLAGS) => {
+  try {
+    localStorage.setItem(VOICE_FLAGS[flag], "1");
+  } catch {
+    // Penyimpanan perangkat tidak tersedia; penanda hanya berlaku selama halaman terbuka
+  }
+  window.dispatchEvent(new Event(VOICE_FLAG_EVENT));
+};
 
 // Kata basa-basi di awal dan akhir kalimat dibuang, supaya "tolong buka flexa dong"
 // diperlakukan sama dengan "buka flexa".

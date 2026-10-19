@@ -38,3 +38,6 @@ contoh-suara/
 
 # Python
 __pycache__/
+
+# Kredensial OAuth (Google Cloud dan lainnya): jangan pernah di-commit
+client_secret_*.json

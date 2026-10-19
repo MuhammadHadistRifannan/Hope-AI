@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Keyboard, Mic, MicOff, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useSettings } from "@/context/SettingsContext";
 import { isSpeaking, speak, stopSpeech } from "@/lib/speech";
 import {
@@ -13,7 +14,14 @@ import {
   pageHelp,
   visibleControls,
   VOICE_TOGGLE_EVENT,
+  VOICE_RUN_EVENT,
+  VOICE_FLAG_EVENT,
+  readVoiceFlag,
+  setVoiceFlag,
 } from "@/lib/voiceCommands";
+
+// Contoh perintah di perkenalan untuk pengguna baru
+const INTRO_EXAMPLES = ["buka NeoTutor", "bacakan halaman ini", "bantuan"];
 
 // Tombol yang akibatnya sulit dibatalkan hanya ditekan bila diminta dengan jelas
 // ("pilih hapus ..."), tidak dari ucapan sepintas.
@@ -25,10 +33,15 @@ const rateSteps = ["slow", "normal", "fast"];
 export default function VoiceAssistant() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { volume, speakingRate, aiVoice, autoPlayAudio, textSize, updateSetting, needs } = useSettings();
+  const { volume, speakingRate, aiVoice, autoPlayAudio, textSize, updateSetting, needs, needsOnboarding, effectiveReduceMotion } = useSettings();
   // Pengguna yang lebih nyaman mengetik tidak diberi tombol mikrofon (Alt+M tetap bisa dipakai)
   const showButton = !needs.includes("wicara");
   const [isListening, setIsListening] = useState(false);
+  // Pengguna baru: tombol diberi label dan denyut halus sampai perintah suara pertama
+  // kali dipakai, dan sekali diperkenalkan lewat balon setelah onboarding selesai.
+  const [used, setUsed] = useState(() => readVoiceFlag("used"));
+  const [introSeen, setIntroSeen] = useState(() => readVoiceFlag("intro"));
+  const [showIntro, setShowIntro] = useState(false);
   const [status, setStatus] = useState("");
   const recognitionRef = useRef<any>(null);
   const lastSaid = useRef("");
@@ -372,6 +385,8 @@ export default function VoiceAssistant() {
   }, [continuous]);
 
   const toggle = useCallback(() => {
+    setVoiceFlag("used");
+    setShowIntro(false);
     if (recognitionRef.current) {
       // Menekan tombol saat mendengarkan terus berarti mematikan mode itu
       setContinuous(false);
@@ -405,17 +420,55 @@ export default function VoiceAssistant() {
     };
   }, [toggle]);
 
-  // Di ponsel, kolom ketik NeoTutor ada di bawah layar. Tombol perintah suara pindah ke
-  // pojok kanan atas (sejajar judul) supaya tidak menutupinya; balon status muncul di bawahnya.
-  const topOnPhone = location.pathname === "/neotutor";
-  const size = topOnPhone ? "w-12 h-12 md:w-14 md:h-14" : "w-14 h-14";
+  // Perintah dari tombol contoh (misalnya di Beranda) dijalankan seperti ucapan
+  useEffect(() => {
+    const onRun = (event: Event) => {
+      setVoiceFlag("used");
+      handleCommand((event as CustomEvent<string>).detail);
+    };
+    window.addEventListener(VOICE_RUN_EVENT, onRun);
+    return () => window.removeEventListener(VOICE_RUN_EVENT, onRun);
+  }, [handleCommand]);
+
+  // Penanda bisa berubah dari komponen lain (kartu di Beranda, balon perkenalan)
+  useEffect(() => {
+    const sync = () => {
+      setUsed(readVoiceFlag("used"));
+      setIntroSeen(readVoiceFlag("intro"));
+    };
+    window.addEventListener(VOICE_FLAG_EVENT, sync);
+    return () => window.removeEventListener(VOICE_FLAG_EVENT, sync);
+  }, []);
+
+  // Perkenalan muncul sekali, setelah onboarding selesai dan tidak ada dialog lain terbuka
+  useEffect(() => {
+    if (!showButton || used || introSeen || needsOnboarding) {
+      setShowIntro(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (!document.querySelector('[role="dialog"]')) setShowIntro(true);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [showButton, used, introSeen, needsOnboarding, location.pathname]);
+
+  const closeIntro = () => {
+    setShowIntro(false);
+    setVoiceFlag("intro");
+  };
+
+  // Di NeoTutor kolom ketik dan tombol kirim ada di bawah kanan. Tombol perintah suara
+  // pindah ke pojok kanan atas (sejajar judul) supaya tidak menutupinya, di ponsel maupun
+  // layar lebar; balon status dan perkenalan muncul di bawahnya.
+  const topRight = location.pathname === "/neotutor";
+  const size = topRight ? "w-12 h-12 md:w-14 md:h-14" : "w-14 h-14";
 
   return (
     <div
       data-voice-ignore
       className={`fixed z-50 flex items-end gap-2 ${
-        topOnPhone
-          ? "top-[max(0.5rem,env(safe-area-inset-top))] right-3 flex-col-reverse md:top-auto md:bottom-6 md:right-6 md:flex-col"
+        topRight
+          ? "top-[max(0.5rem,env(safe-area-inset-top))] right-3 md:top-6 md:right-6 flex-col-reverse"
           : "bottom-24 md:bottom-6 right-4 md:right-6 flex-col"
       }`}
     >
@@ -430,6 +483,54 @@ export default function VoiceAssistant() {
       >
         {status}
       </p>
+      {showIntro && (
+        <section
+          aria-labelledby="perkenalan-suara"
+          onKeyDown={(event) => event.key === "Escape" && closeIntro()}
+          className="w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-2xl"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <h2 id="perkenalan-suara" className="flex items-center gap-2 font-bold">
+              <Mic className="h-5 w-5 text-primary" aria-hidden="true" /> Pakai Hope.Ai dengan suara
+            </h2>
+            <button
+              type="button"
+              onClick={closeIntro}
+              aria-label="Tutup perkenalan perintah suara"
+              className="-mr-1 -mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Tekan tombol mikrofon atau <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs font-semibold">Alt+M</kbd>, lalu
+            ucapkan perintah. Kamu bisa pindah halaman dan menekan tombol tanpa menyentuh layar.
+          </p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Coba bilang</p>
+          <ul className="mt-1.5 flex flex-wrap gap-1.5">
+            {INTRO_EXAMPLES.map((example) => (
+              <li key={example} className="rounded-full bg-primary/10 px-2.5 py-1 text-sm font-medium text-primary">
+                "{example}"
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex gap-2">
+            <Button
+              size="sm"
+              className="flex-1 rounded-xl"
+              onClick={() => {
+                closeIntro();
+                toggle();
+              }}
+            >
+              <Mic className="mr-1.5 h-4 w-4" aria-hidden="true" /> Coba sekarang
+            </Button>
+            <Button size="sm" variant="outline" className="rounded-xl" onClick={closeIntro}>
+              Nanti
+            </Button>
+          </div>
+        </section>
+      )}
       {typing && (
         <form onSubmit={submitTyped} className="flex items-center gap-1 rounded-xl bg-card border shadow-lg p-1.5" role="search" aria-label="Perintah ketik">
           <label htmlFor="typed-command" className="sr-only">
@@ -470,6 +571,12 @@ export default function VoiceAssistant() {
         </button>
       )}
       {showButton && (
+        <div className="flex items-center gap-2">
+          {!used && !isListening && (
+            <span aria-hidden="true" className="rounded-full bg-foreground px-3 py-1.5 text-sm font-semibold text-background shadow-lg">
+              Perintah suara
+            </span>
+          )}
       <button
         type="button"
         onClick={toggle}
@@ -480,16 +587,21 @@ export default function VoiceAssistant() {
             : "Perintah suara. Tekan lalu bicara, atau tekan Alt M atau Ctrl M. Katakan bantuan untuk daftar perintah."
         }
         title="Perintah suara (Alt+M atau Ctrl+M)"
-        className={`${size} flex items-center justify-center rounded-xl border border-border shadow-sm text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400 ${
+        className={`relative ${size} flex items-center justify-center rounded-xl border border-border shadow-sm text-white focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400 ${
           isListening ? "bg-red-600 animate-pulse" : "bg-primary hover:brightness-110"
         }`}
       >
+        {/* Denyut halus untuk pengguna yang belum pernah memakai perintah suara */}
+        {!used && !isListening && !effectiveReduceMotion && (
+          <span aria-hidden="true" className="absolute inset-0 rounded-xl bg-primary/60 animate-ping" />
+        )}
         {isListening ? (
           <MicOff className="w-6 h-6" aria-hidden="true" />
         ) : (
           <Mic className="w-6 h-6" aria-hidden="true" />
         )}
       </button>
+        </div>
       )}
     </div>
   );

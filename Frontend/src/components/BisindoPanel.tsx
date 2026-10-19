@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import confetti from "canvas-confetti";
-import { Delete, Download, Eraser, Pause, Play, SkipForward, Volume2 } from "lucide-react";
+import { Delete, Eraser, Hand, LayoutGrid, Play, SkipForward, Sun, UserRound, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BisindoDictionary, { BisindoCredit } from "@/components/BisindoDictionary";
 import type { RawFrame, WordModel, WordPrediction } from "@/lib/sign/bisindo";
-import { BISINDO_WORDS, bisindoVideo, bisindoWord, differenceBetween } from "@/lib/sign/bisindoWords";
+import { BISINDO_GROUPS, BISINDO_WORDS, bisindoVideo, bisindoWord, differenceBetween, type BisindoGroup } from "@/lib/sign/bisindoWords";
 
 export const WORD_MIN_CONFIDENCE = 0.6;
 const NEXT_WORD_DELAY_MS = 3000;
@@ -21,26 +19,24 @@ type Props = {
   model: WordModel | null;
   modelChecked: boolean;
   cameraOn: boolean;
-  trackingReady: boolean;
   result: SignResult | null;
-  isStaff: boolean;
   onTargetChange: (word: string | null) => void;
   say: (text: string) => void;
   speak: (text: string) => void;
 };
 
-type Clip = { label: string; signer: string; frames: RawFrame[] };
-
 const PRAISES = ["Hebat! Isyaratmu jelas.", "Luar biasa, tepat sekali!", "Mantap! Terus berlatih, ya.", "Keren, gerakanmu pas!"];
 const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
-const round = (v: number) => Math.round(v * 100) / 100;
 
 export default function BisindoPanel({
-  mode, onModeChange, model, modelChecked, cameraOn, trackingReady, result, isStaff, onTargetChange, say, speak,
+  mode, onModeChange, model, modelChecked, cameraOn, result, onTargetChange, say, speak,
 }: Props) {
   const words = useMemo(() => (model ? BISINDO_WORDS.map((w) => w.label).filter((l) => model.labels.includes(l)) : []), [model]);
 
-  // Latihan
+  // Latihan: kata diambil dari kelompok yang dipilih
+  const [group, setGroup] = useState<BisindoGroup | "Semua">("Semua");
+  const groupOf = (label: string) => bisindoWord(label)?.group;
+  const pool = useMemo(() => (group === "Semua" ? words : words.filter((w) => groupOf(w) === group)), [words, group]);
   const [target, setTarget] = useState<string | null>(null);
   const [hint, setHint] = useState("");
   const [success, setSuccess] = useState<string | null>(null);
@@ -50,12 +46,6 @@ export default function BisindoPanel({
   // Isyarat ke Suara
   const [sentence, setSentence] = useState<string[]>([]);
 
-  // Rekam Data
-  const [signer, setSigner] = useState("");
-  const [recordLabel, setRecordLabel] = useState(BISINDO_WORDS[0].label);
-  const [customLabel, setCustomLabel] = useState("");
-  const [recording, setRecording] = useState(false);
-  const [clips, setClips] = useState<Clip[]>([]);
 
   useEffect(() => () => clearTimeout(nextTimer.current), []);
   useEffect(() => onTargetChange(mode === "latihan" && !success ? target : null), [mode, target, success, onTargetChange]);
@@ -64,8 +54,8 @@ export default function BisindoPanel({
     clearTimeout(nextTimer.current);
     setSuccess(null);
     setHint("");
-    const pool = words.length > 1 ? words.filter((w) => w !== target) : words;
-    const next = word ?? (pool.length ? pick(pool) : null);
+    const choices = pool.length > 1 ? pool.filter((w) => w !== target) : pool;
+    const next = word ?? (choices.length ? pick(choices) : null);
     setTarget(next);
     if (next) say(`Peragakan ${next.toLowerCase()}.`);
   };
@@ -82,14 +72,6 @@ export default function BisindoPanel({
     handled.current = result.id;
     const guess = result.prediction;
     const confident = guess !== null && guess.confidence >= WORD_MIN_CONFIDENCE;
-
-    if (mode === "rekam") {
-      if (!recording) return;
-      const label = (customLabel.trim() || recordLabel).replace(/\s+/g, " ");
-      const name = signer.trim().replace(/[\s,]+/g, "-") || "tanpa-nama";
-      setClips((all) => [...all, { label, signer: name, frames: result.frames }]);
-      return;
-    }
 
     if (mode === "eja") {
       if (!confident) return;
@@ -117,33 +99,7 @@ export default function BisindoPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
 
-  const downloadClips = () => {
-    const data = {
-      format: "hopeai-bisindo-rekaman",
-      version: 1,
-      clips: clips.map((clip) => ({
-        ...clip,
-        frames: clip.frames.map((f) => ({
-          t: round(f.t),
-          hands: f.hands.map((h) => h.map((p) => ({ x: round(p.x), y: round(p.y), z: round(p.z) }))),
-          pose: f.pose.map((p) => ({ x: round(p.x), y: round(p.y), z: round(p.z) })),
-        })),
-      })),
-    };
-    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `rekaman_bisindo_${(signer.trim() || "tanpa-nama").replace(/\s+/g, "-")}.json`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
   const targetWord = target ? bisindoWord(target) : undefined;
-  const perLabel = clips.reduce<Record<string, number>>((count, clip) => {
-    count[clip.label] = (count[clip.label] ?? 0) + 1;
-    return count;
-  }, {});
-  const activeRecordLabel = customLabel.trim() || recordLabel;
 
   return (
     <Tabs value={mode} onValueChange={onModeChange}>
@@ -151,10 +107,9 @@ export default function BisindoPanel({
         <TabsTrigger value="latihan" className="px-tab flex-1">Latihan</TabsTrigger>
         <TabsTrigger value="eja" className="px-tab flex-1">Isyarat ke Suara</TabsTrigger>
         <TabsTrigger value="kamus" className="px-tab flex-1">Kamus</TabsTrigger>
-        {isStaff && <TabsTrigger value="rekam" className="px-tab flex-1">Rekam Data</TabsTrigger>}
       </TabsList>
 
-      {modelChecked && !model && mode !== "rekam" && mode !== "kamus" && (
+      {modelChecked && !model && mode !== "kamus" && (
         <div className="px-well p-4" role="status">
           <p className="font-medium mb-1">Pengenal kata belum tersedia</p>
           <p className="text-sm text-muted-foreground">
@@ -165,15 +120,68 @@ export default function BisindoPanel({
 
       <TabsContent value="latihan">
         {model && !target && (
-          <div className="text-center py-6">
-            <p className="text-lg font-medium mb-2">Latihan kata dasar BISINDO</p>
-            <p className="text-muted-foreground mb-6">
-              Akan muncul satu kata beserta videonya. Peragakan isyaratnya di depan kamera dengan badan dan bahu
-              terlihat, lalu turunkan tangan. Setelah tangan turun, gerakanmu dibaca.
-            </p>
-            <Button size="lg" onClick={() => startWord()} className="px-btn">
-              <Play className="w-5 h-5 mr-2" aria-hidden="true" /> Mulai Berlatih
-            </Button>
+          <div className="py-2">
+            <div className="text-center">
+              <p className="px-title text-2xl md:text-3xl">Latihan kata BISINDO</p>
+              <p className="text-muted-foreground text-base md:text-lg mt-2 max-w-md mx-auto">
+                Akan muncul satu kata beserta video contohnya. Peragakan isyaratnya, lalu turunkan tangan supaya gerakanmu dibaca.
+              </p>
+            </div>
+
+            {/* Pilih kelompok kata yang ingin dilatih */}
+            <div className="mt-6" role="group" aria-label="Kelompok kata yang dilatih">
+              <p className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
+                <LayoutGrid className="w-4 h-4" aria-hidden="true" /> Pilih kelompok kata
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(["Semua", ...BISINDO_GROUPS] as const).map((option) => {
+                  const count = option === "Semua" ? words.length : words.filter((w) => groupOf(w) === option).length;
+                  if (count === 0) return null;
+                  const active = group === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setGroup(option)}
+                      aria-pressed={active}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                        active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/50 hover:bg-primary/5"
+                      }`}
+                    >
+                      {option}
+                      <span className={`rounded-full px-2 py-0.5 text-xs ${active ? "bg-white/20" : "bg-muted text-muted-foreground"}`}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-6 text-center">
+              <Button size="lg" onClick={() => startWord()} disabled={pool.length === 0} className="px-btn h-14 px-10 text-lg">
+                <Play className="w-5 h-5 mr-2" aria-hidden="true" /> Mulai Berlatih
+              </Button>
+              <p className="text-sm text-muted-foreground mt-3">
+                {group === "Semua" ? `${pool.length} kata siap dilatih` : `${pool.length} kata dari kelompok ${group}`}
+                {!cameraOn && " · nyalakan kamera di sebelah kiri"}
+              </p>
+            </div>
+            {/* Tips supaya kamera bisa membaca gerakan */}
+            <ul className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3" aria-label="Tips sebelum mulai">
+              {[
+                { icon: UserRound, title: "Badan terlihat", text: "Kepala, bahu, dan kedua tangan masuk kamera." },
+                { icon: Sun, title: "Cahaya cukup", text: "Hadap ke sumber cahaya, jangan membelakangi jendela." },
+                { icon: Hand, title: "Turunkan tangan", text: "Setelah satu kata, turunkan tangan supaya dibaca." },
+              ].map((tip) => (
+                <li key={tip.title} className="rounded-2xl border border-border bg-muted/40 p-4">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300" aria-hidden="true">
+                    <tip.icon className="h-5 w-5" />
+                  </span>
+                  <p className="mt-3 font-semibold">{tip.title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground leading-snug">{tip.text}</p>
+                </li>
+              ))}
+            </ul>
+
           </div>
         )}
 
@@ -214,7 +222,21 @@ export default function BisindoPanel({
                 <SkipForward className="w-4 h-4 mr-2" aria-hidden="true" /> Ganti Kata
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground mt-4">Kata berhasil diperagakan: {solved}</p>
+            <p className="text-sm text-muted-foreground mt-4">
+              Kata berhasil diperagakan: {solved} · Kelompok: {group}{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  clearTimeout(nextTimer.current);
+                  setTarget(null);
+                  setSuccess(null);
+                  setHint("");
+                }}
+                className="font-semibold text-primary underline underline-offset-4 min-h-11 px-1"
+              >
+                Ganti kelompok
+              </button>
+            </p>
           </div>
         )}
       </TabsContent>
@@ -248,87 +270,6 @@ export default function BisindoPanel({
         <BisindoDictionary practicable={new Set(model?.labels ?? [])} onPractice={practiceWord} onSpeak={speak} />
       </TabsContent>
 
-      {isStaff && (
-        <TabsContent value="rekam">
-          <p className="text-sm text-muted-foreground mb-4">
-            Merekam contoh kata BISINDO untuk melatih ulang model dengan <code className="mx-1">ml/bisindo/train.py</code>.
-            Yang disimpan hanya posisi titik tangan dan tubuh, bukan gambar. Selama perekaman aktif, setiap isyarat yang
-            selesai (tangan diturunkan) tersimpan sebagai satu contoh. Rekam sekitar 30 contoh per kata dari beberapa
-            orang.
-          </p>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="bisindo-signer">Nama peraga</Label>
-              <Input
-                id="bisindo-signer"
-                className="h-11 rounded-xl border border-border bg-card"
-                value={signer}
-                onChange={(e) => setSigner(e.target.value)}
-                placeholder="Contoh: peraga-1"
-              />
-            </div>
-            <div>
-              <p className="text-sm font-medium mb-2">Kata yang direkam</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1" role="group" aria-label="Pilih kata">
-                {BISINDO_WORDS.map((word) => (
-                  <Button
-                    key={word.slug}
-                    size="sm"
-                    variant={!customLabel.trim() && word.label === recordLabel ? "default" : "outline"}
-                    aria-pressed={!customLabel.trim() && word.label === recordLabel}
-                    onClick={() => {
-                      setCustomLabel("");
-                      setRecordLabel(word.label);
-                    }}
-                    className="px-btn relative"
-                  >
-                    {word.label}
-                    {perLabel[word.label] ? (
-                      <span className="absolute -top-1.5 -right-1.5 text-[10px] leading-none px-1 py-0.5 border border-foreground bg-emerald-600 text-white">
-                        {perLabel[word.label]}
-                      </span>
-                    ) : null}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bisindo-custom">Atau kata baru</Label>
-              <Input
-                id="bisindo-custom"
-                className="h-11 rounded-xl border border-border bg-card"
-                value={customLabel}
-                onChange={(e) => setCustomLabel(e.target.value)}
-                placeholder="Contoh: Nama, Umur, Hobi"
-              />
-              {customLabel.trim() && (
-                <p className="text-sm text-muted-foreground">
-                  Contoh "{customLabel.trim()}": {perLabel[customLabel.trim()] ?? 0}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button className="px-btn" onClick={() => setRecording((on) => !on)} disabled={!trackingReady}>
-                {recording ? <Pause className="w-4 h-4 mr-2" aria-hidden="true" /> : <Play className="w-4 h-4 mr-2" aria-hidden="true" />}
-                {recording ? "Jeda Perekaman" : `Mulai Rekam "${activeRecordLabel}"`}
-              </Button>
-              <Button className="px-btn" variant="outline" onClick={() => setClips((all) => all.slice(0, -1))} disabled={!clips.length}>
-                <Delete className="w-4 h-4 mr-2" aria-hidden="true" /> Hapus Contoh Terakhir
-              </Button>
-              <Button className="px-btn" variant="outline" onClick={downloadClips} disabled={!clips.length}>
-                <Download className="w-4 h-4 mr-2" aria-hidden="true" /> Unduh JSON ({clips.length} contoh)
-              </Button>
-            </div>
-            <p className="text-sm font-medium" aria-live="polite">
-              {!trackingReady
-                ? "Nyalakan kamera untuk mulai merekam."
-                : recording
-                ? `Merekam "${activeRecordLabel}". Peragakan, lalu turunkan tangan.`
-                : "Perekaman dijeda."}
-            </p>
-          </div>
-        </TabsContent>
-      )}
     </Tabs>
   );
 }

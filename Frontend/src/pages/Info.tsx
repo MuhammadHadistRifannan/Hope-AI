@@ -109,6 +109,11 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
                 <strong>Supabase</strong> menyimpan akun dan data belajar.
               </>,
               <>
+                <strong>Google, Facebook, atau Apple</strong>, hanya bila kamu memilih masuk dengan akun itu. Hope.Ai menerima
+                nama, alamat email, dan foto profil dari akun tersebut, tidak menerima password-nya, dan tidak memposting apa
+                pun atas namamu.
+              </>,
+              <>
                 <strong>Google Gemini</strong> menerima pertanyaanmu ke NeoTutor, teks materi yang dibahas, foto untuk dibaca
                 EyeRead, dan teks yang diminta dibacakan, untuk menghasilkan jawaban, ringkasan, kuis, dan suara.
               </>,

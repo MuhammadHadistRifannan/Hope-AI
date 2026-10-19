@@ -8,7 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/context/SettingsContext";
 import { useRoles } from "@/hooks/use-roles";
-import { requestVoiceInput } from "@/lib/voiceCommands";
+import { requestVoiceInput, runVoiceCommand } from "@/lib/voiceCommands";
 import AccessibilityBar from "@/components/AccessibilityBar";
 import FeatureCards, { features } from "@/components/FeatureCards";
 
@@ -169,6 +169,40 @@ export default function Dashboard() {
             <Mic className="h-6 w-6 shrink-0" aria-hidden="true" />
             Tekan lalu ucapkan perintah (Alt+M). Katakan "bantuan" untuk daftar perintah
           </button>
+        </section>
+      )}
+
+      {/* Perintah suara untuk semua pengguna: contoh yang bisa langsung dicoba dengan sekali klik */}
+      {!linear && !typingFirst && (
+        <section aria-labelledby="judul-coba-suara" className="px-card p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4">
+          <button
+            type="button"
+            onClick={requestVoiceInput}
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40"
+            aria-label="Mulai perintah suara"
+          >
+            <Mic className="h-7 w-7" aria-hidden="true" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <h2 id="judul-coba-suara" className="px-title text-lg md:text-xl">
+              Pakai Hope.Ai dengan suara
+            </h2>
+            <p className={`mt-1 text-muted-foreground ${prose}`}>
+              Tekan mikrofon atau <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs font-semibold">Alt+M</kbd>, lalu ucapkan perintah. Atau klik contoh di bawah untuk melihat hasilnya.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["buka EyeRead", "buka NeoTutor", "bacakan halaman ini", "bantuan"].map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  onClick={() => runVoiceCommand(example)}
+                  className="inline-flex min-h-10 items-center rounded-full border border-primary/30 px-3.5 text-sm font-medium text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  "{example}"
+                </button>
+              ))}
+            </div>
+          </div>
         </section>
       )}
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import AuthShell, { AuthField, authFieldButton, authLink, authSubmit } from "@/components/AuthShell";
+import SocialLogin from "@/components/SocialLogin";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { nextPath } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,6 +126,12 @@ export default function Auth() {
 
   return (
     <AuthShell title={copy.title} description={copy.description}>
+      {/* Google, Facebook, Apple: hanya penyedia yang diaktifkan di VITE_AUTH_PROVIDERS */}
+      {mode !== "lupa" && (
+        <div className="mb-5">
+          <SocialLogin next={next} />
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-5">
         {mode === "daftar" && (
           <AuthField
