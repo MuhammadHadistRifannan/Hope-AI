@@ -90,14 +90,8 @@ export const HELP_ENTRIES: HelpEntry[] = [
     id: "pembuat",
     question: "Siapa yang membuat Hope.Ai?",
     keywords: ["siapa", "siapa yang membuat", "siapa pembuat", "membuat", "pembuat", "dibuat", "tim", "developer", "pengembang", "uinic", "lomba", "kode sumber", "github", "kontak", "hubungi"],
-    answer: "Hope.Ai dibuat oleh tim mahasiswa untuk UINIC 8.0. Kode sumbernya terbuka; sumber dan kredit yang dipakai ada di halaman Kredit.",
+    answer: "Hope.Ai dibuat oleh tim mahasiswa katanyainivibecodersemua untuk UINIC 8.0. Kode sumbernya terbuka; sumber dan kredit yang dipakai ada di halaman Kredit.",
     link: { label: "Lihat Kredit dan Sumber", to: "/kredit" },
-  },
-  {
-    id: "permainan",
-    question: "Hope Run itu apa?",
-    keywords: ["hope run", "game", "permainan", "main", "arcade"],
-    answer: "Hope Run adalah permainan kecil di bagian Hope Arcade halaman ini: penguin berlari, melompati rintangan, dan mengumpulkan bintang. Ada Mode Bantuan dan tombol yang bisa diperbesar.",
   },
 ];
 

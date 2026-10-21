@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { Sparkles, ArrowRight, Star, Zap, CheckCircle2, Gamepad2, Hand, Mic, Keyboard } from "lucide-react";
+import { Sparkles, ArrowRight, Star, Zap, CheckCircle2, Hand, Mic, Keyboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useCallback, useRef, useState } from "react";
+
 import Footer from "@/components/Footer";
 import HelpChat from "@/components/HelpChat";
-import HopeRun from "@/components/HopeRun";
+import WindowFlight from "@/components/landing/WindowFlight";
 import { useSettings } from "@/context/SettingsContext";
 
 // --- KONFIGURASI DATA FITUR DENGAN GIF ---
@@ -76,8 +76,9 @@ const features = [
     description:
       "Pelajari abjad jari SIBI dari kamus bergambar dan video, lalu latih langsung di depan kamera. Kamera mengenali huruf yang kamu peragakan dan membacakannya.",
     href: "/isyarat",
-    // Belum ada animasi GIF; memakai ilustrasi kartu huruf
-    gif: "",
+    // Tangan memperagakan abjad jari di layar ponsel. Animated WebP berlatar transparan, dibuat
+    // dari ilustrasi-isyarat.gif (SignArt dipakai bila gambar gagal dimuat)
+    gif: "/anim/ilustrasi-isyarat.webp",
     // Kelas warna yang dibentuk dari "purple" (ditulis lengkap supaya Tailwind membuatnya):
     // bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-purple-500
     color: "purple",
@@ -137,25 +138,7 @@ const SignArt = () => (
 
 // --- MAIN PAGE ---
 export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }) {
-  const targetRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: targetRef,
-    offset: ["start start", "end start"],
-  });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const y = useTransform(scrollYProgress, [0, 0.5], [0, 100]);
-
-  const penguinGif = "/gif/animasi-home.gif";
-
   const { effectiveReduceMotion, screenReaderMode } = useSettings();
-  // Hope Run dibuka di atas halaman; setelah ditutup fokus kembali ke tombol pembukanya
-  const [arcadeOpen, setArcadeOpen] = useState(false);
-  const arcadeButton = useRef<HTMLButtonElement>(null);
-  const closeArcade = useCallback(() => {
-    setArcadeOpen(false);
-    requestAnimationFrame(() => arcadeButton.current?.focus());
-  }, []);
 
   const startHref = isLoggedIn ? "/" : "/auth?mode=signup";
   // Tombol "Coba" membuka fiturnya langsung; yang belum punya akun mendaftar dulu lalu diteruskan ke sana
@@ -170,7 +153,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
   };
 
   return (
-    <div data-landing className="min-h-screen relative font-sans selection:bg-primary/20 overflow-x-hidden flex flex-col">
+    <div data-landing className="min-h-screen relative font-sans selection:bg-primary/20 overflow-x-clip flex flex-col">
       <a
         href="#fitur-unggulan"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-white focus:text-black focus:shadow-lg"
@@ -214,127 +197,14 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
         </div>
       </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section
-        ref={targetRef}
-        className="relative pt-32 pb-20 px-6 md:px-12 max-w-7xl mx-auto min-h-[90vh] flex items-center"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full">
-          {/* Left Column (Teks) */}
-          <motion.div
-            style={{ opacity, y }}
-            className="relative z-10 text-center md:text-left order-2 md:order-1"
-          >
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-white/5 border border-white/20 backdrop-blur-md shadow-sm mb-6 hover:scale-105 transition-transform duration-300 cursor-default"
-            >
-              <Sparkles className="w-4 h-4 text-amber-500 fill-amber-500" />
-              <span className="text-sm font-semibold tracking-wide bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                AI untuk Pendidikan Inklusif
-              </span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.8,
-                delay: 0.2,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6 text-foreground"
-            >
-              Belajar Tanpa <br />
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-primary via-blue-600 to-secondary bg-clip-text text-transparent">
-                  Batasan.
-                </span>
-                <motion.svg
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1, delay: 1 }}
-                  className="absolute w-full h-3 -bottom-2 left-0 text-secondary"
-                  viewBox="0 0 100 10"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M0 5 Q 50 10 100 5"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                </motion.svg>
-              </span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto md:mx-0 leading-relaxed"
-            >
-              Hope.Ai menghadirkan ekosistem pembelajaran inklusif yang didukung
-              AI. Personalisasi, aksesibilitas, dan komunitas dalam satu
-              platform.
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start items-center"
-            >
-              <Button
-                size="lg"
-                className="h-14 px-8 text-lg rounded-full shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300 bg-primary hover:bg-primary/90 group"
-                asChild
-              >
-                <Link to={startHref}>
-                  {isLoggedIn ? "Buka Beranda" : "Mulai Sekarang"}
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-14 px-8 text-lg rounded-full border-2 hover:bg-muted/50 transition-all duration-300"
-                onClick={scrollToFeatures}
-              >
-                Pelajari Lebih Lanjut
-              </Button>
-            </motion.div>
-          </motion.div>
-
-          {/* Right Column: GIF Penguin (Hero) */}
-          <motion.div
-            style={{ opacity, y }}
-            className="relative z-10 order-1 md:order-2 flex justify-center items-center"
-          >
-            <div className="relative">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-primary/20 to-blue-500/20 rounded-full blur-[60px] -z-10" />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <img
-                  src={penguinGif}
-                  alt=""
-                  className="w-96 h-96 md:w-[32rem] md:h-[32rem] object-contain drop-shadow-2xl"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* --- HERO: "Jendela Dunia", scroll membawa pengunjung keluar lewat jendela --- */}
+      <WindowFlight
+        reduced={effectiveReduceMotion || screenReaderMode}
+        isLoggedIn={isLoggedIn}
+        startHref={startHref}
+        onLearnMore={scrollToFeatures}
+        featureHref={featureHref}
+      />
 
       {/* --- FEATURE SECTION (ZIG-ZAG) --- */}
       <section
@@ -473,7 +343,23 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
             </ul>
           </div>
 
-          {/* Ilustrasi: tombol mikrofon dan contoh perintah yang diucapkan */}
+          {/* Ilustrasi aksesibilitas: animated WebP berlatar transparan (dibuat dari
+              gif_aksebilitas.gif, latarnya dihapus dengan membandingkan setiap frame terhadap
+              frame pertama yang kosong). 3,7 MB, baru diunduh saat mendekat. Mode gerak
+              dikurangi memakai ilustrasi diam di bawahnya. */}
+          {!(effectiveReduceMotion || screenReaderMode) ? (
+            <div className="flex-1 w-full" aria-hidden="true">
+              <img
+                src="/anim/aksesibilitas.webp"
+                alt=""
+                width={720}
+                height={405}
+                loading="lazy"
+                decoding="async"
+                className="h-auto w-full"
+              />
+            </div>
+          ) : (
           <div className="flex-1 relative w-full flex justify-center" aria-hidden="true">
             <div className="absolute inset-[10%] rounded-full bg-gradient-to-tr from-blue-500/20 to-sky-400/20 blur-3xl" />
             <div className="relative w-full max-w-md rounded-[2.5rem] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-2xl">
@@ -508,6 +394,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
               </div>
             </div>
           </div>
+          )}
         </motion.div>
       </section>
 
@@ -531,35 +418,6 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
             siswa tertinggal. Hope.Ai menyesuaikan diri dengan caramu belajar: lewat suara, teks,
             bahasa sederhana, atau isyarat.
           </p>
-        </motion.div>
-      </section>
-
-      {/* --- HOPE RUN: permainan kecil, baru berjalan setelah tombolnya ditekan --- */}
-      <section className="px-4 pb-4" aria-labelledby="judul-hope-run">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7 }}
-          className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-xl p-8 md:p-10 text-center sm:text-left"
-        >
-          <div className="w-16 h-16 shrink-0 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30" aria-hidden="true">
-            <Gamepad2 className="w-8 h-8 text-white" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400">Hope Arcade</p>
-            <h2 id="judul-hope-run" className="text-2xl md:text-3xl font-bold mt-1">Ready, Set, Hope Run!</h2>
-            <p className="text-muted-foreground mt-2">Lari sejauh mungkin, hindari rintangan, dan kumpulkan bintang pengetahuan. Ada mode bantuan, pilihan tombol, dan suara yang bisa diatur.</p>
-          </div>
-          <Button
-            ref={arcadeButton}
-            type="button"
-            size="lg"
-            onClick={() => setArcadeOpen(true)}
-            className="rounded-full bg-blue-600/90 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:scale-105"
-          >
-            Mainkan <ArrowRight className="ml-2 w-4 h-4" aria-hidden="true" />
-          </Button>
         </motion.div>
       </section>
 
@@ -608,8 +466,7 @@ export default function Landing({ isLoggedIn = false }: { isLoggedIn?: boolean }
       <Footer />
 
       {/* Tanya-jawab singkat tentang Hope.Ai; disembunyikan selama permainan terbuka */}
-      {!arcadeOpen && <HelpChat />}
-      {arcadeOpen && <HopeRun onClose={closeArcade} calm={effectiveReduceMotion || screenReaderMode} />}
+      <HelpChat />
     </div>
   );
 }

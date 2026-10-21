@@ -9,6 +9,7 @@ import { MessageSquare, ListChecks } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import DocumentQuiz from "@/components/DocumentQuiz";
 import ExplainBack from "@/components/ExplainBack";
+import { splitParagraphs, splitSentences } from "@/lib/explainMatch";
 import {
   BookOpen,
   Volume2,
@@ -116,6 +117,27 @@ export default function Flexa() {
   const [activeTab, setActiveTab] = useState("text");
   // Bertambah setiap kali siswa berkata "jelaskan materi ini": tab Jelaskan langsung merekam
   const [explainVoiceStart, setExplainVoiceStart] = useState(0);
+  // Kalimat yang dibuka dari hasil "Jelaskan" (bagian yang terlewat atau keliru)
+  const [highlightSentence, setHighlightSentence] = useState<number | null>(null);
+
+  useEffect(() => setHighlightSentence(null), [selectedChapter?.id]);
+
+  useEffect(() => {
+    if (highlightSentence === null || activeTab !== "text") return;
+    const timer = setTimeout(() => {
+      const target = document.getElementById(`materi-kalimat-${highlightSentence}`);
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      target?.focus({ preventScroll: true });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [highlightSentence, activeTab]);
+
+  const showSentence = (index: number) => {
+    setActiveTab("text");
+    setHighlightSentence(index);
+    const sentence = selectedChapter ? splitSentences(selectedChapter.content)[index] : undefined;
+    if (sentence && needs.includes("netra")) speakText(sentence.text);
+  };
 
   useVoiceCommands((command) => {
     if (!selectedChapter || !isExplainCommand(command)) return false;
@@ -481,10 +503,9 @@ export default function Flexa() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Card
-              className="px-card p-6 cursor-pointer h-full"
-              {...clickable(() => navigate("/isyarat?tab=kamus"))}
-            >
+            {/* Seluruh kartu bisa diklik dengan tetikus; untuk keyboard dan pembaca layar
+                cukup tombolnya saja, supaya tidak ada tombol di dalam tombol */}
+            <Card className="px-card p-6 cursor-pointer h-full" onClick={() => navigate("/isyarat?tab=kamus")}>
               <div className="flex flex-col h-full justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-4">
@@ -498,7 +519,13 @@ export default function Flexa() {
                     Kamus dan latihannya ada di menu Isyarat.
                   </p>
                 </div>
-                <Button className="px-btn w-full bg-primary text-white hover:bg-primary/90">
+                <Button
+                  className="px-btn w-full bg-primary text-white hover:bg-primary/90"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    navigate("/isyarat?tab=kamus");
+                  }}
+                >
                   Buka Kamus di Isyarat
                 </Button>
               </div>
@@ -803,12 +830,41 @@ export default function Flexa() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                       >
-                        <ScrollArea className="h-[500px] pr-4">
-                          <p
-                            className={`${fontSizeClass[textSize]} leading-loose text-slate-700 dark:text-slate-200 transition-all duration-300 max-w-[75ch]`}
+                        {highlightSentence !== null && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="px-btn mb-3"
+                            onClick={() => setActiveTab("explain")}
                           >
-                            {selectedChapter.content}
-                          </p>
+                            <ArrowLeft className="w-4 h-4 mr-2" aria-hidden="true" /> Kembali ke hasil penjelasan
+                          </Button>
+                        )}
+                        <ScrollArea className="h-[500px] pr-4">
+                          <div
+                            className={`${fontSizeClass[textSize]} leading-loose text-slate-700 dark:text-slate-200 transition-all duration-300 max-w-[75ch] space-y-4`}
+                          >
+                            {splitParagraphs(selectedChapter.content).map((_, paragraphIndex) => (
+                              <p key={paragraphIndex}>
+                                {splitSentences(selectedChapter.content).map((sentence, index) =>
+                                  sentence.paragraph !== paragraphIndex ? null : (
+                                    <span
+                                      key={index}
+                                      id={`materi-kalimat-${index}`}
+                                      tabIndex={highlightSentence === index ? -1 : undefined}
+                                      className={
+                                        highlightSentence === index
+                                          ? "rounded bg-amber-100 dark:bg-amber-900/40 ring-2 ring-amber-400 outline-none box-decoration-clone px-0.5"
+                                          : undefined
+                                      }
+                                    >
+                                      {sentence.text}{" "}
+                                    </span>
+                                  )
+                                )}
+                              </p>
+                            ))}
+                          </div>
                         </ScrollArea>
                       </motion.div>
                     )}
@@ -899,21 +955,20 @@ export default function Flexa() {
                         </div>
                       </motion.div>
                     )}
-                    {activeTab === "explain" && (
-                      <motion.div
-                        key={`explain-${selectedChapter.id}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                      >
-                        <ExplainBack
-                          title={selectedChapter.title}
-                          material={selectedChapter.content}
-                          speakText={speakText}
-                          voiceStart={explainVoiceStart}
-                        />
-                      </motion.div>
-                    )}
                   </AnimatePresence>
+                  {/* Tetap terpasang saat pindah tab supaya hasil penilaian tidak hilang
+                      ketika siswa membuka bagian materi yang terlewat */}
+                  <div hidden={activeTab !== "explain"}>
+                    <ExplainBack
+                      key={selectedChapter.id}
+                      title={selectedChapter.title}
+                      chapterKey={selectedChapter.documentId ?? selectedChapter.id}
+                      material={selectedChapter.content}
+                      speakText={speakText}
+                      voiceStart={explainVoiceStart}
+                      onShowSentence={showSentence}
+                    />
+                  </div>
                 </div>
               </Tabs>
             </Card>

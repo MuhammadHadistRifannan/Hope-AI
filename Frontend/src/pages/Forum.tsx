@@ -252,7 +252,7 @@ export default function Forum() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-4xl mx-auto"
+        className="w-full max-w-[1680px] mx-auto"
       >
         <PageHeader
           title="EchoForum"
@@ -260,8 +260,11 @@ export default function Forum() {
           art="echoforum"
         />
 
+        {/* Layar lebar: feed di kiri, kotak posting dan keterangan di kanan.
+            Di ponsel urutannya tetap: posting, feed, keterangan. */}
+        <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)] xl:gap-8 xl:items-start">
         {/* Create Post */}
-        <Card className="px-card p-4 md:p-6 mb-6">
+        <Card className="px-card p-4 md:p-6 mb-6 xl:mb-0 xl:col-start-2 xl:row-start-1">
           <h2 className="px-title text-lg mb-4">Buat Postingan</h2>
           <Textarea
             value={newPost}
@@ -277,7 +280,7 @@ export default function Forum() {
         </Card>
 
         {/* Posts Feed */}
-        <div className="space-y-4">
+        <div className="space-y-4 xl:col-start-1 xl:row-start-1 xl:row-span-2">
           {isLoading && (
             <p className={highContrast ? 'text-yellow-200' : 'text-muted-foreground'} role="status">
               Memuat postingan…
@@ -319,7 +322,7 @@ export default function Forum() {
                       </Button>
                     </div>
 
-                    <p className="text-base md:text-lg mb-4 leading-relaxed">{post.content}</p>
+                    <p className="text-base md:text-lg mb-4 leading-relaxed max-w-[75ch]">{post.content}</p>
 
                     <div className="flex gap-2 flex-wrap">
                       <Button
@@ -446,7 +449,7 @@ export default function Forum() {
         </div>
 
         {/* Keterangan aksesibilitas: hanya menyebut yang memang tersedia */}
-        <Card className="px-card p-4 md:p-6 mt-6">
+        <Card className="px-card p-4 md:p-6 mt-6 xl:col-start-2 xl:row-start-2">
           <div className="flex gap-3">
             <span className="px-tile flex h-10 w-10 shrink-0 items-center justify-center" aria-hidden="true">
               <MessageSquare className="w-5 h-5" />
@@ -462,6 +465,7 @@ export default function Forum() {
             </div>
           </div>
         </Card>
+        </div>
       </motion.div>
     </div>
   );

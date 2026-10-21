@@ -128,7 +128,7 @@ export default function Footer() {
               </a>
 
               <div className="pt-2">
-                <p className="text-xs text-slate-500 mb-3 font-medium uppercase tracking-wider">Kode Sumber</p>
+                <p className="text-xs text-slate-400 mb-3 font-medium uppercase tracking-wider">Kode Sumber</p>
                 <div className="flex gap-3">
                   <SocialLink href={REPO_URL} label="Kode sumber Hope.Ai di GitHub" icon={<Github className="w-4 h-4" aria-hidden="true" />} />
                 </div>
@@ -138,8 +138,8 @@ export default function Footer() {
         </div>
 
         {/* COPYRIGHT */}
-        <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>&copy; {new Date().getFullYear()} Tim Hope.Ai. Dibuat untuk UINIC 8.0.</p>
+        <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+          <p>&copy; {new Date().getFullYear()} Tim katanyainivibecodersemua. Dibuat untuk UINIC 8.0.</p>
           <div className="flex gap-6">
             <Link to="/privasi" className="hover:text-slate-300 transition-colors">Privasi</Link>
             <Link to="/ketentuan" className="hover:text-slate-300 transition-colors">Ketentuan</Link>

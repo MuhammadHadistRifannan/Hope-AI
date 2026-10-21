@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { lazy, Suspense, useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,28 +11,41 @@ import Layout from "./components/Layout";
 import LoadingScreen from "./components/LoadingScreen";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import EyeRead from "./pages/EyeRead";
-import NeoTutor from "./pages/NeoTutor";
-import Flexa from "./pages/Flexa";
-import Pathly from "./pages/Pathly";
-import Forum from "./pages/Forum";
-import Profile from "./pages/Profile";
-import Notifications from "./pages/Notifications";
-import Settings from "./pages/Settings";
-import AdminDashboard from "./pages/AdminDashboard";
-import TeacherRoom from "./pages/TeacherRoom";
-import SignLanguage from "./pages/SignLanguage";
-import NotFound from "./pages/NotFound";
-import Info from "./pages/Info";
+
+// Halaman lain dimuat saat dibuka, supaya landing dan halaman masuk tidak ikut
+// mengunduh kode seluruh aplikasi (bundel awal 628 KB sebelum dipecah)
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const EyeRead = lazy(() => import("./pages/EyeRead"));
+const NeoTutor = lazy(() => import("./pages/NeoTutor"));
+const Flexa = lazy(() => import("./pages/Flexa"));
+const Pathly = lazy(() => import("./pages/Pathly"));
+const Forum = lazy(() => import("./pages/Forum"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Settings = lazy(() => import("./pages/Settings"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const TeacherRoom = lazy(() => import("./pages/TeacherRoom"));
+const SignLanguage = lazy(() => import("./pages/SignLanguage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Info = lazy(() => import("./pages/Info"));
 
 // IMPORT SETTINGS PROVIDER (Pastikan file ini sudah dibuat di src/context/SettingsContext.tsx)
 import { SettingsProvider, useSettings } from "./context/SettingsContext";
 import AccessibilityAnnouncer from "./components/AccessibilityAnnouncer";
+import AccessibilityPanel from "./components/AccessibilityPanel";
 import { MotionConfig } from "framer-motion";
 
 const queryClient = new QueryClient();
+
+// Ditampilkan sebentar selama kode halaman diunduh
+function PageFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background" role="status">
+      <div className="text-muted-foreground text-lg font-medium animate-pulse">Memuat…</div>
+    </div>
+  );
+}
 
 // Sudah masuk: lanjut ke halaman yang diminta lewat ?next=, atau ke Beranda
 function AfterLogin() {
@@ -89,9 +102,11 @@ function App() {
         <MotionSettings>
         <TooltipProvider>
           <AccessibilityAnnouncer />
+          <AccessibilityPanel />
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <Suspense fallback={<PageFallback />}>
             <Routes>
               {/* Public Routes */}
               {/* Landing page bisa dibuka siapa saja; pengguna yang sudah masuk mendapat tombol ke Beranda */}
@@ -161,6 +176,7 @@ function App() {
               {/* Fallback 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </BrowserRouter>
         </TooltipProvider>
         </MotionSettings>

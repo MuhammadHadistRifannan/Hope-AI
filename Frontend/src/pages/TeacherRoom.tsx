@@ -43,6 +43,10 @@ type Student = {
   modulesCompleted: number;
   quizCount: number;
   averageScore: number | null;
+  // "Jelaskan dengan suaramu" di Flexa: rata-rata skor 0-100 dan bagian yang sering terlewat
+  explainAverage: number | null;
+  explainCount: number;
+  explainMissing: string[];
   lastSeen: string | null; // kegiatan terakhir: kuis atau pembaruan belajar
 };
 
@@ -54,6 +58,9 @@ const attentionReasons = (student: Student) => {
     : null;
   if (student.averageScore !== null && student.averageScore < 60) {
     reasons.push(`Rata-rata nilai kuis ${student.averageScore}%`);
+  }
+  if (student.explainAverage !== null && student.explainAverage < 50) {
+    reasons.push(`Pemahaman lisan rata-rata ${student.explainAverage}/100`);
   }
   if (daysAway === null) reasons.push("Belum pernah mengerjakan kuis");
   else if (daysAway >= 7) reasons.push(`Tidak aktif ${daysAway} hari`);
@@ -115,7 +122,7 @@ export default function TeacherRoom() {
   };
 
   const loadStudents = async (currentUserId: string) => {
-    const [profilesRes, progressRes, attemptsRes, documentAttemptsRes, modulesRes] = await Promise.all([
+    const [profilesRes, progressRes, attemptsRes, documentAttemptsRes, modulesRes, explainRes] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, full_name, xp, streak, last_active_date")
@@ -124,9 +131,15 @@ export default function TeacherRoom() {
       supabase.from("quiz_attempts").select("user_id, score, total, created_at"),
       supabase.from("document_quiz_attempts").select("user_id, score, total, created_at"),
       supabase.from("learning_modules").select("id").eq("is_published", true),
+      supabase
+        .from("explain_attempts")
+        .select("user_id, title, score, missing, created_at")
+        .order("created_at", { ascending: false }),
     ]);
 
-    const failed = [profilesRes, progressRes, attemptsRes, documentAttemptsRes, modulesRes].find((res) => res.error);
+    const failed = [profilesRes, progressRes, attemptsRes, documentAttemptsRes, modulesRes, explainRes].find(
+      (res) => res.error
+    );
     if (failed?.error) {
       console.error("Gagal memuat data siswa:", failed.error);
       toast({ title: "Gagal memuat data siswa", description: failed.error.message, variant: "destructive" });
@@ -143,6 +156,7 @@ export default function TeacherRoom() {
           const own = attempts.filter((attempt) => attempt.user_id === profile.id);
           const scored = own.reduce((sum, attempt) => sum + attempt.score, 0);
           const possible = own.reduce((sum, attempt) => sum + attempt.total, 0);
+          const explains = (explainRes.data ?? []).filter((attempt) => attempt.user_id === profile.id);
           return {
             id: profile.id,
             name: profile.full_name || "Tanpa nama",
@@ -154,8 +168,18 @@ export default function TeacherRoom() {
             ).length,
             quizCount: own.length,
             averageScore: possible > 0 ? Math.round((scored / possible) * 100) : null,
+            explainAverage: explains.length
+              ? Math.round(explains.reduce((sum, attempt) => sum + attempt.score, 0) / explains.length)
+              : null,
+            explainCount: explains.length,
+            // Butir dari penjelasan terbaru dulu, tanpa duplikat
+            explainMissing: [...new Set(explains.flatMap((attempt) => attempt.missing))].slice(0, 3),
             lastSeen:
-              [profile.last_active_date, ...own.map((attempt) => attempt.created_at)]
+              [
+                profile.last_active_date,
+                ...own.map((attempt) => attempt.created_at),
+                ...explains.map((attempt) => attempt.created_at),
+              ]
                 .filter((date): date is string => !!date)
                 .sort()
                 .pop() ?? null,
@@ -394,6 +418,7 @@ export default function TeacherRoom() {
                       <TableHead>Level Selesai</TableHead>
                       <TableHead>Kuis Dikerjakan</TableHead>
                       <TableHead>Rata-rata Nilai</TableHead>
+                      <TableHead>Pemahaman Lisan</TableHead>
                       <TableHead>XP</TableHead>
                       <TableHead>Streak</TableHead>
                       <TableHead>Terakhir Aktif</TableHead>
@@ -408,6 +433,21 @@ export default function TeacherRoom() {
                         </TableCell>
                         <TableCell>{student.quizCount}</TableCell>
                         <TableCell>{student.averageScore === null ? "-" : `${student.averageScore}%`}</TableCell>
+                        <TableCell className="max-w-[16rem]">
+                          {student.explainAverage === null ? (
+                            "-"
+                          ) : (
+                            <>
+                              <span className="font-semibold">{student.explainAverage}/100</span>
+                              <span className="text-muted-foreground"> ({student.explainCount}x)</span>
+                              {student.explainMissing.length > 0 && (
+                                <span className="block text-xs text-muted-foreground">
+                                  Sering terlewat: {student.explainMissing.join("; ")}
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </TableCell>
                         <TableCell>{student.xp}</TableCell>
                         <TableCell>{student.streak} hari</TableCell>
                         <TableCell>{student.lastSeen ? formatDate(student.lastSeen) : "Belum pernah"}</TableCell>

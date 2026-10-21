@@ -103,6 +103,7 @@ type Destination = { path: string; name: string; keywords: string[] };
 
 export const destinations: Destination[] = [
   { path: "/", name: "Beranda", keywords: ["beranda", "halaman utama", "home"] },
+  { path: "/eyeread?alat=warna", name: "Kenali Warna", keywords: ["kenali warna", "pengenal warna"] },
   { path: "/eyeread", name: "EyeRead", keywords: ["eyeread", "eye read", "airit", "pindai buku", "baca buku", "kamera"] },
   { path: "/neotutor", name: "NeoTutor", keywords: ["neotutor", "neo tutor", "tutor"] },
   { path: "/isyarat?tab=kamus", name: "Kamus Isyarat", keywords: ["kamus isyarat", "kamus"] },

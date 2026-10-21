@@ -3,7 +3,7 @@ import { speak, stopSpeech } from "@/lib/speech";
 import { applyIndonesianVoice } from "@/lib/voice";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MessageSquare, ListChecks } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import DocumentQuiz from "@/components/DocumentQuiz";
@@ -19,6 +19,8 @@ import { useVoiceCommands } from "@/lib/voiceCommands";
 import HighlightedText from "@/components/HighlightedText";
 import { useLiveOcr } from "@/hooks/use-live-ocr";
 import { LIVE_STATE_TEXT } from "@/lib/liveOcr";
+import ColorFinder from "@/components/ColorFinder";
+import { Palette } from "lucide-react";
 
 declare global {
   interface Window {
@@ -27,6 +29,14 @@ declare global {
 }
 
 export default function EyeRead() {
+  // Dua alat kamera: membaca teks, atau menamai warna (untuk buta warna). ?alat=warna membuka yang kedua.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tool = searchParams.get("alat") === "warna" ? "warna" : "teks";
+  const chooseTool = (next: "teks" | "warna") => {
+    if (next === "warna") stopCamera();
+    setSearchParams(next === "warna" ? { alat: "warna" } : {}, { replace: true });
+  };
+
   // --- STATE ASLI ---
   const [isScanning, setIsScanning] = useState(false);
   const [scannedText, setScannedText] = useState("");
@@ -522,6 +532,15 @@ export default function EyeRead() {
   // Logic Summary Sederhana Asli
   // Perintah suara di halaman pindai
   useVoiceCommands((command) => {
+    if (/^(kenali warna|mode warna|warna apa ini|cek warna)$/.test(command) && tool === "teks") {
+      chooseTool("warna");
+      return true;
+    }
+    if (/^(baca teks|mode teks|pindai teks)$/.test(command) && tool === "warna") {
+      chooseTool("teks");
+      return true;
+    }
+    if (tool === "warna") return false;
     // "mode langsung" menyalakan kamera sekaligus pembacaan otomatis
     if (/^(mode langsung|baca otomatis|baca langsung)$/.test(command)) {
       setLiveMode(true);
@@ -568,7 +587,7 @@ export default function EyeRead() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-6xl mx-auto"
+        className="w-full max-w-[1680px] mx-auto"
       >
         <PageHeader
           title="EyeRead"
@@ -577,7 +596,29 @@ export default function EyeRead() {
           lively={isScanning || isSpeaking || isProcessing}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div role="group" aria-label="Pilih alat" className="mb-5 inline-flex rounded-xl border border-border bg-card p-1">
+          {([
+            { id: "teks", label: "Baca Teks", icon: Type },
+            { id: "warna", label: "Kenali Warna", icon: Palette },
+          ] as const).map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={tool === option.id}
+              onClick={() => chooseTool(option.id)}
+              className={`flex min-h-11 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                tool === option.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <option.icon className="h-4 w-4" aria-hidden="true" /> {option.label}
+            </button>
+          ))}
+        </div>
+
+        {tool === "warna" ? (
+          <ColorFinder />
+        ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] gap-6">
           {/* CAMERA CARD */}
           <div className="px-card p-3 md:p-5">
             <div className="aspect-[3/4] sm:aspect-video bg-muted overflow-hidden mb-4 relative flex items-center justify-center rounded-xl border border-border">
@@ -934,6 +975,7 @@ export default function EyeRead() {
             </Dialog>
           </div>
         </div>
+        )}
       </motion.div>
     </div>
   );

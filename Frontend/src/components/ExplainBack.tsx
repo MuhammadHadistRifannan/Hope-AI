@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, CircleAlert, Loader2, Mic, MicOff, RotateCcw, Sparkles, Volume2, XCircle } from "lucide-react";
+import { BookOpen, CheckCircle2, CircleAlert, Loader2, Mic, MicOff, RotateCcw, Sparkles, Star, Volume2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { API_URL, authHeaders } from "@/lib/api";
 import { useSettings } from "@/context/SettingsContext";
 import { isSpeaking } from "@/lib/speech";
 import { holdVoiceAssistant, stripFinishWord } from "@/lib/voiceCommands";
+import { supabase } from "@/integrations/supabase/client";
+import { recordActivity } from "@/lib/activity";
+import { EXPLAIN_PASS_SCORE, EXPLAIN_XP, findParagraph, splitSentences } from "@/lib/explainMatch";
 
 // "Jelaskan dengan suaramu" (teknik Feynman): setelah membaca, siswa menjelaskan ulang
 // materi dengan kata-katanya sendiri, lewat suara atau ketikan. AI membandingkannya
@@ -44,15 +47,51 @@ const waitUntilQuiet = async () => {
   while (isSpeaking()) await wait(250);
 };
 
+// Hasil disimpan (tanpa teks penjelasan) supaya guru bisa memantau pemahaman.
+// XP hanya diberikan pertama kali skor materi ini mencapai batas lulus.
+const saveAttempt = async (chapterKey: string, title: string, result: Result) => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+
+  const { count } = await supabase
+    .from("explain_attempts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("chapter_key", chapterKey)
+    .gte("score", EXPLAIN_PASS_SCORE);
+
+  const { error } = await supabase.from("explain_attempts").insert({
+    user_id: user.id,
+    chapter_key: chapterKey,
+    title: title.slice(0, 300),
+    score: result.skor,
+    missing: result.terlewat.slice(0, 4),
+    wrong: result.keliru.slice(0, 4),
+  });
+  if (error) {
+    console.error("Gagal menyimpan hasil penjelasan:", error);
+    return 0;
+  }
+
+  if (result.skor < EXPLAIN_PASS_SCORE || (count ?? 0) > 0) return 0;
+  return (await recordActivity(user.id, EXPLAIN_XP)) ? EXPLAIN_XP : 0;
+};
+
 type Props = {
   title: string;
+  // Pengenal materi untuk menyimpan hasil dan membatasi XP sekali per materi
+  chapterKey: string;
   material: string;
   speakText: (text: string) => void;
   // Bertambah setiap kali perintah suara meminta mulai menjelaskan
   voiceStart?: number;
+  // Membuka tab Bacaan pada kalimat tertentu (indeks dari splitSentences)
+  onShowSentence?: (index: number) => void;
 };
 
-export default function ExplainBack({ title, material, speakText, voiceStart = 0 }: Props) {
+export default function ExplainBack({ title, chapterKey, material, speakText, voiceStart = 0, onShowSentence }: Props) {
   const { needs } = useSettings();
   const typingFirst = needs.includes("wicara");
   const [text, setText] = useState("");
@@ -61,6 +100,7 @@ export default function ExplainBack({ title, material, speakText, voiceStart = 0
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [xpGained, setXpGained] = useState(0);
   const recognitionRef = useRef<Recognition | null>(null);
   const textRef = useRef("");
   textRef.current = text;
@@ -165,9 +205,12 @@ export default function ExplainBack({ title, material, speakText, voiceStart = 0
       });
       if (!response.ok) throw new Error((await response.text()) || response.statusText);
       const data: Result = await response.json();
+      const gained = await saveAttempt(chapterKey, title, data);
+      setXpGained(gained);
       setResult(data);
       speakText(
         `Skormu ${data.skor}. ${data.umpan_balik}` +
+          (gained ? ` Kamu mendapat ${gained} XP.` : "") +
           (byVoice.current ? " Katakan jelaskan lagi untuk mencoba sekali lagi." : "")
       );
       // Asisten suara baru mendengarkan lagi setelah umpan balik selesai dibacakan
@@ -182,8 +225,10 @@ export default function ExplainBack({ title, material, speakText, voiceStart = 0
   };
 
   // Perintah suara "jelaskan materi ini": baca petunjuk singkat, lalu mulai merekam
+  // Hanya perintah baru yang memulai rekaman, bukan nilai lama saat berpindah materi
+  const voiceStartOnMount = useRef(voiceStart);
   useEffect(() => {
-    if (!voiceStart) return;
+    if (!voiceStart || voiceStart === voiceStartOnMount.current) return;
     let cancelled = false;
     byVoice.current = true;
     reset();
@@ -208,6 +253,7 @@ export default function ExplainBack({ title, material, speakText, voiceStart = 0
 
   const reset = () => {
     setResult(null);
+    setXpGained(0);
     textRef.current = "";
     setText("");
     setInterim("");
@@ -222,6 +268,7 @@ export default function ExplainBack({ title, material, speakText, voiceStart = 0
       : { bar: "bg-rose-500", text: "text-rose-700 dark:text-rose-300", label: "Yuk, baca sekali lagi" };
 
   if (result) {
+    const sentences = splitSentences(material).map((sentence) => sentence.text);
     const sections = [
       { key: "dipahami", title: "Sudah kamu pahami", items: result.dipahami, icon: CheckCircle2, color: "text-emerald-600 dark:text-emerald-400" },
       { key: "terlewat", title: "Belum kamu sebut", items: result.terlewat, icon: CircleAlert, color: "text-amber-600 dark:text-amber-400" },
@@ -244,6 +291,11 @@ export default function ExplainBack({ title, material, speakText, voiceStart = 0
             <div className={`h-full rounded-full ${scoreTone.bar}`} style={{ width: `${result.skor}%` }} />
           </div>
           <p className="mt-4 text-lg leading-relaxed">{result.umpan_balik}</p>
+          {xpGained > 0 && (
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+              <Star className="h-4 w-4" aria-hidden="true" /> +{xpGained} XP
+            </p>
+          )}
         </div>
 
         <div className="grid gap-3 md:grid-cols-3">
@@ -254,9 +306,28 @@ export default function ExplainBack({ title, material, speakText, voiceStart = 0
               </h4>
               {section.items.length ? (
                 <ul className="mt-2 space-y-1.5 text-base leading-snug">
-                  {section.items.map((item) => (
-                    <li key={item}>• {item}</li>
-                  ))}
+                  {section.items.map((item) => {
+                    // Bagian yang terlewat atau keliru bisa dibaca ulang langsung di materi
+                    const sentence = section.key === "dipahami" || !onShowSentence ? -1 : findParagraph(sentences, item);
+                    return (
+                      <li key={item}>
+                        {sentence < 0 ? (
+                          <>• {item}</>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onShowSentence?.(sentence)}
+                            className="group w-full rounded-lg px-2 py-1.5 -mx-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <span>• {item}</span>
+                            <span className="mt-0.5 flex items-center gap-1 text-sm font-semibold text-primary group-hover:underline">
+                              <BookOpen className="h-3.5 w-3.5" aria-hidden="true" /> Baca bagian ini
+                            </span>
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <p className="mt-2 text-sm text-muted-foreground">Tidak ada.</p>

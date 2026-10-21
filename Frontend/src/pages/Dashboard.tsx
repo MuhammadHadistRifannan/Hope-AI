@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import {
-  ArrowRight, BookOpen, Flame, GraduationCap, MessageSquare, Mic, Sparkles, Star, Target, TrendingUp,
+  ArrowRight, BookOpen, Flame, GraduationCap, MessageSquare, Mic, Palette, Sparkles, Star, Target, TrendingUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/context/SettingsContext";
@@ -141,7 +141,7 @@ export default function Dashboard() {
   const heading = "px-title text-lg md:text-xl mb-4";
 
   return (
-    <div className="p-2 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 md:space-y-10">
+    <div className="p-2 md:p-6 lg:p-8 w-full max-w-[1680px] mx-auto space-y-8 md:space-y-10">
       {/* Sapaan dan pengaturan cepat */}
       <header className="space-y-4">
         <div className="flex items-center gap-4">
@@ -207,6 +207,22 @@ export default function Dashboard() {
       )}
 
       {/* Lanjutkan belajar */}
+      {/* Pengguna buta warna langsung ditunjukkan alat yang dibuat untuk mereka */}
+      {needs.includes("buta_warna") && (
+        <Link to="/eyeread?alat=warna" className="px-card flex items-center gap-4 p-4 md:p-5">
+          <span className="px-tile flex h-12 w-12 shrink-0 items-center justify-center" aria-hidden="true">
+            <Palette className="h-6 w-6" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block px-title text-lg">Kenali Warna</span>
+            <span className={`block text-muted-foreground ${prose}`}>
+              Arahkan kamera ke benda atau pakaian, Hope.Ai menyebutkan warnanya.
+            </span>
+          </span>
+          <ArrowRight className="h-5 w-5 shrink-0" aria-hidden="true" />
+        </Link>
+      )}
+
       <section aria-labelledby="judul-lanjut">
         <h2 id="judul-lanjut" className={heading}>
           Lanjutkan Belajar

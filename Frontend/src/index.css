@@ -787,3 +787,46 @@ button,
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Landing "Jendela Dunia": awan yang bergeser pelan dan balon yang bergoyang.
+   Dipasang hanya saat gerak tidak dikurangi (lihat WindowFlight.tsx). */
+@keyframes hope-drift {
+  from { transform: translateX(-3%); }
+  to { transform: translateX(3%); }
+}
+@keyframes hope-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes hope-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+/* Alat aksesibilitas dari panel melayang (lib/a11yTools.ts). Panelnya sendiri dikecualikan
+   supaya tetap bisa dipakai untuk mematikan alat. */
+.a11y-line-height body :where(p, li, dd, blockquote, label, span, a, h1, h2, h3, h4, td):not([data-a11y-panel] *) {
+  line-height: 1.9 !important;
+}
+.a11y-align-left body :where(p, li, h1, h2, h3, h4, blockquote, figcaption, div):not([data-a11y-panel] *) {
+  text-align: left !important;
+}
+html.a11y-grayscale {
+  filter: grayscale(1);
+}
+.a11y-hide-images body :where(img, picture, video, svg image):not([data-a11y-panel] *) {
+  visibility: hidden !important;
+}
+.a11y-links body a:not([data-a11y-panel] *) {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+  outline: 2px solid #ffd23f !important;
+  outline-offset: 2px;
+}
+.a11y-focus body *:focus-visible,
+.a11y-focus body *:focus {
+  outline: 4px solid #ffd23f !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 7px #041a49 !important;
+}

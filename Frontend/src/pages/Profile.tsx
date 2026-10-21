@@ -435,7 +435,7 @@ export default function Profile() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900"
+                  className="w-full text-red-700 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900"
                   onClick={handleLogout}
                 >
                   <LogOut className="w-4 h-4 mr-2" />

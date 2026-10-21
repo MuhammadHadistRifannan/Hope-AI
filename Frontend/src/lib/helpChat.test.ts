@@ -21,7 +21,6 @@ describe("helpChat", () => {
   it("memilih jawaban yang lebih khusus", () => {
     // "lupa password" lebih khusus daripada "login"
     expect(id("saya lupa password, tidak bisa login")).toBe("sandi");
-    expect(id("hope run itu game apa")).toBe("permainan");
     // Menyebut nama Hope.Ai tidak menggeser jawaban ke "Hope.Ai itu apa"
     expect(id("hope ai gratis?")).toBe("gratis");
     expect(id("apa itu hope ai")).toBe("apa");

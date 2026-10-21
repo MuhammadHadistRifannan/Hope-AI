@@ -114,6 +114,7 @@ const writeLocal = (s: SettingsValues) => {
 export const needOptions = [
   { id: 'netra', label: 'Saya lebih mudah mendengar daripada melihat layar', hint: 'Materi dibacakan otomatis dan aplikasi bisa dikendalikan dengan suara' },
   { id: 'low_vision', label: 'Saya butuh tulisan besar dan warna yang kontras', hint: 'Teks diperbesar dan warna dibuat lebih tegas' },
+  { id: 'buta_warna', label: 'Saya sulit membedakan beberapa warna, misalnya merah dan hijau', hint: 'Merah dan hijau diganti oranye dan biru, dan ada alat Kenali Warna di EyeRead' },
   { id: 'tuli', label: 'Saya berkomunikasi dengan bahasa isyarat atau sulit mendengar suara', hint: 'Isyarat ditampilkan di depan, suara selalu disertai teks' },
   { id: 'disleksia', label: 'Saya kesulitan membaca teks yang padat', hint: 'Huruf ramah disleksia dan baris yang lebih pendek' },
   { id: 'kognitif', label: 'Saya lebih mudah paham dengan penjelasan pelan dan sederhana', hint: 'Versi bahasa sederhana dan suara lebih pelan' },
@@ -242,6 +243,8 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
     root.classList.toggle('dyslexia-font', settings.dyslexiaFont);
     root.classList.toggle('reduce-motion', effectiveReduceMotion || settings.screenReaderMode);
     root.classList.toggle('sr-mode', settings.screenReaderMode);
+    // Palet ramah buta warna (lihat tailwind.config.ts): hijau jadi biru, merah jadi oranye
+    root.classList.toggle('cvd-safe', settings.needs.includes('buta_warna'));
     root.classList.toggle('dark', effectiveDark && !settings.highContrast);
     root.style.fontSize = `${100 + settings.textSize}%`;
     setSpeechPreferences({ muteFeedback: settings.screenReaderMode });

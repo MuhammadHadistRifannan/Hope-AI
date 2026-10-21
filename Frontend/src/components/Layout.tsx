@@ -137,15 +137,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-background font-sans">
       <OnboardingDialog />
-      <VoiceAssistant />
 
-      {/* Tautan lompat untuk pengguna keyboard dan pembaca layar */}
+      {/* Tautan lompat untuk pengguna keyboard dan pembaca layar: selalu urutan Tab pertama */}
       <a
         href="#konten-utama"
         className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-white focus:text-black focus:shadow-lg"
       >
         Lompat ke konten utama
       </a>
+      {/* Tombol perintah suara tepat sesudahnya (juga bisa lewat Alt+M) */}
+      <VoiceAssistant />
 
       {/* Sidebar: hanya di tablet dan desktop */}
       <aside className={`px-sidebar hidden md:flex w-20 ${wide("lg:w-64")} fixed h-screen flex-col border-r z-40 shadow-xl transition-[width] duration-200`}>

@@ -1,4 +1,43 @@
 import type { Config } from "tailwindcss";
+import defaultColors from "tailwindcss/colors";
+import plugin from "tailwindcss/plugin";
+
+// Palet ramah buta warna (mode "cvd-safe", dari kebutuhan buta_warna). Merah dan hijau
+// adalah pasangan yang paling sering tertukar, jadi semua kelas green/emerald/red/rose
+// membaca variabel CSS: warna Tailwind asli secara bawaan, lalu biru dan oranye
+// (pasangan Okabe-Ito) saat mode aktif. Oranye digeser satu tingkat lebih gelap
+// supaya teksnya tetap lolos kontras 4,5:1 di atas putih.
+const SHADES = ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"] as const;
+const SWAPPED = {
+  green: { to: "blue", shift: 0 },
+  emerald: { to: "blue", shift: 0 },
+  red: { to: "orange", shift: 1 },
+  rose: { to: "orange", shift: 1 },
+} as const;
+type Palette = Record<(typeof SHADES)[number], string>;
+const paletteOf = (name: string) => (defaultColors as unknown as Record<string, Palette>)[name];
+const rgbOf = (hex: string) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
+};
+const swappableColors = Object.fromEntries(
+  Object.keys(SWAPPED).map((name) => [
+    name,
+    Object.fromEntries(SHADES.map((shade) => [shade, `rgb(var(--cvd-${name}-${shade}) / <alpha-value>)`])),
+  ])
+);
+const cvdVariables = (safe: boolean) =>
+  Object.fromEntries(
+    Object.entries(SWAPPED).flatMap(([name, { to, shift }]) =>
+      SHADES.map((shade, index) => {
+        const source = safe ? paletteOf(to)[SHADES[Math.min(index + shift, SHADES.length - 1)]] : paletteOf(name)[shade];
+        return [`--cvd-${name}-${shade}`, rgbOf(source)];
+      })
+    )
+  );
+const colorBlindSafe = plugin(({ addBase }) => {
+  addBase({ ":root": cvdVariables(false), ".cvd-safe": cvdVariables(true) });
+});
 
 export default {
   darkMode: ["class"],
@@ -24,6 +63,7 @@ export default {
         pixel: ['ui-sans-serif', 'system-ui', '-apple-system', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
       colors: {
+        ...swappableColors,
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -109,5 +149,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), colorBlindSafe],
 } satisfies Config;

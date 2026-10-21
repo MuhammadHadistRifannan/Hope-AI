@@ -468,35 +468,6 @@ export function SkyPlane({ className }: { className?: string }) {
   return <canvas ref={canvasRef} aria-hidden="true" className={className} />;
 }
 
-// Hope Arcade: pelari kecil melompati batu dan mengambil bintang
-function ArcadeArt({ animated, className }: Props) {
-  const frame = useFrame(animated, 8, 180);
-  // Lintasan lompat: naik lalu turun
-  const lift = [0, 3, 6, 8, 8, 6, 3, 0][frame];
-  const rockX = 26 - frame * 3;
-  const y = 12 - lift;
-  const boxes: Box[] = [
-    // tanah
-    [0, 21, 32, 1, NAVY],
-    [0, 22, 32, 2, GREEN],
-    // batu yang datang
-    ...framed(rockX, 17, 4, 4, "#9aa3b5"),
-    // bintang
-    [24, 5, 1, 3, AMBER],
-    [23, 6, 3, 1, AMBER],
-    [15, 2, 1, 3, AMBER],
-    [14, 3, 3, 1, AMBER],
-    // pelari: badan, perut, paruh, kaki
-    ...framed(6, y, 6, 8, BLUE),
-    [8, y + 2, 3, 5, WHITE],
-    [9, y + 1, 1, 1, NAVY],
-    [11, y + 3, 2, 1, AMBER],
-    [frame % 2 ? 6 : 7, y + 8, 2, 1, AMBER],
-    [frame % 2 ? 10 : 9, y + 8, 2, 1, AMBER],
-  ];
-  return <Canvas boxes={boxes} label="Penguin kecil berlari, melompati batu, dan mengambil bintang" className={className} />;
-}
-
 type Props = { animated: boolean; className?: string };
 
 export const landingArt: Record<string, (props: Props) => JSX.Element> = {
@@ -506,5 +477,4 @@ export const landingArt: Record<string, (props: Props) => JSX.Element> = {
   pathly: PathlyArt,
   isyarat: IsyaratArt,
   echoforum: EchoForumArt,
-  arcade: ArcadeArt,
 };

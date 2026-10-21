@@ -198,6 +198,19 @@ export type Database = {
         { id: string; user_id: string; title: string; score: number; total: number; created_at: string },
         "id" | "created_at"
       >
+      explain_attempts: Table<
+        {
+          id: string;
+          user_id: string;
+          chapter_key: string;
+          title: string;
+          score: number;
+          missing: string[];
+          wrong: string[];
+          created_at: string;
+        },
+        "id" | "created_at" | "missing" | "wrong"
+      >
       chat_messages: Table<
         {
           id: string

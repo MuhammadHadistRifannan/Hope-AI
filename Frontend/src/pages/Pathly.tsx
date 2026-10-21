@@ -39,6 +39,7 @@ import confetti from "canvas-confetti";
 import { useSettings } from "@/context/SettingsContext";
 import { jsPDF } from "jspdf";
 import { supabase } from "@/integrations/supabase/client";
+import { localDate, recordActivity as saveActivity } from "@/lib/activity";
 import { requestVoiceInput, useVoiceCommands } from "@/lib/voiceCommands";
 import { visualCue } from "@/lib/cues";
 
@@ -57,12 +58,6 @@ type PathModule = {
   quiz: { q: string; options: string[]; a: string }[];
 };
 
-// Tanggal lokal format YYYY-MM-DD, untuk menghitung streak harian
-const localDate = (offsetDays = 0) => {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toLocaleDateString("en-CA");
-};
 
 // --- DATA & HELPER GAME (PLAYGROUND) ---
 // Warna modul disimpan di database sebagai nama kelas. Kelas itu harus tertulis
@@ -300,34 +295,10 @@ export default function Pathly() {
   // Tambah XP dan perbarui streak harian di profil
   const recordActivity = async (xpGain: number) => {
     if (!userId) return;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("xp, streak, last_active_date")
-      .eq("id", userId)
-      .maybeSingle();
-    if (!profile) return;
-
-    const today = localDate();
-    const newStreak =
-      profile.last_active_date === today
-        ? Math.max(profile.streak, 1)
-        : profile.last_active_date === localDate(-1)
-        ? profile.streak + 1
-        : 1;
-    const newXp = profile.xp + xpGain;
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({ xp: newXp, streak: newStreak, last_active_date: today })
-      .eq("id", userId);
-    if (error) {
-      console.error("Gagal menyimpan XP:", error);
-      return;
-    }
-
-    setXp(newXp);
-    setStreak(newStreak);
+    const updated = await saveActivity(userId, xpGain);
+    if (!updated) return;
+    setXp(updated.xp);
+    setStreak(updated.streak);
   };
 
   // Setiap percobaan dicatat, tetapi modul baru tercatat selesai bila semua soal benar
@@ -977,7 +948,7 @@ export default function Pathly() {
 
   return (
     <div className="min-h-screen p-2 md:p-8">
-      <div className="max-w-5xl mx-auto">
+      <div className="w-full max-w-[1680px] mx-auto">
         {/* --- MAIN MENU (SELECTION) --- */}
         {mainMode === "menu" && (
           <div>
@@ -1387,8 +1358,10 @@ export default function Pathly() {
               </Button>
             </div>
 
+            {/* Layar lebar: statistik di kolom samping, permainan di kolom utama */}
+            <div className="xl:grid xl:grid-cols-[260px_minmax(0,1fr)] xl:gap-8 xl:items-start">
             {/* Header Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-1 gap-4 mb-8 xl:sticky xl:top-8">
               <Card className="px-card p-4 flex items-center gap-3">
                 <Flame className="w-8 h-8 text-orange-500 fill-orange-500 animate-pulse" />
                 <div>
@@ -1480,7 +1453,7 @@ export default function Pathly() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
                     {cards.map((card) => (
                       <motion.div
                         key={card.id}
@@ -1663,6 +1636,7 @@ export default function Pathly() {
                 </Card>
               </TabsContent>
             </Tabs>
+            </div>
           </div>
         )}
       </div>

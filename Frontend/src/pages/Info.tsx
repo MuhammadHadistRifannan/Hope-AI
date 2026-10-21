@@ -90,6 +90,10 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
                 tidak dikirim ke server dan tidak disimpan.
               </>,
               <>
+                <strong>Kenali Warna:</strong> warna di tengah kamera dihitung di dalam browsermu. Gambar kamera tidak dikirim
+                ke server dan tidak disimpan.
+              </>,
+              <>
                 <strong>EyeRead:</strong> foto yang kamu ambil atau unggah dikirim ke server kami untuk dibaca tulisannya. Yang
                 disimpan di akunmu adalah teks hasilnya. Di <em>Mode Langsung</em>, gambar kamera diperiksa di perangkatmu
                 (pengenal teks Tesseract, yang data bahasanya diunduh sekali dari CDN). Satu foto baru dikirim ke server hanya
@@ -101,7 +105,8 @@ const pages: Record<InfoSlug, { title: string; intro: string; body: ReactNode }>
               </>,
               <>
                 <strong>Flexa, Jelaskan dengan suaramu:</strong> teks penjelasanmu dikirim bersama isi materi ke Gemini untuk
-                dinilai. Penjelasan dan hasil penilaiannya tidak disimpan.
+                dinilai. Teks penjelasanmu tidak disimpan. Yang disimpan di akunmu hanya skor dan daftar bagian materi yang
+                terlewat atau keliru, yang bisa dilihat guru atau pendamping untuk membantumu belajar.
               </>,
             ]}
           />
