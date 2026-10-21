@@ -56,7 +56,6 @@ export default {
         // Mendaftarkan font baru dengan nama class 'airfool'
         airfool: ['Airfool', 'sans-serif'], 
         cherry: ['"Cherry Bomb One"', 'system-ui'],
-        magic: ['"Magic Red"', 'cursive', 'sans-serif'],
         // Huruf serif untuk judul bagian di landing page
         editorial: ['Fraunces', 'Georgia', 'serif'],
         // Huruf pixel untuk landing page

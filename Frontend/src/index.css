@@ -251,13 +251,6 @@ All colors MUST be HSL.
   font-style: normal;
 }
 
-@font-face {
-  font-family: 'Magic Red'; /* Nama yang akan kita panggil nanti */
-  src: url('/fonts/MagicRed.ttf') format('truetype'); /* Sesuaikan nama file persis */
-  font-weight: normal;
-  font-style: bold;
-}
-
 /* --- HURUF RAMAH DISLEKSIA (Aksesibilitas) --- */
 /* Diaktifkan saat class 'dyslexia-font' ditambahkan ke elemen HTML root */
 /* Landing page, halaman masuk/daftar, dan layar pembuka ([data-landing]) tetap memakai

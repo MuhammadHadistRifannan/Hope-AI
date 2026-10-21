@@ -41,3 +41,6 @@ __pycache__/
 
 # Kredensial OAuth (Google Cloud dan lainnya): jangan pernah di-commit
 client_secret_*.json
+
+# Arsip hasil training model (diunggah manual, bukan bagian dari kode)
+*.zip
