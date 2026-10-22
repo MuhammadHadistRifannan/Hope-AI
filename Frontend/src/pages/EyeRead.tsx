@@ -635,7 +635,8 @@ export default function EyeRead() {
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover transform scale-x-[-1]"
+                    // Tidak dicerminkan: tulisan di buku harus terbaca seperti aslinya
+                    className="w-full h-full object-cover"
                   />
 
                   {/* Mode Langsung: kotak di setiap kata yang terbaca di perangkat. viewBox memakai
@@ -645,7 +646,7 @@ export default function EyeRead() {
                       aria-hidden="true"
                       viewBox={`0 0 ${live.frame.width} ${live.frame.height}`}
                       preserveAspectRatio="xMidYMid slice"
-                      className="absolute inset-0 w-full h-full pointer-events-none transform scale-x-[-1]"
+                      className="absolute inset-0 w-full h-full pointer-events-none"
                     >
                       {live.boxes.map((box, i) => (
                         <rect

@@ -488,7 +488,7 @@ Hope-AI/
 
 ## 🗄️ Database
 
-Ada **19 tabel**, semuanya dijaga Row Level Security.
+Ada **20 tabel**, semuanya dijaga Row Level Security.
 
 | Kelompok | Tabel |
 |---|---|
