@@ -44,3 +44,14 @@ client_secret_*.json
 
 # Arsip hasil training model (diunggah manual, bukan bagian dari kode)
 *.zip
+
+# Proposal dan template lomba (berisi data pribadi anggota; dikumpulkan lewat Google Form)
+/Proposal*.docx
+/Proposal*.pdf
+/Template Proposal*.docx
+/UINIC8#2026_*.pdf
+.~lock.*#
+
+# GIF sumber yang sudah diganti versi .webp di public/anim
+Frontend/public/gif/gif_aksebilitas.gif
+Frontend/public/gif/ilustrasi-isyarat.gif
