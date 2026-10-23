@@ -25,6 +25,8 @@ import { useRoles } from "@/hooks/use-roles";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { checkMaterial, visualReferences } from "@/lib/materialChecks";
+import StudentCharts from "@/components/StudentCharts";
+import { sampleStudents } from "@/lib/sampleStudents";
 
 type Material = {
   id: string;
@@ -87,6 +89,8 @@ export default function TeacherRoom() {
   const [students, setStudents] = useState<Student[]>([]);
   const [totalModules, setTotalModules] = useState(0);
   const [search, setSearch] = useState("");
+  // Data contoh hanya di layar ini, untuk demo dan tangkapan layar; database tidak tersentuh
+  const [useSample, setUseSample] = useState(false);
 
   // Formulir materi baru
   const [title, setTitle] = useState("");
@@ -304,8 +308,11 @@ export default function TeacherRoom() {
     return <Navigate to="/" replace />;
   }
 
+  const shownStudents: Student[] = useSample ? sampleStudents() : students;
+  const shownTotal = useSample ? totalModules || 10 : totalModules;
+
   // Nilai rendah didahulukan, lalu yang paling lama tidak aktif
-  const needsAttention = students
+  const needsAttention = shownStudents
     .map((student) => ({ student, reasons: attentionReasons(student) }))
     .filter((item) => item.reasons.length > 0)
     .sort(
@@ -314,15 +321,15 @@ export default function TeacherRoom() {
         (a.student.lastSeen ?? "").localeCompare(b.student.lastSeen ?? "")
     );
 
-  const filteredStudents = students.filter((student) =>
+  const filteredStudents = shownStudents.filter((student) =>
     student.name.toLowerCase().includes(search.trim().toLowerCase())
   );
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const activeThisWeek = students.filter(
+  const activeThisWeek = shownStudents.filter(
     (student) => student.lastSeen && new Date(student.lastSeen) >= weekAgo
   ).length;
-  const withScores = students.filter((student) => student.averageScore !== null);
+  const withScores = shownStudents.filter((student) => student.averageScore !== null);
   const classAverage =
     withScores.length > 0
       ? Math.round(withScores.reduce((sum, student) => sum + (student.averageScore ?? 0), 0) / withScores.length)
@@ -336,11 +343,21 @@ export default function TeacherRoom() {
           <p className="text-muted-foreground text-base md:text-lg">
             Tambahkan materi untuk siswa dan pantau kemajuan belajar mereka
           </p>
+          <div className="mt-4 flex items-center gap-3">
+            <Switch id="data-contoh" checked={useSample} onCheckedChange={setUseSample} />
+            <Label htmlFor="data-contoh">Tampilkan data contoh</Label>
+          </div>
         </div>
+
+        {useSample && (
+          <p role="status" className="mb-6 rounded-2xl border-2 border-amber-400 bg-amber-50 px-4 py-3 font-semibold text-amber-950 dark:bg-amber-400/15 dark:text-amber-100">
+            Data contoh: 25 siswa rekaan untuk demonstrasi. Bukan data siswa sebenarnya dan tidak disimpan.
+          </p>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Siswa", value: students.length, icon: Users },
+            { label: "Siswa", value: shownStudents.length, icon: Users },
             { label: "Aktif 7 Hari Terakhir", value: activeThisWeek, icon: GraduationCap },
             { label: "Rata-rata Nilai Kuis", value: classAverage === null ? "-" : `${classAverage}%`, icon: BookOpen },
           ].map((stat) => (
@@ -399,6 +416,7 @@ export default function TeacherRoom() {
           </TabsList>
 
           <TabsContent value="students">
+            <StudentCharts students={shownStudents} totalModules={shownTotal} />
             <Card className="p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <h2 className="text-xl font-bold">Kemajuan Siswa</h2>
@@ -429,7 +447,7 @@ export default function TeacherRoom() {
                       <TableRow key={student.id}>
                         <TableCell className="font-medium">{student.name}</TableCell>
                         <TableCell>
-                          {student.modulesCompleted} dari {totalModules}
+                          {student.modulesCompleted} dari {shownTotal}
                         </TableCell>
                         <TableCell>{student.quizCount}</TableCell>
                         <TableCell>{student.averageScore === null ? "-" : `${student.averageScore}%`}</TableCell>
