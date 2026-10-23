@@ -6,9 +6,9 @@ import {
   Lock,
   Star,
   CheckCircle2,
+  Check,
   Trophy,
   Crown,
-  MapPin,
   X,
   Brain,
   Calculator,
@@ -23,7 +23,6 @@ import {
   Banana,
   Grape,
   Citrus,
-  Gamepad2,
   ArrowRight,
   ChevronRight,
   Target,
@@ -35,6 +34,8 @@ import PageHeader from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import PathMap from "@/components/PathMap";
+import PathlyHome from "@/components/PathlyHome";
 import confetti from "canvas-confetti";
 import { useSettings } from "@/context/SettingsContext";
 import { jsPDF } from "jspdf";
@@ -88,8 +89,10 @@ const cardsData = [
   { id: 6, content: "Mobil", matchId: 3, type: "text" },
   { id: 7, content: "🌟", matchId: 4, type: "icon" },
   { id: 8, content: "Bintang", matchId: 4, type: "text" },
-  { id: 9, content: "✈️", matchId: 6, type: "icon" },
-  { id: 10, content: "Pesawat", matchId: 6, type: "text" },
+  { id: 9, content: "✈️", matchId: 5, type: "icon" },
+  { id: 10, content: "Pesawat", matchId: 5, type: "text" },
+  { id: 11, content: "🏠", matchId: 6, type: "icon" },
+  { id: 12, content: "Rumah", matchId: 6, type: "text" },
 ];
 
 // Component: Fruit Display
@@ -795,7 +798,7 @@ export default function Pathly() {
   const startMemoryGame = () => {
     const shuffled = [...cardsData]
       .sort(() => Math.random() - 0.5)
-      .map((card) => ({ ...card, isFlipped: false, isMatched: false }));
+      .map((card) => ({ ...card, isFlipped: false, isMatched: false, isWrong: false }));
     setCards(shuffled);
     setMemIsPlaying(true);
     setMemGameOver(false);
@@ -846,11 +849,17 @@ export default function Pathly() {
           });
         }, 500);
       } else {
+        setCards((prev) =>
+          prev.map((c) =>
+            c.id === card1.id || c.id === card2.id ? { ...c, isFlipped: true, isWrong: true } : c
+          )
+        );
+        playTone(200, 0.2);
         setTimeout(() => {
           setCards((prev) =>
             prev.map((c) =>
               c.id === card1.id || c.id === card2.id
-                ? { ...c, isFlipped: false }
+                ? { ...c, isFlipped: false, isWrong: false }
                 : c
             )
           );
@@ -978,43 +987,14 @@ export default function Pathly() {
               </section>
             )}
 
-            {/* Dua pilihan berupa ikon besar berwarna, tanpa kartu */}
-            <div className="flex flex-wrap justify-center gap-10 sm:gap-20 py-6 md:py-10">
-              {[
-                {
-                  mode: "path" as const,
-                  label: "Ayo Belajar",
-                  hint: "Ikuti peta materi dan kuis terstruktur.",
-                  icon: MapPin,
-                  color: "from-sky-400 to-blue-600 shadow-blue-500/40",
-                },
-                {
-                  mode: "arena" as const,
-                  label: "Ayo Bermain",
-                  hint: "Asah otak dengan mini-games seru.",
-                  icon: Gamepad2,
-                  color: "from-amber-400 to-orange-500 shadow-orange-500/40",
-                },
-              ].map((option) => (
-                <motion.button
-                  key={option.mode}
-                  type="button"
-                  onClick={() => setMainMode(option.mode)}
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="group flex w-44 flex-col items-center text-center rounded-3xl p-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring focus-visible:ring-offset-4"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`flex h-32 w-32 md:h-36 md:w-36 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-xl ring-8 ring-white dark:ring-slate-900 ${option.color}`}
-                  >
-                    <option.icon className="h-14 w-14 md:h-16 md:w-16" />
-                  </span>
-                  <span className="px-title mt-5 text-xl md:text-2xl">{option.label}</span>
-                  <span className="mt-1 text-muted-foreground">{option.hint}</span>
-                </motion.button>
-              ))}
-            </div>
+            <PathlyHome
+              xp={xp}
+              streak={streak}
+              completed={modulesState.filter((m) => m.status === "completed").length}
+              total={modulesState.length}
+              nextTitle={modulesState.find((m) => m.status === "unlocked")?.title}
+              onSelect={setMainMode}
+            />
           </div>
         )}
 
@@ -1035,110 +1015,17 @@ export default function Pathly() {
             </div>
 
             {/* VIEW 1: MAP */}
-            {pathView === "map" &&
-              (() => {
-                const generatePathData = (mods: any[]) => {
-                  if (mods.length < 2) return "";
-                  const getX = (pos: string) =>
-                    pos === "left" ? 20 : pos === "right" ? 80 : 50;
-                  const Y_UNIT = 100;
-                  let d = `M ${getX(mods[0].position)} ${Y_UNIT / 2}`;
-
-                  for (let i = 0; i < mods.length - 1; i++) {
-                    const currentX = getX(mods[i].position);
-                    const nextX = getX(mods[i + 1].position);
-                    const nextY = (i + 1) * Y_UNIT + Y_UNIT / 2;
-                    const cpY = i * Y_UNIT + Y_UNIT;
-                    d += ` C ${currentX} ${cpY}, ${nextX} ${cpY}, ${nextX} ${nextY}`;
-                  }
-                  return d;
-                };
-
-                return (
-                  <motion.div
-                    key="map"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="max-w-xl mx-auto relative z-10 text-center"
-                  >
-                    <h1 className="px-title text-2xl md:text-3xl mb-2">Peta Belajar</h1>
-                    <p className="text-muted-foreground mb-12">
-                      Selesaikan setiap level untuk membuka materi baru.
-                    </p>
-
-                    {/* Container Peta */}
-                    <div className="relative flex flex-col gap-16 pb-20 mt-10 w-full">
-                      {/* --- SVG JALUR DINAMIS --- */}
-                      <svg
-                        className="absolute top-0 left-0 w-full h-full -z-10 pointer-events-none"
-                        viewBox={`0 0 100 ${modulesState.length * 100}`}
-                        preserveAspectRatio="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d={generatePathData(modulesState)}
-                          stroke="currentColor"
-                          strokeWidth="5"
-                          fill="none"
-                          strokeDasharray="10, 12"
-                          strokeLinecap="butt"
-                          className="text-foreground/35"
-                          vectorEffect="non-scaling-stroke"
-                        />
-                      </svg>
-
-                      {isLoadingModules && (
-                        <p className="text-center text-muted-foreground" role="status">
-                          Memuat peta belajar…
-                        </p>
-                      )}
-
-                      {/* --- RENDER TITIK LEVEL (NODES) --- */}
-                      {modulesState.map((mod) => (
-                        <div
-                          key={mod.id}
-                          className={`flex w-full relative z-10 ${
-                            mod.position === "left"
-                              ? "justify-start md:pl-[10%]"
-                              : mod.position === "right"
-                              ? "justify-end md:pr-[10%]"
-                              : "justify-center"
-                          }`}
-                        >
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleNodeClick(mod)}
-                            aria-label={`${mod.title}, ${mod.status === "completed" ? "selesai" : mod.status === "locked" ? "terkunci" : "terbuka"}`}
-                            className={`
-                              w-24 h-24 md:w-28 md:h-28 flex flex-col items-center justify-center rounded-full ring-8 ring-background shadow-lg relative focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-amber-500
-                              ${
-                                mod.status === "locked"
-                                  ? "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-300 shadow-none"
-                                  : mod.status === "completed"
-                                  ? "bg-emerald-500 text-white shadow-emerald-500/40"
-                                  : "bg-primary text-primary-foreground shadow-primary/40"
-                              }
-                            `}
-                          >
-                            {mod.status === "locked" ? (
-                              <Lock className="w-8 h-8" />
-                            ) : mod.status === "completed" ? (
-                              <CheckCircle2 className="w-10 h-10" />
-                            ) : (
-                              <Star className="w-10 h-10 fill-current animate-pulse" />
-                            )}
-                            <div className="absolute -bottom-11 bg-card text-foreground px-3 py-1.5 text-sm font-bold whitespace-nowrap rounded-xl border border-border z-20">
-                              {mod.title}
-                            </div>
-                          </motion.button>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                );
-              })()}
+            {pathView === "map" && (
+              <motion.div
+                key="map"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="max-w-xl mx-auto relative z-10"
+              >
+                <PathMap modules={modulesState} loading={isLoadingModules} onSelect={handleNodeClick} />
+              </motion.div>
+            )}
 
             {/* VIEW 2: MATERIAL */}
             {pathView === "material" && activeModule && (
@@ -1437,55 +1324,67 @@ export default function Pathly() {
                     </div>
                   )}
 
-                  <div className="px-well flex justify-between items-center mb-6 p-3">
-                    <div className="flex items-center gap-3">
-                      <Timer className="w-6 h-6 text-slate-500" />
-                      <span
-                        className={`text-2xl font-mono font-bold ${
-                          memTimeLeft < 10 ? "text-red-500 animate-pulse" : ""
-                        }`}
-                      >
-                        {memTimeLeft}s
-                      </span>
-                    </div>
-                    <div className="px-tile px-title px-3 py-2 text-base md:text-lg">
-                      Score: {memScore}
-                    </div>
-                  </div>
+                  <ul className="mb-6 flex flex-wrap items-center gap-3" aria-label="Status permainan">
+                    <li
+                      className={`flex items-center gap-2 rounded-2xl border-2 px-4 py-2 font-extrabold ${
+                        memTimeLeft < 10 ? "border-orange-400 text-orange-600" : "border-border"
+                      }`}
+                    >
+                      <Timer className="h-5 w-5" aria-hidden="true" />
+                      <span className="font-mono text-xl">{memTimeLeft}</span> detik
+                    </li>
+                    <li className="flex items-center gap-2 rounded-2xl border-2 border-border px-4 py-2 font-extrabold">
+                      <Zap className="h-5 w-5 fill-amber-400 text-amber-500" aria-hidden="true" />
+                      Skor {memScore}
+                    </li>
+                    <li className="flex items-center gap-2 rounded-2xl border-2 border-border px-4 py-2 font-extrabold">
+                      <CheckCircle2 className="h-5 w-5 text-primary" aria-hidden="true" />
+                      {matchedCount} dari {cardsData.length / 2} pasangan
+                    </li>
+                  </ul>
 
-                  <div className="grid grid-cols-3 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-                    {cards.map((card) => (
-                      <motion.div
-                        key={card.id}
-                        layout
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        {...clickable(
-                          () => handleCardClick(card),
-                          card.isFlipped || card.isMatched ? `Kartu ${card.content}` : "Kartu tertutup"
-                        )}
-                        className={`aspect-square cursor-pointer flex items-center justify-center text-center p-2 text-sm md:text-xl font-bold rounded-xl border border-border select-none focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-500 ${
-                          card.isMatched
-                            ? "bg-green-100 text-green-700 opacity-60"
-                            : card.isFlipped
-                            ? "bg-white text-slate-800"
-                            : "bg-primary text-white shadow-sm"
-                        }`}
-                      >
-                        {card.isFlipped || card.isMatched ? (
-                          <div className="flex flex-col items-center">
-                            <span className="text-3xl mb-1">
-                              {card.type === "icon" ? card.content : ""}
+                  <div className="mx-auto grid max-w-3xl grid-cols-3 gap-3 md:grid-cols-4 md:gap-4">
+                    {cards.map((card) => {
+                      const open = card.isFlipped || card.isMatched;
+                      return (
+                        <motion.div
+                          key={card.id}
+                          initial={{ scale: 0.8 }}
+                          animate={card.isWrong ? { scale: 1, x: [0, -8, 8, -5, 5, 0] } : { scale: 1, x: 0 }}
+                          transition={{ duration: card.isWrong ? 0.4 : 0.2 }}
+                          {...clickable(
+                            () => handleCardClick(card),
+                            open
+                              ? `Kartu ${card.content}${card.isMatched ? ", sudah cocok" : card.isWrong ? ", tidak cocok" : ""}`
+                              : "Kartu tertutup"
+                          )}
+                          className={`relative flex aspect-square cursor-pointer select-none items-center justify-center rounded-2xl border-2 p-2 text-center font-bold transition-[transform,box-shadow] duration-100 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-amber-500 ${
+                            card.isMatched
+                              ? "border-amber-400 bg-amber-100 text-amber-950 opacity-80 dark:bg-amber-400/20 dark:text-amber-100"
+                              : card.isWrong
+                              ? "border-orange-500 bg-orange-50 text-orange-900 shadow-[inset_0_-5px_0_0_rgba(234,88,12,0.35)] dark:bg-orange-500/15 dark:text-orange-100"
+                              : card.isFlipped
+                              ? "border-primary bg-card text-foreground shadow-[inset_0_-5px_0_0_hsl(var(--primary)/0.3)]"
+                              : "border-transparent bg-primary text-primary-foreground shadow-[inset_0_-6px_0_0_rgba(0,0,0,0.22)] hover:-translate-y-0.5 active:translate-y-1 active:shadow-[inset_0_-2px_0_0_rgba(0,0,0,0.22)]"
+                          }`}
+                        >
+                          {open ? (
+                            card.type === "icon" ? (
+                              <span className="text-4xl md:text-5xl" aria-hidden="true">{card.content}</span>
+                            ) : (
+                              <span className="text-base md:text-xl" aria-hidden="true">{card.content}</span>
+                            )
+                          ) : (
+                            <span className="px-title text-3xl opacity-70" aria-hidden="true">?</span>
+                          )}
+                          {card.isMatched && (
+                            <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-amber-950" aria-hidden="true">
+                              <Check className="h-4 w-4" strokeWidth={4} />
                             </span>
-                            <span className="text-sm">
-                              {card.type === "text" ? card.content : ""}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="px-title text-3xl opacity-60">?</span>
-                        )}
-                      </motion.div>
-                    ))}
+                          )}
+                        </motion.div>
+                      );
+                    })}
                   </div>
 
                   <AnimatePresence>
