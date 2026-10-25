@@ -3,8 +3,8 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { Point } from "./landmarks";
 import {
-  FEATURE_SIZE, FRAMES, GAP_MS, MAX_SIGN_MS, SignSegmenter, frameFeatures, predictWord, resample, wordProbabilities,
-  type WordModel,
+  FEATURE_SIZE, FRAMES, GAP_MS, MAX_SIGN_MS, SignSegmenter, frameFeatures, matchesTarget, predictWord, resample, wordProbabilities,
+  type WordModel, type WordPrediction,
 } from "./bisindo";
 import { BISINDO_SIMILAR, BISINDO_WORDS } from "./bisindoWords";
 
@@ -135,4 +135,24 @@ describe("model kata BISINDO", () => {
       expect(predictWord(model, longest.sequence).label).toBe(sample.label);
     });
   }
+});
+
+describe("matchesTarget (penilaian latihan)", () => {
+  const prediction = (ranked: [string, number][]): WordPrediction => {
+    const words = ranked.map(([label, confidence]) => ({ label, confidence }));
+    return { ...words[0], ranked: words };
+  };
+
+  it("menerima target di peringkat kedua bila peluangnya cukup", () => {
+    expect(matchesTarget(prediction([["Siang", 0.41], ["Pagi", 0.35], ["Sore", 0.12]]), "Pagi")).toBe(true);
+  });
+
+  it("menolak target yang peluangnya terlalu kecil walau masuk tiga besar", () => {
+    expect(matchesTarget(prediction([["Makan", 0.9], ["Minum", 0.06], ["Pagi", 0.02]]), "Pagi")).toBe(false);
+  });
+
+  it("menolak target yang tidak masuk tiga besar dan bila belum ada tebakan", () => {
+    expect(matchesTarget(prediction([["Makan", 0.5], ["Minum", 0.3], ["Air", 0.15]]), "Pagi")).toBe(false);
+    expect(matchesTarget(null, "Pagi")).toBe(false);
+  });
 });

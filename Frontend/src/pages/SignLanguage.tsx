@@ -19,7 +19,7 @@ import { speak, stopSpeech } from "@/lib/speech";
 import SignCredit from "@/components/SignCredit";
 import SignDictionary from "@/components/SignDictionary";
 import BisindoPanel, { WORD_MIN_CONFIDENCE, type SignResult } from "@/components/BisindoPanel";
-import { SignSegmenter, loadWordModel, predictWord, type WordModel, type WordPrediction } from "@/lib/sign/bisindo";
+import { SignSegmenter, loadWordModel, matchesTarget, predictWord, type WordModel, type WordPrediction } from "@/lib/sign/bisindo";
 import { readSignPreference, saveSignPreference, type SignLanguage as Language } from "@/lib/sign/preference";
 import { useSearchParams } from "react-router-dom";
 
@@ -443,10 +443,17 @@ export default function SignLanguage() {
                   ) : wordLive.signing ? (
                     <p className="text-lg font-bold leading-tight">Membaca gerakan…</p>
                   ) : wordLive.last ? (
-                    wordLive.last.prediction.confidence >= WORD_MIN_CONFIDENCE ? (
+                    mode === "latihan" && wordTarget && matchesTarget(wordLive.last.prediction, wordTarget) ? (
+                      <p className="px-title text-2xl leading-tight">✓ {wordTarget}</p>
+                    ) : wordLive.last.prediction.confidence >= WORD_MIN_CONFIDENCE ? (
                       <>
                         <p className="px-title text-2xl leading-tight">{wordLive.last.prediction.label}</p>
                         <p className="text-sm mt-1">Yakin {Math.round(wordLive.last.prediction.confidence * 100)}%</p>
+                        {wordLive.last.prediction.ranked.length > 1 && (
+                          <p className="text-xs mt-1 text-white/80">
+                            Mungkin juga: {wordLive.last.prediction.ranked.slice(1).map((word) => word.label).join(", ")}
+                          </p>
+                        )}
                       </>
                     ) : (
                       <>
@@ -510,7 +517,9 @@ export default function SignLanguage() {
               {status === "ready" && language === "bisindo" && wordModel && (
                 <p className="text-sm text-muted-foreground">
                   {wordLive.last
-                    ? wordLive.last.prediction.confidence >= WORD_MIN_CONFIDENCE
+                    ? mode === "latihan" && wordTarget && matchesTarget(wordLive.last.prediction, wordTarget)
+                      ? `Cocok dengan kata ${wordTarget}`
+                      : wordLive.last.prediction.confidence >= WORD_MIN_CONFIDENCE
                       ? `Terbaca kata ${wordLive.last.prediction.label}`
                       : "Kata belum yakin terbaca"
                     : ""}

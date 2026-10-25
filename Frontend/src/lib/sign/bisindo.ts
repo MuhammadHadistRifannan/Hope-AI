@@ -215,14 +215,28 @@ export const wordProbabilities = (model: WordModel, sequence: number[][]): numbe
   return vector ?? [];
 };
 
-export type WordPrediction = { label: string; confidence: number };
+export type RankedWord = { label: string; confidence: number };
+// label dan confidence: tebakan teratas. ranked: tiga tebakan teratas, urut dari peluang terbesar.
+export type WordPrediction = RankedWord & { ranked: RankedWord[] };
 
 export const predictWord = (model: WordModel, sequence: number[][]): WordPrediction => {
   const probs = wordProbabilities(model, sequence);
-  let best = 0;
-  for (let i = 1; i < probs.length; i++) if (probs[i] > probs[best]) best = i;
-  return { label: model.labels[best], confidence: probs[best] };
+  const ranked = model.labels
+    .map((label, i) => ({ label, confidence: probs[i] }))
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, 3);
+  return { ...ranked[0], ranked };
 };
+
+// Saat latihan, kata yang diminta sudah diketahui, jadi cukup diperiksa apakah gerakan
+// cocok dengan kata itu: target ada di tiga tebakan teratas dengan peluang yang cukup.
+// Kata yang mirip (Pagi/Siang/Sore, Apa/Dimana/Cari) tidak lagi membuat latihan gagal,
+// sedangkan isyarat yang jelas berbeda tetap ditolak karena peluang targetnya kecil.
+export const TARGET_MIN_CONFIDENCE = 0.2;
+
+export const matchesTarget = (prediction: WordPrediction | null, target: string) =>
+  !!prediction &&
+  prediction.ranked.some((word) => word.label === target && word.confidence >= TARGET_MIN_CONFIDENCE);
 
 const isWordModel = (value: unknown): value is WordModel => {
   const model = value as Partial<WordModel> | null;

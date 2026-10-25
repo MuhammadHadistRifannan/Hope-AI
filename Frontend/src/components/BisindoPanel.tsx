@@ -4,7 +4,7 @@ import { Delete, Eraser, Hand, LayoutGrid, Play, SkipForward, Sun, UserRound, Vo
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BisindoDictionary, { BisindoCredit } from "@/components/BisindoDictionary";
-import type { RawFrame, WordModel, WordPrediction } from "@/lib/sign/bisindo";
+import { matchesTarget, type RawFrame, type WordModel, type WordPrediction } from "@/lib/sign/bisindo";
 import { BISINDO_GROUPS, BISINDO_WORDS, bisindoVideo, bisindoWord, differenceBetween, type BisindoGroup } from "@/lib/sign/bisindoWords";
 
 export const WORD_MIN_CONFIDENCE = 0.6;
@@ -81,7 +81,7 @@ export default function BisindoPanel({
     }
 
     if (mode !== "latihan" || !target || success) return;
-    if (confident && guess!.label === target) {
+    if (matchesTarget(guess, target)) {
       const praise = pick(PRAISES);
       setHint("");
       setSuccess(praise);
