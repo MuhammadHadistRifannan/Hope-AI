@@ -40,6 +40,9 @@ const AI_TIMEOUT_MS = 45000;
 
 let playId = 0;
 let currentAudio: HTMLAudioElement | null = null;
+// onEnd milik bacaan yang sedang berjalan. Dipanggil juga saat bacaan dipotong oleh
+// stopSpeech atau bacaan lain, supaya halaman tidak terus mengira masih berbicara.
+let activeEnd: (() => void) | null = null;
 const audioCache = new Map<string, string>();
 
 const rateValue = (rate: string) => (rate === "slow" ? 0.85 : rate === "fast" ? 1.2 : 1.0);
@@ -78,6 +81,8 @@ export const isSpeaking = () =>
   (typeof window !== "undefined" && "speechSynthesis" in window && window.speechSynthesis.speaking);
 
 export const stopSpeech = () => {
+  const end = activeEnd;
+  activeEnd = null;
   playId++;
   if (currentAudio) {
     currentAudio.pause();
@@ -86,6 +91,7 @@ export const stopSpeech = () => {
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
+  end?.();
 };
 
 const fetchAiAudio = async (chunk: string): Promise<string> => {
@@ -154,13 +160,25 @@ const speakWithDevice = (text: string, options: SpeakOptions, id: number, span?:
         options.onProgress!((where.offset + Math.min(spoken, text.length)) / where.total);
       }, 200);
     }
+    let watchdog: ReturnType<typeof setInterval> | undefined;
     const done = () => {
       clearInterval(ticker);
+      clearInterval(watchdog);
       resolve();
     };
     utterance.onend = done;
     utterance.onerror = done;
     window.speechSynthesis.speak(utterance);
+    // Di sebagian ponsel (Chrome Android) onend kadang tidak pernah muncul. Bila suara
+    // perangkat sudah diam beberapa saat, anggap bacaan selesai.
+    const startedAt = Date.now();
+    let silentChecks = 0;
+    watchdog = setInterval(() => {
+      if (id !== playId) return done();
+      const quiet = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
+      silentChecks = quiet ? silentChecks + 1 : 0;
+      if (Date.now() - startedAt > 3000 && silentChecks >= 2) done();
+    }, 1000);
   });
 
 export const speak = async (text: string, options: SpeakOptions) => {
@@ -174,6 +192,7 @@ export const speak = async (text: string, options: SpeakOptions) => {
   if (options.feedback && muteFeedback) return;
 
   options.onStart?.();
+  activeEnd = options.onEnd ?? null;
 
   try {
     if (!options.aiVoice) {
@@ -215,6 +234,7 @@ export const speak = async (text: string, options: SpeakOptions) => {
   } finally {
     if (id === playId) {
       currentAudio = null;
+      activeEnd = null;
       options.onEnd?.();
     }
   }
