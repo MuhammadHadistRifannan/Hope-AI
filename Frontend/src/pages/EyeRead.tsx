@@ -362,6 +362,11 @@ export default function EyeRead() {
       if (!response.ok) throw new Error("OCR gagal: " + response.statusText);
 
       const ocrText = await response.text();
+      if (!ocrText.trim()) {
+        toast({ title: "Tidak ada tulisan", description: "Foto tidak berisi tulisan yang terbaca. Dekatkan kamera atau tambah cahaya." });
+        setIsProcessing(false);
+        return;
+      }
       setScannedText(ocrText);
       saveScan(ocrText);
       setIsProcessing(false);
@@ -411,6 +416,11 @@ export default function EyeRead() {
       if (!response.ok) throw new Error("OCR gagal");
 
       const text = await response.text();
+      if (!text.trim()) {
+        toast({ title: "Tidak ada tulisan", description: "Foto tidak berisi tulisan yang terbaca. Dekatkan kamera atau tambah cahaya." });
+        setIsProcessing(false);
+        return;
+      }
       setScannedText(text);
       saveScan(text);
       toast({ title: "Berhasil!", description: "Teks berhasil diekstrak." });
@@ -459,6 +469,11 @@ export default function EyeRead() {
       if (!response.ok) throw new Error("OCR gagal");
 
       const ocrText = await response.text();
+      if (!ocrText.trim()) {
+        toast({ title: "Tidak ada tulisan", description: "Foto tidak berisi tulisan yang terbaca. Dekatkan kamera atau tambah cahaya." });
+        setIsProcessing(false);
+        return;
+      }
       setScannedText(ocrText);
       saveScan(ocrText);
       toast({ title: "Berhasil!", description: "Teks berhasil diekstrak" });
@@ -472,8 +487,9 @@ export default function EyeRead() {
     setIsProcessing(false);
   };
 
-  // Mode Langsung: foto dari kamera dikirim ke OCR Gemini tanpa mematikan kamera,
-  // lalu hasilnya ditampilkan, disimpan, dan langsung dibacakan.
+  // Mode Langsung: foto dari kamera dikirim ke OCR Gemini tanpa mematikan kamera.
+  // Hasilnya "" bila foto tidak berisi tulisan, null bila server gagal.
+  const liveFailed = useRef(false);
   const readLive = async (image: Blob) => {
     try {
       const form = new FormData();
@@ -484,23 +500,36 @@ export default function EyeRead() {
         body: form,
       });
       if (!response.ok) throw new Error(response.statusText);
-      const text = (await response.text()).trim();
-      if (!text) return null;
-      setScannedText(text);
-      setSummaryText("");
-      setActiveOutput("text");
-      saveScan(text);
-      speakText(text);
-      return text;
+      liveFailed.current = false;
+      return (await response.text()).trim();
     } catch (error) {
       console.error("OCR Mode Langsung gagal:", error);
-      toast({ title: "Belum bisa membaca", description: "Server OCR tidak merespons. Mode Langsung akan mencoba lagi.", variant: "destructive" });
+      // Satu pemberitahuan saja, bukan setiap kali Mode Langsung mencoba lagi
+      if (!liveFailed.current) {
+        toast({ title: "Belum bisa membaca", description: "Server OCR tidak merespons. Mode Langsung akan mencoba lagi.", variant: "destructive" });
+      }
+      liveFailed.current = true;
       return null;
     }
   };
 
-  const live = useLiveOcr({ videoRef, enabled: isScanning && liveMode, paused: isSpeaking || isProcessing, onRead: readLive });
-  const liveStatus = live.state === "menyiapkan" ? "Menyiapkan pengenal teks…" : LIVE_STATE_TEXT[live.state];
+  // Halaman baru dari Mode Langsung: tampilkan, simpan, dan langsung bacakan
+  const showLiveText = (text: string) => {
+    setScannedText(text);
+    setSummaryText("");
+    setActiveOutput("text");
+    saveScan(text);
+    speakText(text);
+  };
+
+  const live = useLiveOcr({
+    videoRef,
+    enabled: isScanning && liveMode,
+    paused: isSpeaking || isProcessing,
+    onRead: readLive,
+    onNewText: showLiveText,
+  });
+  const liveStatus = live.state === "menyiapkan" ? "Menyiapkan kamera…" : LIVE_STATE_TEXT[live.state];
 
   const retakePhoto = () => {
     setCapturedImage(null);

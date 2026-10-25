@@ -66,20 +66,27 @@ export const textSimilarity = (a: string, b: string) => {
 export const LIVE_OCR = {
   // Lebar gambar kecil untuk mengukur gerakan dan ketajaman
   sampleWidth: 160,
-  // Selisih rata-rata di bawah ini berarti kamera dianggap diam
-  stillBelow: 6,
+  // Selisih rata-rata di bawah ini berarti kamera dianggap diam. Cukup longgar supaya
+  // getaran tangan dan fokus otomatis kamera ponsel tidak dihitung sebagai gerakan.
+  stillBelow: 12,
+  // Berapa pemeriksaan berturut-turut harus diam sebelum foto dikirim (x jeda pemeriksaan)
+  stillTicks: 2,
   // Ketajaman minimal supaya tulisan layak dibaca
-  sharpAbove: 120,
-  // Pratinjau dianggap berisi teks bila ada sekian kata yang cukup yakin
-  minWords: 4,
+  sharpAbove: 80,
+  // Gambar dianggap pemandangan baru bila selisihnya dengan foto terakhir yang dikirim di atas ini
+  changedAbove: 14,
+  // Gerakan sebesar ini (membalik halaman, menggeser kamera) menyiapkan pembacaan berikutnya,
+  // karena dua halaman buku sering tampak mirip pada gambar kecil
+  rearmAbove: 20,
   // Teks dianggap halaman baru bila kemiripannya dengan bacaan terakhir di bawah ini
   newBelow: 0.5,
 } as const;
 
-export type LiveState = "mencari" | "bergerak" | "buram" | "membaca" | "terdeteksi" | "mengirim" | "dibacakan";
+export type LiveState = "mencari" | "kosong" | "bergerak" | "buram" | "membaca" | "terdeteksi" | "mengirim" | "dibacakan";
 
 export const LIVE_STATE_TEXT: Record<LiveState, string> = {
   mencari: "Arahkan kamera ke tulisan",
+  kosong: "Belum ada tulisan terbaca. Dekatkan atau arahkan ke halaman lain",
   bergerak: "Tahan kamera diam sebentar",
   buram: "Gambar buram, jauhkan sedikit atau tambah cahaya",
   membaca: "Mencari tulisan…",

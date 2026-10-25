@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { motion, sharpness, textSimilarity, toGray } from "./liveOcr";
+import { LIVE_OCR, motion, sharpness, textSimilarity, toGray } from "./liveOcr";
 
 const W = 32;
 const H = 24;
@@ -50,5 +50,27 @@ describe("textSimilarity", () => {
 
   it("halaman berbeda dianggap baru", () => {
     expect(textSimilarity("Bab satu tentang bilangan bulat", "Gravitasi menarik benda ke bumi")).toBeLessThan(0.2);
+  });
+});
+
+describe("ambang Mode Langsung", () => {
+  // Halaman berisi "baris tulisan": garis gelap tiap 4 piksel
+  const page = image((x, y) => (y % 4 === 0 && x > 2 && x < W - 3 ? 30 : 230));
+
+  it("getaran tangan dan noise kamera tetap dianggap diam", () => {
+    let seed = 7;
+    const noise = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280 - 0.5) * 16;
+    const shaky = page.map((value) => value + noise());
+    expect(motion(shaky, page)).toBeLessThan(LIVE_OCR.stillBelow);
+  });
+
+  it("halaman berbeda dianggap pemandangan baru", () => {
+    const other = image((x, y) => ((y + 2) % 4 === 0 && x > 2 && x < W - 3 ? 30 : 230));
+    expect(motion(other, page)).toBeGreaterThan(LIVE_OCR.changedAbove);
+  });
+
+  it("halaman bertulisan cukup tajam, dinding polos tidak", () => {
+    expect(sharpness(page, W, H)).toBeGreaterThan(LIVE_OCR.sharpAbove);
+    expect(sharpness(image(() => 180), W, H)).toBeLessThan(LIVE_OCR.sharpAbove);
   });
 });

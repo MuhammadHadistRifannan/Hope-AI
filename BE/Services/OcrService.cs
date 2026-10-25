@@ -43,6 +43,9 @@ public class OcrService : IOcrService
         });
     }
 
+    // Jawaban AI bila gambar tidak berisi tulisan; diubah menjadi teks kosong
+    const string NoTextMarker = "NO_TEXT";
+
     public async Task<string> ExtractText(IFormFile file, ModelAi model)
     {
         if (file == null || file.Length == 0)
@@ -73,7 +76,8 @@ public class OcrService : IOcrService
                     {
                         new Part
                         {
-                            Text = "Extract all readable text from this file. Keep the original language and reading order. Return raw text only."
+                            Text = "Extract all readable text from this file. Keep the original language and reading order. Return raw text only. " +
+                                   $"If the file contains no readable text, reply with exactly {NoTextMarker} and nothing else."
                         },
                         new Part
                         {
@@ -91,7 +95,9 @@ public class OcrService : IOcrService
         try
         {
             var response = await geminiClient.V1.Models.GenerateContentAsync(model.nameModel, content);
-            return response.Candidates![0].Content!.Parts![0].Text!.Trim();
+            string text = response.Candidates![0].Content!.Parts![0].Text!.Trim();
+            // Tanpa tulisan: kembalikan teks kosong supaya aplikasi tidak membacakan pesan dari AI
+            return text.Trim('.', ' ').Equals(NoTextMarker, StringComparison.OrdinalIgnoreCase) ? "" : text;
         }
         catch (Exception e)
         {
