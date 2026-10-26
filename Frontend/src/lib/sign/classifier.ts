@@ -31,13 +31,37 @@ const dense = (input: number[], layer: DenseLayer) => {
   return output;
 };
 
-export const predict = (model: SignModel, features: number[]): Prediction => {
+export const probabilities = (model: SignModel, features: number[]): number[] => {
   let values = features;
   for (const layer of model.layers) values = dense(values, layer);
+  return values;
+};
 
+export const predict = (model: SignModel, features: number[]): Prediction => {
+  const values = probabilities(model, features);
   let best = 0;
   for (let i = 1; i < values.length; i++) if (values[i] > values[best]) best = i;
   return { label: model.labels[best], confidence: values[best] };
+};
+
+// Saat latihan, huruf yang diminta sudah diketahui. Huruf itu dianggap cocok bila
+// peluangnya cukup walaupun bukan tebakan teratas, karena huruf SIBI yang mirip
+// (misalnya M/N, U/V) sering bersaing ketat. Isyarat yang jelas berbeda tetap ditolak.
+export const TARGET_MIN_CONFIDENCE = 0.3;
+
+export const predictForTarget = (
+  model: SignModel,
+  features: number[],
+  target: string | undefined
+): { prediction: Prediction; matchesTarget: boolean } => {
+  const values = probabilities(model, features);
+  let best = 0;
+  for (let i = 1; i < values.length; i++) if (values[i] > values[best]) best = i;
+  const index = target ? model.labels.indexOf(target) : -1;
+  if (index >= 0 && values[index] >= TARGET_MIN_CONFIDENCE) {
+    return { prediction: { label: target!, confidence: values[index] }, matchesTarget: true };
+  }
+  return { prediction: { label: model.labels[best], confidence: values[best] }, matchesTarget: false };
 };
 
 const isSignModel = (value: any): value is SignModel =>

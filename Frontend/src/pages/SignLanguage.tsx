@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSettings } from "@/context/SettingsContext";
 import { useHandTracking, type HandFrame } from "@/hooks/use-hand-tracking";
 import { toFeatures, toPixels } from "@/lib/sign/landmarks";
-import { loadSignModel, predict, type Prediction, type SignModel } from "@/lib/sign/classifier";
+import { loadSignModel, predictForTarget, type Prediction, type SignModel } from "@/lib/sign/classifier";
 import { Stabilizer, type StabilizerState } from "@/lib/sign/stabilizer";
 import { speak, stopSpeech } from "@/lib/speech";
 import SignCredit from "@/components/SignCredit";
@@ -29,7 +29,8 @@ const DIGIT_MODEL_URL = "/models/sibi-angka.json";
 const WORD_MODEL_URL = "/models/bisindo-kata.json";
 // Lama hasil kata BISINDO ditampilkan di atas video
 const WORD_RESULT_MS = 2500;
-const MIN_CONFIDENCE = 0.7;
+// Huruf diterima bila cukup yakin dan bertahan sebentar; dibuat longgar supaya tidak terasa kaku
+const MIN_CONFIDENCE = 0.55;
 const NEXT_WORD_DELAY_MS = 4000;
 
 
@@ -75,7 +76,7 @@ export default function SignLanguage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const stabilizer = useRef(new Stabilizer({ minConfidence: MIN_CONFIDENCE, holdMs: 700, releaseMs: 350 }));
+  const stabilizer = useRef(new Stabilizer({ minConfidence: MIN_CONFIDENCE, holdMs: 500, releaseMs: 300 }));
 
   // ?tab=kamus membuka langsung tab Kamus (dipakai tautan dari Flexa dan perintah suara)
   const [searchParams] = useSearchParams();
@@ -319,9 +320,15 @@ export default function SignLanguage() {
     const expected = currentMode === "latihan" && current ? current.word[current.index] : undefined;
     const active = expected && /^\d$/.test(expected) && digits ? digits : model;
     const features = frame && active ? toFeatures(frame.landmarks, frame.width, frame.height) : null;
-    const prediction = features && active ? predict(active, features) : null;
+    const result = features && active ? predictForTarget(active, features, expected) : null;
+    const prediction = result?.prediction ?? null;
 
-    const accepted = stabilizer.current.push(prediction?.label ?? null, prediction?.confidence ?? 0, now);
+    // Huruf target yang cocok dihitung yakin penuh, supaya tidak tertahan ambang umum
+    const accepted = stabilizer.current.push(
+      prediction?.label ?? null,
+      result?.matchesTarget ? 1 : prediction?.confidence ?? 0,
+      now
+    );
     if (accepted) handleAccepted(accepted);
 
     if (now - lastUiUpdate.current > 120 || accepted) {

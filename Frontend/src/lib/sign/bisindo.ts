@@ -18,7 +18,7 @@ export const MIN_FRAMES = 6;
 // Tangan hilang selama ini = isyarat selesai
 export const GAP_MS = 400;
 // Isyarat lebih lama dari ini dianggap bukan satu kata (tangan dibiarkan terangkat)
-export const MAX_SIGN_MS = 4000;
+export const MAX_SIGN_MS = 6000;
 
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 
@@ -232,7 +232,7 @@ export const predictWord = (model: WordModel, sequence: number[][]): WordPredict
 // cocok dengan kata itu: target ada di tiga tebakan teratas dengan peluang yang cukup.
 // Kata yang mirip (Pagi/Siang/Sore, Apa/Dimana/Cari) tidak lagi membuat latihan gagal,
 // sedangkan isyarat yang jelas berbeda tetap ditolak karena peluang targetnya kecil.
-export const TARGET_MIN_CONFIDENCE = 0.2;
+export const TARGET_MIN_CONFIDENCE = 0.12;
 
 export const matchesTarget = (prediction: WordPrediction | null, target: string) =>
   !!prediction &&

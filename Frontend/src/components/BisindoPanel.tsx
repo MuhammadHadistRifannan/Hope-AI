@@ -7,7 +7,7 @@ import BisindoDictionary, { BisindoCredit } from "@/components/BisindoDictionary
 import { matchesTarget, type RawFrame, type WordModel, type WordPrediction } from "@/lib/sign/bisindo";
 import { BISINDO_GROUPS, BISINDO_WORDS, bisindoVideo, bisindoWord, differenceBetween, type BisindoGroup } from "@/lib/sign/bisindoWords";
 
-export const WORD_MIN_CONFIDENCE = 0.6;
+export const WORD_MIN_CONFIDENCE = 0.45;
 const NEXT_WORD_DELAY_MS = 3000;
 
 // Satu isyarat yang selesai diperagakan (tangan sudah diturunkan)
