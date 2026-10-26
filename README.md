@@ -238,8 +238,8 @@ flowchart LR
     U["👤 Pengguna<br/>browser / ponsel"] --> FE["🎨 Frontend<br/>React + Vite<br/>Vercel"]
     FE -->|"login, data, berkas"| SB[("🗄️ Supabase<br/>Postgres, Auth, Storage")]
     FE -->|"HTTPS + token login"| CF["☁️ Cloudflare"]
-    CF --> CADDY["🔐 Caddy<br/>HTTPS otomatis"]
-    CADDY --> BE["⚙️ Backend<br/>ASP.NET Core 10<br/>Docker di VPS"]
+    CF --> NGINX["🔐 Nginx di VPS<br/>HTTPS + reverse proxy"]
+    NGINX --> BE["⚙️ Backend<br/>ASP.NET Core 10<br/>Docker di VPS"]
     BE -->|"cek token, riwayat chat"| SB
     BE -->|"OCR, chat, ringkasan,<br/>kuis, penilaian, suara"| AI["✨ Google Gemini"]
     FE -.->|"di perangkat:<br/>isyarat, OCR pratinjau,<br/>warna, suara ke teks"| DEV["📱 Browser pengguna"]
@@ -265,7 +265,7 @@ Prinsipnya:
 | Database | Supabase (PostgreSQL) dengan Row Level Security |
 | AI | Google Gemini 2.5 Flash (OCR, chat, ringkasan, kuis, penilaian) dan Gemini TTS (suara) |
 | Di perangkat | MediaPipe Hand Landmarker, Tesseract.js, Web Speech API |
-| Infrastruktur | Vercel, VPS + Docker Compose + Caddy, Cloudflare, GitHub Actions |
+| Infrastruktur | Vercel, VPS + Docker Compose + Nginx, Cloudflare, GitHub Actions |
 
 ---
 
@@ -476,7 +476,7 @@ Hope-AI/
 │   └── Dockerfile
 ├── ml/                           🧠 Notebook dan skrip pelatihan model isyarat
 ├── models/                       Hasil pelatihan model dan data uji
-├── deploy/                       🐳 Docker Compose dan Caddy untuk VPS
+├── deploy/                       🐳 Docker Compose untuk VPS
 ├── user-testing/                 📋 Kuesioner UEQ untuk uji pengguna
 ├── docs/                         📄 Rencana kerja dan guidebook lomba
 ├── scrollcraft/                  Catatan desain hero landing
@@ -563,7 +563,7 @@ Rincian lengkap untuk pengguna ada di halaman **Privasi** dan **Aksesibilitas** 
 | Bagian | Di mana | Cara update |
 |---|---|---|
 | 🎨 Frontend | Vercel | Otomatis setiap push ke `main` |
-| ⚙️ Backend | VPS (Docker Compose + Caddy) | Otomatis lewat [GitHub Actions](.github/workflows/backend.yml) saat `BE/` atau `deploy/` berubah |
+| ⚙️ Backend | VPS (Docker Compose + Nginx) | Otomatis lewat [GitHub Actions](.github/workflows/backend.yml) saat `BE/` atau `deploy/` berubah |
 | 🗄️ Database | Supabase | Jalankan berkas migrasi baru di SQL Editor |
 
 ```mermaid
@@ -574,7 +574,7 @@ flowchart LR
     Q -- tidak --> X["Backend tidak disentuh"]
 ```
 
-Sertifikat HTTPS diurus Caddy secara otomatis. Konfigurasi server ada di `/opt/hopeai/.env`, dengan contoh isi di [`deploy/.env.example`](deploy/.env.example).
+Di VPS, backend berjalan di `127.0.0.1:8282` dan hanya bisa dicapai lewat Nginx, yang mengurus domain, HTTPS, dan reverse proxy (VPS ini juga menjalankan backend lain). Konfigurasi server ada di `/opt/hopeai/.env`, dengan contoh isi di [`deploy/.env.example`](deploy/.env.example).
 
 ---
 

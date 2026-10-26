@@ -52,7 +52,7 @@ jobs:
 
       - name: Kirim berkas deploy
         run: |
-          scp -i ~/.ssh/id_deploy deploy/docker-compose.yml deploy/Caddyfile \
+          scp -i ~/.ssh/id_deploy deploy/docker-compose.yml \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/opt/hopeai/"
 
       - name: Tarik image baru dan jalankan ulang

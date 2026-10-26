@@ -1,5 +1,9 @@
 # Dijalankan di VPS dari /opt/hopeai. Berkas .env di folder yang sama berisi:
-#   DOMAIN, APIKEY, Supabase__Url, Supabase__PublishableKey, Cors__AllowedOrigins__0
+#   APIKEY, Supabase__Url, Supabase__PublishableKey, Cors__AllowedOrigins__0
+#
+# HTTPS dan domain diurus nginx di VPS (reverse proxy ke 127.0.0.1:8282), karena
+# VPS ini juga menjalankan backend lain. Port hanya dibuka untuk localhost supaya
+# backend tidak bisa diakses langsung dari internet tanpa lewat nginx.
 services:
   backend:
     image: ghcr.io/muhammadhadistrifannan/hope-ai-backend:latest
@@ -10,26 +14,8 @@ services:
       Tts__CacheDir: /data/tts
     volumes:
       - tts_cache:/data/tts
-    expose:
-      - "8080"
-
-  # Caddy mengurus sertifikat HTTPS secara otomatis untuk DOMAIN
-  caddy:
-    image: caddy:2
-    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      DOMAIN: ${DOMAIN}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - backend
+      - "127.0.0.1:8282:8080"
 
 volumes:
   tts_cache:
-  caddy_data:
-  caddy_config:
