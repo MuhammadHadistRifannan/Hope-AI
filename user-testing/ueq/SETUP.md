@@ -62,7 +62,7 @@ Bila muncul kotak merah:
 
 ## Sudah terpasang
 
-- Web App: `https://script.google.com/macros/s/AKfycbzEUrVCVIHsOz8bwXEAkUGmAfeaHixrvEKSurJ4d42GucgxQk1ZYZ9HMhfu7mlkBb7o/exec`
+- Web App: `https://script.google.com/macros/s/AKfycbzdMG47ZYTNSB4NsE21YwTWdsXH9TmvCpwvvUTx0uRugANns5bxnZS41w4szodRoKVp/exec`
 - Formulir online: <https://hope-ai-nu.vercel.app/ueq.html> (salinan `index.html` di `Frontend/public/ueq.html`; bila `index.html` diubah, salin ulang ke sana)
 - Kiriman pertama setelah lama tidak dipakai bisa makan ±10 detik karena Apps Script baru dinyalakan; berikutnya lebih cepat.
 
