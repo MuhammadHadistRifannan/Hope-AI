@@ -55,3 +55,6 @@ client_secret_*.json
 # GIF sumber yang sudah diganti versi .webp di public/anim
 Frontend/public/gif/gif_aksebilitas.gif
 Frontend/public/gif/ilustrasi-isyarat.gif
+
+# Gambar hasil render untuk proposal (disisipkan manual ke dokumen)
+/gambar-proposal/

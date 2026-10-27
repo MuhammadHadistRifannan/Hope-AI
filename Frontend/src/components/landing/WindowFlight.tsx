@@ -29,11 +29,13 @@ const SILL = "#e7f1fd";
 
 // Posisi dan ukuran jendela, serta titik asal zoom (pusat jendela), per ukuran layar.
 // Ponsel: jendela di atas, teks di bawah. Layar lebar: teks di kiri, jendela di kanan.
+// --mx/--my: posisi lubang jendela pada mask grid dinding. Persentase mask-position dihitung
+// dari sisa ruang (wadah dikurangi lubang), jadi nilainya wl / (100% - ww) dan wt / (100% - wh).
 const STAGE_VARS =
-  "[--wl:16%] [--wt:12%] [--ww:68%] [--wh:28%] [--wo:50%_26%] " +
-  "md:[--wl:50%] md:[--wt:17%] md:[--ww:40%] md:[--wh:54%] md:[--wo:70%_44%] " +
+  "[--wl:16%] [--wt:12%] [--ww:68%] [--wh:28%] [--wo:50%_26%] [--mx:50%] [--my:16.67%] " +
+  "md:[--wl:50%] md:[--wt:17%] md:[--ww:40%] md:[--wh:54%] md:[--wo:70%_44%] md:[--mx:83.33%] md:[--my:36.96%] " +
   // Laptop yang pendek: jendela lebih rendah supaya kartu kutipan di bawahnya muat
-  "lg:[@media(max-height:820px)]:[--wt:15%] lg:[@media(max-height:820px)]:[--wh:46%] lg:[@media(max-height:820px)]:[--wo:70%_38%]";
+  "lg:[@media(max-height:820px)]:[--wt:15%] lg:[@media(max-height:820px)]:[--wh:46%] lg:[@media(max-height:820px)]:[--wo:70%_38%] lg:[@media(max-height:820px)]:[--my:27.78%]";
 
 const windowBox = { left: "var(--wl)", top: "var(--wt)", width: "var(--ww)", height: "var(--wh)" };
 
@@ -129,6 +131,24 @@ function Room({ p }: { p: MotionValue<number> }) {
       <div className="absolute inset-x-0 bottom-0" style={{ top: "calc(var(--wt) + var(--wh) - 1px)", backgroundColor: WALL }} />
       <div className="absolute left-0" style={{ top: "var(--wt)", height: "var(--wh)", width: "calc(var(--wl) + 1px)", backgroundColor: WALL }} />
       <div className="absolute right-0" style={{ top: "var(--wt)", height: "var(--wh)", left: "calc(var(--wl) + var(--ww) - 1px)", backgroundColor: WALL }} />
+
+      {/* Grid kotak-kotak seperti latar section di bawahnya. Lubang seukuran jendela
+          dibuang lewat mask supaya pemandangan di balik kaca tetap bersih. */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(10,71,194,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(10,71,194,0.07)_1px,transparent_1px)] bg-[size:24px_24px]"
+        style={{
+          maskImage: "linear-gradient(#000,#000), linear-gradient(#000,#000)",
+          maskSize: "100% 100%, var(--ww) var(--wh)",
+          maskPosition: "0 0, var(--mx) var(--my)",
+          maskRepeat: "no-repeat",
+          maskComposite: "exclude",
+          WebkitMaskImage: "linear-gradient(#000,#000), linear-gradient(#000,#000)",
+          WebkitMaskSize: "100% 100%, var(--ww) var(--wh)",
+          WebkitMaskPosition: "0 0, var(--mx) var(--my)",
+          WebkitMaskRepeat: "no-repeat",
+          WebkitMaskComposite: "xor",
+        }}
+      />
 
       {/* Cahaya ruangan: terang dari atas, sedikit lebih gelap ke lantai */}
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.35)_0%,rgba(255,255,255,0)_45%,rgba(10,71,194,0)_70%,rgba(10,71,194,0.08)_100%)]" />
