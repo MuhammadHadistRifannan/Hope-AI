@@ -18,7 +18,7 @@ type Step = "intro" | number | "consent";
 
 // Ditampilkan sekali saat akun pertama kali masuk. Bisa diselesaikan tanpa melihat
 // layar: setiap langkah dibacakan, dan dijawab dengan tombol, tombol keyboard
-// Y dan T, atau suara ("ya" dan "tidak").
+// B dan T, atau suara ("benar" dan "tidak").
 export default function OnboardingDialog() {
   const { needsOnboarding, completeOnboarding, volume } = useSettings();
   const [step, setStep] = useState<Step>("intro");
@@ -31,15 +31,15 @@ export default function OnboardingDialog() {
   const introText =
     "Selamat datang di Hope.Ai. Agar tampilan dan suara cocok untukmu, ada " +
     total +
-    " pertanyaan singkat. Jawab ya atau tidak. Tekan Y untuk ya dan T untuk tidak, atau tekan Alt M lalu ucapkan jawabanmu. Tekan Y untuk mulai, atau T untuk melewati.";
+    " pertanyaan singkat. Jawab benar atau tidak. Tekan B untuk benar dan T untuk tidak, atau tekan Alt M lalu ucapkan jawabanmu. Tekan B untuk mulai, atau T untuk melewati.";
 
   const questionText = (index: number) =>
-    `Pertanyaan ${index + 1} dari ${total}. ${needOptions[index].label}. Jawab ya atau tidak.`;
+    `Pertanyaan ${index + 1} dari ${total}. ${needOptions[index].label}. Benar atau tidak?`;
 
   const consentText = (needs: string[]) =>
     needs.length === 0
-      ? "Kamu tidak memilih kebutuhan apa pun. Tekan Y untuk selesai."
-      : "Bolehkah Hope.Ai menyimpan jawabanmu di akun, agar ikut terbawa saat masuk dari perangkat lain? Data ini hanya bisa dilihat olehmu. Tekan Y untuk menyimpan di akun, atau T untuk menyimpan di perangkat ini saja.";
+      ? "Kamu tidak memilih kebutuhan apa pun. Tekan B untuk selesai."
+      : "Bolehkah Hope.Ai menyimpan jawabanmu di akun, agar ikut terbawa saat masuk dari perangkat lain? Data ini hanya bisa dilihat olehmu. Tekan B untuk menyimpan di akun, atau T untuk menyimpan di perangkat ini saja.";
 
   // Bacakan setiap langkah begitu tampil
   useEffect(() => {
@@ -90,13 +90,13 @@ export default function OnboardingDialog() {
     setStep(previous);
   };
 
-  // Keyboard: Y = ya, T atau N = tidak, R = ulangi
+  // Keyboard: B = benar (Y juga diterima), T atau N = tidak, R = ulangi
   useEffect(() => {
     if (!needsOnboarding) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       const key = event.key.toLowerCase();
-      if (key === "y") answer(true);
+      if (key === "b" || key === "y") answer(true);
       else if (key === "t" || key === "n") answer(false);
       else if (key === "r") repeat();
       else return;
@@ -106,7 +106,7 @@ export default function OnboardingDialog() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  // Suara: "ya", "tidak", "ulangi", "kembali", "lewati"
+  // Suara: "benar" (atau "ya"), "tidak", "ulangi", "kembali", "lewati"
   useVoiceCommands((command) => {
     if (!needsOnboarding) return false;
     if (isYesAnswer(command)) answer(true);
@@ -118,7 +118,7 @@ export default function OnboardingDialog() {
     return true;
   });
 
-  const yesLabel = step === "intro" ? "Mulai (Y)" : step === "consent" ? (selected.length ? "Simpan di akun (Y)" : "Selesai (Y)") : "Ya (Y)";
+  const yesLabel = step === "intro" ? "Mulai (B)" : step === "consent" ? (selected.length ? "Simpan di akun (B)" : "Selesai (B)") : "Benar (B)";
   const noLabel = step === "intro" ? "Lewati (T)" : step === "consent" ? "Simpan di perangkat ini saja (T)" : "Tidak (T)";
 
   return (
@@ -128,7 +128,7 @@ export default function OnboardingDialog() {
           <DialogTitle>Sesuaikan Hope.Ai untukmu</DialogTitle>
           <DialogDescription>
             {step === "intro" &&
-              `Ada ${total} pertanyaan singkat tentang caramu belajar. Jawab ya atau tidak. Semua bisa diubah lagi di Pengaturan.`}
+              `Ada ${total} pertanyaan singkat tentang caramu belajar. Jawab benar atau tidak. Semua bisa diubah lagi di Pengaturan.`}
             {typeof step === "number" && `Pertanyaan ${step + 1} dari ${total}`}
             {step === "consent" && "Satu langkah lagi"}
           </DialogDescription>
@@ -139,7 +139,7 @@ export default function OnboardingDialog() {
             <Progress value={(step / total) * 100} aria-hidden="true" />
             <div className="py-4" aria-live="polite">
               <p className="text-xl font-semibold leading-snug">{needOptions[step].label}</p>
-              <p className="text-muted-foreground mt-2">Bila ya: {needOptions[step].hint.toLowerCase()}.</p>
+              <p className="text-muted-foreground mt-2">Bila benar: {needOptions[step].hint.toLowerCase()}.</p>
             </div>
           </>
         )}
@@ -198,7 +198,7 @@ export default function OnboardingDialog() {
               variant="ghost"
               size="sm"
               onClick={requestVoiceInput}
-              aria-label="Jawab dengan suara. Ucapkan ya atau tidak."
+              aria-label="Jawab dengan suara. Ucapkan benar atau tidak."
               title="Jawab dengan suara"
             >
               <Mic className="w-4 h-4 mr-1" aria-hidden="true" /> Jawab dengan suara
