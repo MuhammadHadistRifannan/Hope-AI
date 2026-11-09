@@ -300,10 +300,16 @@ export default function VoiceAssistant() {
     const finish = () => {
       if (handled || !transcript.trim()) return;
       handled = true;
-      // Saringan gema: abaikan bila yang tertangkap adalah ucapan asisten sendiri
+      // Saringan gema: dalam mode dengar terus, abaikan bila yang tertangkap adalah
+      // ucapan asisten sendiri. Saat pengguna menekan Alt+M, suara asisten sudah
+      // dihentikan lebih dulu, jadi yang terdengar pasti ucapan pengguna.
       const heard = normalizeCommand(transcript);
       const echo = normalizeCommand(lastSaid.current);
-      if (heard.length > 3 && echo.includes(heard)) return;
+      if (automatic && heard.length > 3 && echo.includes(heard)) {
+        setStatus("Mendengarkan terus...");
+        return;
+      }
+      setStatus(`Terdengar: ${heard}`);
       handleCommand(transcript);
     };
     // Berhenti sendiri setelah jeda bicara, atau bila tidak ada suara sama sekali

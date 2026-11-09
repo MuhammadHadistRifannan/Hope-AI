@@ -4,6 +4,8 @@ import {
   findDestination,
   isAppCommand,
   isExplainCommand,
+  isNoAnswer,
+  isYesAnswer,
   labelScore,
   normalizeCommand,
   stripFinishWord,
@@ -18,6 +20,16 @@ describe("normalizeCommand", () => {
   it("tidak mengosongkan jawaban yang hanya satu kata", () => {
     expect(normalizeCommand("Ya")).toBe("ya");
     expect(normalizeCommand("Tolong")).toBe("tolong");
+    // Jawaban onboarding: "iya" sering ditulis berbeda oleh pengenal suara
+    for (const heard of ["Iya.", "ia", "iyaa", "iyah", "iya iya", "Ya", "betul", "oke"]) {
+      expect(isYesAnswer(normalizeCommand(heard))).toBe(true);
+    }
+    for (const heard of ["Tidak.", "nggak", "enggak", "gak", "tidak mau", "bukan"]) {
+      expect(isNoAnswer(normalizeCommand(heard))).toBe(true);
+    }
+    for (const heard of ["dia", "kaya", "buka flexa", "tidak tahu"]) {
+      expect(isYesAnswer(normalizeCommand(heard)) || isNoAnswer(normalizeCommand(heard))).toBe(false);
+    }
   });
 
   it("tidak menyentuh kata basa-basi di tengah kalimat", () => {

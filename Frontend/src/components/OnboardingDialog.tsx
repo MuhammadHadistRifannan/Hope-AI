@@ -11,13 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { needOptions, useSettings } from "@/context/SettingsContext";
 import { speak, stopSpeech } from "@/lib/speech";
-import { requestVoiceInput, useVoiceCommands } from "@/lib/voiceCommands";
+import { isNoAnswer, isYesAnswer, requestVoiceInput, useVoiceCommands } from "@/lib/voiceCommands";
 
 // Langkah: "intro" → satu pertanyaan per kebutuhan → "consent" (persetujuan data)
 type Step = "intro" | number | "consent";
-
-const YES = /^(ya|iya|betul|benar|setuju|mau|boleh|ok|oke|y)$/;
-const NO = /^(tidak|nggak|enggak|ga|gak|bukan|tidak mau|jangan|n|t)$/;
 
 // Ditampilkan sekali saat akun pertama kali masuk. Bisa diselesaikan tanpa melihat
 // layar: setiap langkah dibacakan, dan dijawab dengan tombol, tombol keyboard
@@ -112,8 +109,8 @@ export default function OnboardingDialog() {
   // Suara: "ya", "tidak", "ulangi", "kembali", "lewati"
   useVoiceCommands((command) => {
     if (!needsOnboarding) return false;
-    if (YES.test(command)) answer(true);
-    else if (NO.test(command)) answer(false);
+    if (isYesAnswer(command)) answer(true);
+    else if (isNoAnswer(command)) answer(false);
     else if (/^(ulangi|ulang)/.test(command)) repeat();
     else if (/^(kembali|sebelumnya)/.test(command)) back();
     else if (/^(lewati|lewati semua)$/.test(command)) finish([], false);

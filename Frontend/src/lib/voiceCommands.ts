@@ -74,6 +74,18 @@ export const normalizeCommand = (transcript: string) => {
   }
 };
 
+// Jawaban ya/tidak. Pengenal suara sering menulis "iya" sebagai "ia", "iyaa",
+// "iyah", atau mengulangnya ("iya iya"), jadi semua bentuk itu diterima.
+const YES_WORD = "(?:i|y)?ya+h?|ia|iyap|yap|yup|yoi";
+const YES_ANSWER = new RegExp(
+  `^(?:${YES_WORD}|betul|benar|setuju|mau|boleh|ok|oke|y)(?: (?:${YES_WORD}|betul|benar))*$`
+);
+const NO_WORD = "tidak|tdk|nggak|ngga|enggak|engga|gak|ga|ndak|nda";
+const NO_ANSWER = new RegExp(`^(?:(?:${NO_WORD})(?: mau)?|bukan|jangan|n|t)(?: (?:${NO_WORD}))*$`);
+
+export const isYesAnswer = (command: string) => YES_ANSWER.test(command);
+export const isNoAnswer = (command: string) => NO_ANSWER.test(command);
+
 // Mengembalikan true bila ada halaman yang menangani perintah
 export const dispatchVoiceCommand = (transcript: string) => {
   const event = new CustomEvent<string>(VOICE_EVENT, {
