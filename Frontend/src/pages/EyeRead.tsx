@@ -945,7 +945,12 @@ export default function EyeRead() {
                   value="summary"
                   className="mt-0 h-full overflow-y-auto"
                 >
-                  {scannedText ? (
+                  {isSummaryLoading ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-4 py-12">
+                      <div className="animate-spin h-10 w-10 rounded-2xl border-2 border-border border-t-amber-400" aria-hidden="true" />
+                      <p className="text-muted-foreground font-medium" role="status">Merangkum teks…</p>
+                    </div>
+                  ) : scannedText ? (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
                       <p className="text-lg leading-relaxed whitespace-pre-wrap">
                         {summaryText}
