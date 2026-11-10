@@ -878,7 +878,7 @@ export default function EyeRead() {
                 </TabsTrigger>
               </TabsList>
 
-              <div className="px-well flex-1 min-h-[16rem] p-4 overflow-hidden">
+              <div className="px-well flex-1 min-h-[16rem] max-h-[50vh] lg:max-h-none p-4 overflow-y-auto">
                 {/* 1. KONTEN TEKS */}
                 <TabsContent
                   value="text"
