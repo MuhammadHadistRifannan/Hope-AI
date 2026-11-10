@@ -34,7 +34,7 @@ namespace MyApp.Namespace
         readonly ModelAi _model; 
         readonly ILogger<GeminiController> _logger;
 
-        public GeminiController(IGeminiService client , IChatHistoryService history , ITtsService tts, ILogger<GeminiController> logger)
+        public GeminiController(IGeminiService client , IChatHistoryService history , ITtsService tts, ILogger<GeminiController> logger, IConfiguration config)
         {
             _client = client;
             _logger = logger;
@@ -42,7 +42,8 @@ namespace MyApp.Namespace
             _tts = tts;
             _model = new ModelAi
             {
-                nameModel = "gemini-2.5-flash"  
+                // Model bisa diganti lewat env GEMINI_MODEL tanpa build ulang
+                nameModel = config["GEMINI_MODEL"] ?? ModelAi.DefaultModel
             };
         }
 

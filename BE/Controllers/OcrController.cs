@@ -13,12 +13,13 @@ namespace MyApp.Namespace
         readonly IOcrService ocrService;
         readonly ModelAi _model;
 
-        public OcrController(IOcrService _service)
+        public OcrController(IOcrService _service, IConfiguration config)
         {
             ocrService = _service;
             _model = new ModelAi
             {
-                nameModel = "gemini-2.5-flash"
+                // Model bisa diganti lewat env OCR_MODEL / GEMINI_MODEL tanpa build ulang
+                nameModel = config["OCR_MODEL"] ?? config["GEMINI_MODEL"] ?? ModelAi.DefaultModel
             };
         }
 

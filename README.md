@@ -263,7 +263,7 @@ Prinsipnya:
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion |
 | Backend | ASP.NET Core 10 (C#) |
 | Database | Supabase (PostgreSQL) dengan Row Level Security |
-| AI | Google Gemini 2.5 Flash (OCR, chat, ringkasan, kuis, penilaian) dan Gemini TTS (suara) |
+| AI | Google Gemini 3.8 Flash (OCR, chat, ringkasan, kuis, penilaian; bisa diganti lewat `GEMINI_MODEL`) dan Gemini TTS (suara) |
 | Di perangkat | MediaPipe Hand Landmarker, Tesseract.js, Web Speech API |
 | Infrastruktur | Vercel, VPS + Docker Compose + Nginx, Cloudflare, GitHub Actions |
 

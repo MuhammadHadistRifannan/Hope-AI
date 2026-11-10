@@ -10,6 +10,8 @@ namespace HopeAi;
 
 public struct ModelAi
 {
+    // gemini-2.5-flash tidak lagi tersedia untuk project/kunci baru
+    public const string DefaultModel = "gemini-3.8-flash";
     public string nameModel { get; set; }
 }
 
